@@ -48,8 +48,9 @@ uart:
   baud_rate: 9600
   debug:
     direction: RX
+    dummy_receiver: true
     after:
-      delimiter: "\r\n"
+      delimiter: "\r"
     sequence:
       - lambda: |-
           std::string str(bytes.begin(), bytes.end());
