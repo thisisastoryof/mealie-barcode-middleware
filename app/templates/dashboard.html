@@ -16,7 +16,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="d-flex align-items-center">
-                    <span class="badge bg-{{ 'green' if mealie_reachable else 'red' }} me-2">&nbsp;</span>
+                    <span class="badge bg-{{ 'green' if mealie_reachable else 'red' }} text-{{ 'green' if mealie_reachable else 'red' }}-fg me-2">&nbsp;</span>
                     <span>Mealie: {{ "Connected" if mealie_reachable else "Unreachable" }}</span>
                     {% if last_sync_time %}
                     <span class="ms-3 text-secondary">Last food sync: {{ last_sync_time.strftime('%Y-%m-%d %H:%M UTC') }}</span>
@@ -107,13 +107,13 @@
                             <td>{{ item.barcode.source or "—" }}</td>
                             <td>
                                 {% if item.status == "mapped" %}
-                                <span class="badge bg-green">Mapped</span>
+                                <span class="badge bg-green text-green-fg">Mapped</span>
                                 {% elif item.status == "queued" %}
-                                <span class="badge bg-orange">Queued</span>
+                                <span class="badge bg-orange text-orange-fg">Queued</span>
                                 {% elif item.status == "unknown" %}
-                                <span class="badge bg-red">Unknown</span>
+                                <span class="badge bg-red text-red-fg">Unknown</span>
                                 {% else %}
-                                <span class="badge bg-yellow">Pending</span>
+                                <span class="badge bg-yellow text-yellow-fg">Pending</span>
                                 {% endif %}
                             </td>
                             <td>{{ item.barcode.created_at.strftime('%Y-%m-%d %H:%M') if item.barcode.created_at else "—" }}</td>

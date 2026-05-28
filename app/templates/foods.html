@@ -31,7 +31,7 @@
                     <td><a href="/foods/{{ item.food.id }}">{{ item.food.name }}</a></td>
                     <td>
                         {% if item.mapping_count > 0 %}
-                        <span class="badge bg-green">{{ item.mapping_count }}</span>
+                        <span class="badge bg-green text-green-fg">{{ item.mapping_count }}</span>
                         {% else %}
                         <span class="text-secondary">0</span>
                         {% endif %}

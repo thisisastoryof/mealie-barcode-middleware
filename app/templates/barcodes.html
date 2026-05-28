@@ -51,7 +51,7 @@
                     <td>
                         {% if item.food %}
                         <a href="/foods/{{ item.food.id }}">{{ item.food.name }}</a>
-                        <span class="badge bg-azure ms-1">{{ item.mapping.mapped_by }}</span>
+                        <span class="badge bg-azure text-azure-fg ms-1">{{ item.mapping.mapped_by }}</span>
                         {% else %}
                         <span class="text-secondary">—</span>
                         {% endif %}
