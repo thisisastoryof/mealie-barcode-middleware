@@ -38,7 +38,7 @@
                 <div class="d-flex align-items-center">
                     <div>
                         <div class="subheader">Total Barcodes</div>
-                        <div class="h1 mb-0">{{ total_barcodes }}</div>
+                        <div class="h1 mb-0" id="stat-total">{{ total_barcodes }}</div>
                     </div>
                 </div>
             </div>
@@ -50,7 +50,7 @@
                 <div class="d-flex align-items-center">
                     <div>
                         <div class="subheader">Mapped</div>
-                        <div class="h1 mb-0 text-green">{{ mapped_count }}</div>
+                        <div class="h1 mb-0 text-green" id="stat-mapped">{{ mapped_count }}</div>
                     </div>
                 </div>
             </div>
@@ -62,7 +62,7 @@
                 <div class="d-flex align-items-center">
                     <div>
                         <div class="subheader">Pending Mapping</div>
-                        <div class="h1 mb-0 text-yellow">{{ pending_count }}</div>
+                        <div class="h1 mb-0 text-yellow" id="stat-pending">{{ pending_count }}</div>
                     </div>
                 </div>
             </div>
@@ -74,7 +74,7 @@
                 <div class="d-flex align-items-center">
                     <div>
                         <div class="subheader">Retry Queue</div>
-                        <div class="h1 mb-0 text-{{ 'green' if queue_depth == 0 else 'red' }}">{{ queue_depth }}</div>
+                        <div class="h1 mb-0 text-{{ 'green' if queue_depth == 0 else 'red' }}" id="stat-queue">{{ queue_depth }}</div>
                     </div>
                 </div>
             </div>
@@ -100,7 +100,7 @@
                             <th>Scanned</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="recent-scans-body">
                         {% for item in recent_items %}
                         <tr>
                             <td><a href="/barcodes/{{ item.barcode.barcode }}">{{ item.barcode.barcode }}</a></td>

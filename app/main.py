@@ -125,6 +125,52 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     })
 
 
+@app.get("/api/dashboard")
+def dashboard_api(db: Session = Depends(get_db)):
+    """JSON endpoint for partial dashboard refresh."""
+    total_barcodes = db.query(BarcodeCache).count()
+    mapped_count = db.query(BarcodeFoodMapping).count()
+    pending_count = (
+        db.query(BarcodeCache)
+        .filter(BarcodeCache.found == True)
+        .filter(~BarcodeCache.barcode.in_(
+            db.query(BarcodeFoodMapping.barcode)
+        ))
+        .count()
+    )
+    queue_depth = db.query(RetryQueue).count()
+
+    recent = db.query(BarcodeCache).order_by(BarcodeCache.created_at.desc()).limit(10).all()
+    mappings = {m.barcode: m for m in db.query(BarcodeFoodMapping).all()}
+    queued_barcodes = set(r.barcode for r in db.query(RetryQueue).all())
+
+    recent_items = []
+    for bc in recent:
+        if bc.barcode in mappings:
+            status = "mapped"
+        elif bc.barcode in queued_barcodes:
+            status = "queued"
+        elif not bc.found:
+            status = "unknown"
+        else:
+            status = "pending"
+        recent_items.append({
+            "barcode": bc.barcode,
+            "title": bc.title or "\u2014",
+            "source": bc.source or "\u2014",
+            "status": status,
+            "created_at": _localtime(bc.created_at),
+        })
+
+    return {
+        "total_barcodes": total_barcodes,
+        "mapped_count": mapped_count,
+        "pending_count": pending_count,
+        "queue_depth": queue_depth,
+        "recent_items": recent_items,
+    }
+
+
 @app.get("/events")
 async def sse_stream():
     """Server-Sent Events stream for real-time scan notifications."""

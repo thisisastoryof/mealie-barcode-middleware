@@ -185,10 +185,10 @@
                 }
             }
 
-            // Auto-refresh dashboard if currently viewing it
+            // Partial dashboard update if currently viewing it
             if (window.location.pathname === '/') {
                 clearTimeout(window._dashRefresh);
-                window._dashRefresh = setTimeout(function() { window.location.reload(); }, 2000);
+                window._dashRefresh = setTimeout(function() { _refreshDashboard(); }, 2000);
             }
 
             // Add to notification bell
@@ -200,6 +200,41 @@
             var d = document.createElement('div');
             d.textContent = s;
             return d.innerHTML;
+        }
+
+        function _refreshDashboard() {
+            fetch('/api/dashboard').then(function(r) { return r.json(); }).then(function(d) {
+                var el;
+                el = document.getElementById('stat-total');
+                if (el) el.textContent = d.total_barcodes;
+                el = document.getElementById('stat-mapped');
+                if (el) el.textContent = d.mapped_count;
+                el = document.getElementById('stat-pending');
+                if (el) el.textContent = d.pending_count;
+                el = document.getElementById('stat-queue');
+                if (el) {
+                    el.textContent = d.queue_depth;
+                    el.className = 'h1 mb-0 text-' + (d.queue_depth === 0 ? 'green' : 'red');
+                }
+                var tbody = document.getElementById('recent-scans-body');
+                if (tbody && d.recent_items) {
+                    var badgeMap = {mapped: 'green', queued: 'orange', unknown: 'red', pending: 'yellow'};
+                    var labelMap = {mapped: 'Mapped', queued: 'Queued', unknown: 'Unknown', pending: 'Pending'};
+                    var rows = '';
+                    d.recent_items.forEach(function(item) {
+                        var bg = badgeMap[item.status] || 'secondary';
+                        rows += '<tr>'
+                            + '<td><a href="/barcodes/' + _esc(item.barcode) + '">' + _esc(item.barcode) + '</a></td>'
+                            + '<td>' + _esc(item.title) + '</td>'
+                            + '<td>' + _esc(item.source) + '</td>'
+                            + '<td><span class="badge bg-' + bg + ' text-' + bg + '-fg">' + labelMap[item.status] + '</span></td>'
+                            + '<td>' + _esc(item.created_at) + '</td>'
+                            + '</tr>';
+                    });
+                    if (!rows) rows = '<tr><td colspan="5" class="text-center text-secondary">No scans yet</td></tr>';
+                    tbody.innerHTML = rows;
+                }
+            });
         }
     })();
     </script>
