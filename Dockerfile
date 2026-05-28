@@ -10,7 +10,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ ./app/
 
-RUN adduser --system --no-create-home appuser
+RUN adduser --system --no-create-home appuser \
+    && mkdir -p /data \
+    && chown appuser /data
 USER appuser
 
 EXPOSE 8000
