@@ -80,19 +80,19 @@ text_sensor:
               Authorization: "Bearer YOUR-TOKEN-HERE"
             body: !lambda |-
               return "{\"barcode\":\"" + x + "\"}";
+            capture_response: true
+            max_response_buffer_size: 1024
             on_response:
               then:
                 - lambda: |-
-                    if (status_code == 200) {
+                    if (response->status_code == 200) {
                       // Parse the "food" field from the JSON response for display
-                      std::string resp = body;
-                      // Simple extraction — find "food":"..."
-                      size_t pos = resp.find("\"food\":\"");
+                      size_t pos = body.find("\"food\":\"");
                       if (pos != std::string::npos) {
                         pos += 8;  // skip past "food":"
-                        size_t end = resp.find("\"", pos);
+                        size_t end = body.find("\"", pos);
                         if (end != std::string::npos) {
-                          std::string food_name = resp.substr(pos, end - pos);
+                          std::string food_name = body.substr(pos, end - pos);
                           id(last_result).publish_state(food_name.c_str());
                           id(screen_mode).publish_state("result");
                         }
