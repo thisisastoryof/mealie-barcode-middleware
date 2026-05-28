@@ -55,9 +55,12 @@ uart:
       - lambda: |-
           std::string str(bytes.begin(), bytes.end());
           str.erase(str.find_last_not_of(" \n\r\t") + 1);
-          if (!str.empty()) {
-            id(barcode_raw).publish_state(str);
+          if (str.empty()) return;
+          // Ignore binary GM67 config responses — only accept printable ASCII
+          for (char c : str) {
+            if (c < 0x20 || c > 0x7E) return;
           }
+          id(barcode_raw).publish_state(str);
 
 # Template sensors for display state
 text_sensor:
@@ -78,7 +81,7 @@ text_sensor:
             id: screen_mode
             state: "scanning"
         - http_request.post:
-            url: "http://YOUR-MIDDLEWARE-IP:8000/scan"
+            url: "http://YOUR-MIDDLEWARE-IP:9930/scan"
             request_headers:
               Content-Type: "application/json"
               Authorization: "Bearer YOUR-TOKEN-HERE"
