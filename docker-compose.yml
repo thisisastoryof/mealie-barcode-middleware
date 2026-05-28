@@ -4,7 +4,7 @@ services:
     image: barcode-mealie-middleware:latest
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "9930:8000"
     volumes:
       - ./middleware-data:/data
     env_file:
