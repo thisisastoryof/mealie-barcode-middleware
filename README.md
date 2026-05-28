@@ -112,6 +112,7 @@ All configuration is via environment variables. Create a `.env` file from `.env.
 | `UPCDB_API_KEY`            | No       | —                                                 | UPCDatabase API key. Required when `UPCDB_ENABLED=true`                        |
 | `FOOD_SYNC_INTERVAL_HOURS` | No       | `6`                                               | How often (in hours) to re-sync the Mealie food catalog                        |
 | `FUZZY_MATCH_THRESHOLD`    | No       | `85`                                              | Minimum score (0–100) for automatic barcode→food mapping                       |
+| `FUZZY_AMBIGUITY_GAP`      | No       | `10`                                              | Minimum score gap between #1 and #2 match to auto-map (avoids ambiguity)       |
 | `LOOKUP_TTL_DAYS`          | No       | `30`                                              | How many days to wait before retrying external lookups for unresolved barcodes |
 | `DB_PATH`                  | No       | `/data/barcode.db`                                | Path to the SQLite database file                                               |
 | `PORT`                     | No       | `8000`                                            | HTTP port the server listens on                                                |
