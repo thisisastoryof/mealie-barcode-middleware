@@ -1,0 +1,113 @@
+#######################################################################################################
+# ESP32 + GM67 Barcode Scanner — HTTP POST to Middleware
+#######################################################################################################
+#
+# This ESPHome config sends scanned barcodes directly to the barcode-mealie-middleware
+# via HTTP POST, removing Home Assistant from the critical data path.
+#
+# Replace placeholder values marked with ##### before flashing.
+#
+
+esphome:
+  name: barcode-scanner
+  friendly_name: Barcode Scanner
+  on_boot:
+    - text_sensor.template.publish:
+        id: screen_mode
+        state: "standby"
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+
+wifi:
+  ssid: "######"
+  password: "######"
+  ap:
+    ssid: "Barcode-Scanner-AP"
+    password: "######"
+
+captive_portal:
+
+# HTTP request component for POSTing to the middleware
+http_request:
+  useragent: "ESPHome/BarcodeScanner"
+  timeout: 10s
+
+# UART for GM67 barcode scanner module
+uart:
+  rx_pin: GPIO16
+  tx_pin: GPIO17
+  baud_rate: 9600
+
+# Template sensors for display state
+text_sensor:
+  - platform: template
+    name: "Screen Mode"
+    id: screen_mode
+    
+  - platform: template
+    name: "Last Result"
+    id: last_result
+
+  - platform: custom
+    lambda: |-
+      auto my_sensor = new UARTTextSensor(id(uart_bus));
+      App.register_component(my_sensor);
+      return {my_sensor};
+    text_sensors:
+      - name: "Barcode Raw"
+        id: barcode_raw
+        on_value:
+          then:
+            - text_sensor.template.publish:
+                id: screen_mode
+                state: "scanning"
+            - http_request.post:
+                url: "http://YOUR-MIDDLEWARE-IP:8000/scan"
+                headers:
+                  Content-Type: "application/json"
+                  Authorization: "Bearer YOUR-TOKEN-HERE"
+                body: !lambda |-
+                  return "{\"barcode\":\"" + x + "\"}";
+                on_response:
+                  then:
+                    - lambda: |-
+                        if (response->status_code == 200) {
+                          // Parse the "food" field from the JSON response for display
+                          std::string body = response->get_string();
+                          // Simple extraction — find "food":"..." 
+                          size_t pos = body.find("\"food\":\"");
+                          if (pos != std::string::npos) {
+                            pos += 8;  // skip past "food":"
+                            size_t end = body.find("\"", pos);
+                            if (end != std::string::npos) {
+                              std::string food_name = body.substr(pos, end - pos);
+                              id(last_result).publish_state(food_name.c_str());
+                              id(screen_mode).publish_state("result");
+                            }
+                          } else {
+                            id(last_result).publish_state(x.c_str());
+                            id(screen_mode).publish_state("result");
+                          }
+                        } else {
+                          id(last_result).publish_state("Error");
+                          id(screen_mode).publish_state("error");
+                        }
+                    - script.execute: standby_timer
+
+# Timer to return to standby after showing result
+script:
+  - id: standby_timer
+    mode: restart
+    then:
+      - delay: 5s
+      - text_sensor.template.publish:
+          id: screen_mode
+          state: "standby"
+      - text_sensor.template.publish:
+          id: last_result
+          state: ""
