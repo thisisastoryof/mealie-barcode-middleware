@@ -33,8 +33,7 @@ def settings_page(request: Request):
         "PORT": str(settings.port),
         "LOG_LEVEL": settings.log_level,
     }
-    return _templates().TemplateResponse("settings.html", {
-        "request": request,
+    return _templates().TemplateResponse(request, "settings.html", {
         "config": config_display,
     })
 
@@ -42,8 +41,7 @@ def settings_page(request: Request):
 @router.get("/settings/tokens", response_class=HTMLResponse)
 def tokens_page(request: Request, db: Session = Depends(get_db)):
     tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all()
-    return _templates().TemplateResponse("tokens.html", {
-        "request": request,
+    return _templates().TemplateResponse(request, "tokens.html", {
         "tokens": tokens,
         "new_token": None,
     })
@@ -59,8 +57,7 @@ def create_token(request: Request, name: str = Form(...), db: Session = Depends(
     db.refresh(token)
 
     tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all()
-    return _templates().TemplateResponse("tokens.html", {
-        "request": request,
+    return _templates().TemplateResponse(request, "tokens.html", {
         "tokens": tokens,
         "new_token": raw,
         "new_token_name": name,

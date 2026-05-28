@@ -93,8 +93,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     last_sync = db.query(MealieFood.synced_at).order_by(MealieFood.synced_at.desc()).first()
     last_sync_time = last_sync[0] if last_sync else None
 
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "dashboard.html", {
         "total_barcodes": total_barcodes,
         "mapped_count": mapped_count,
         "pending_count": pending_count,

@@ -58,8 +58,7 @@ def barcodes_list(
             "food": food,
         })
 
-    return _templates().TemplateResponse("barcodes.html", {
-        "request": request,
+    return _templates().TemplateResponse(request, "barcodes.html", {
         "items": items,
         "current_status": status,
     })
@@ -90,8 +89,7 @@ def barcode_detail(
         .first()
     )
 
-    return _templates().TemplateResponse("barcode_detail.html", {
-        "request": request,
+    return _templates().TemplateResponse(request, "barcode_detail.html", {
         "cached": cached,
         "mapping": mapping,
         "mapped_food": mapped_food,

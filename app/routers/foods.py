@@ -28,8 +28,7 @@ def foods_list(request: Request, db: Session = Depends(get_db)):
 
     items = [{"food": f, "mapping_count": mapping_counts.get(f.id, 0)} for f in foods]
 
-    return _templates().TemplateResponse("foods.html", {
-        "request": request,
+    return _templates().TemplateResponse(request, "foods.html", {
         "items": items,
     })
 
@@ -51,8 +50,7 @@ def food_detail(request: Request, food_id: str, db: Session = Depends(get_db)):
         bc = barcode_map.get(m.barcode)
         mapped_items.append({"mapping": m, "barcode": bc})
 
-    return _templates().TemplateResponse("food_detail.html", {
-        "request": request,
+    return _templates().TemplateResponse(request, "food_detail.html", {
         "food": food,
         "mapped_items": mapped_items,
     })
