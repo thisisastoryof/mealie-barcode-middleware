@@ -230,14 +230,15 @@
         window._addNotifItem = function(n) {
             var link = '/barcodes/' + encodeURIComponent(n.barcode);
             var dotClass = _statusDotClass(n.result);
-            var item = document.createElement('div');
-            item.className = 'list-group-item';
+            var item = document.createElement('a');
+            item.className = 'list-group-item list-group-item-action';
+            item.href = link;
             if (n.id) item.dataset.id = n.id;
             item.dataset.barcode = n.barcode;
             item.innerHTML = '<div class="row align-items-center">'
                 + '<div class="col-auto"><span class="status-dot status-dot-animated ' + dotClass + ' d-block"></span></div>'
                 + '<div class="col text-truncate">'
-                + '<a href="' + link + '" class="text-body d-block">' + _esc(n.title) + '</a>'
+                + '<span class="text-body d-block">' + _esc(n.title) + '</span>'
                 + '<div class="d-block text-secondary text-truncate mt-n1">' + _esc(n.message) + '</div>'
                 + '</div></div>';
             list.insertBefore(item, list.firstChild);
