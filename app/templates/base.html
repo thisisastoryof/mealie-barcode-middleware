@@ -89,6 +89,12 @@
     (function() {
         var alertsDiv = document.getElementById('scan-alerts');
         if (!window.EventSource) return;
+
+        // Request browser notification permission on first visit
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
         var es = new EventSource('/events');
         es.addEventListener('scan', function(e) {
             var data = JSON.parse(e.data);
@@ -135,6 +141,13 @@
             // Auto-dismiss after 15s
             var first = alertsDiv.firstElementChild;
             setTimeout(function() { if (first && first.parentNode) first.remove(); }, 15000);
+
+            // Browser notification (works even when tab is in background)
+            if ('Notification' in window && Notification.permission === 'granted') {
+                var body = food ? food + ' (' + barcode + ')' : barcode;
+                var n = new Notification(title, { body: body, icon: '/static/vendor/tabler/tabler.svg', tag: barcode });
+                n.onclick = function() { window.focus(); window.location.href = link; };
+            }
         });
 
         function _esc(s) {
