@@ -116,6 +116,7 @@ All configuration is via environment variables. Create a `.env` file from `.env.
 | `DB_PATH`                  | No       | `/data/barcode.db`                                | Path to the SQLite database file                                               |
 | `PORT`                     | No       | `8000`                                            | HTTP port the server listens on                                                |
 | `LOG_LEVEL`                | No       | `INFO`                                            | Python log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`)                         |
+| `TIMEZONE`                 | No       | `Europe/Berlin`                                   | IANA timezone for displaying timestamps in the UI (e.g. `America/New_York`)    |
 
 ## Usage
 
