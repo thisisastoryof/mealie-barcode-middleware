@@ -73,7 +73,7 @@
                 <div class="d-flex align-items-center">
                     <div>
                         <div class="subheader">Retry Queue</div>
-                        <div class="h1 mb-0 text-orange">{{ queue_depth }}</div>
+                        <div class="h1 mb-0 text-{{ 'green' if queue_depth == 0 else 'red' }}">{{ queue_depth }}</div>
                     </div>
                 </div>
             </div>

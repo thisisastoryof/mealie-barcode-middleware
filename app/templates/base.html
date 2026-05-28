@@ -90,6 +90,14 @@
         var alertsDiv = document.getElementById('scan-alerts');
         if (!window.EventSource) return;
 
+        // Register service worker for mobile notification support
+        var swReg = null;
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/sw.js').then(function(reg) {
+                swReg = reg;
+            });
+        }
+
         // Request browser notification permission on first visit
         if ('Notification' in window && Notification.permission === 'default') {
             Notification.requestPermission();
@@ -142,11 +150,21 @@
             var first = alertsDiv.firstElementChild;
             setTimeout(function() { if (first && first.parentNode) first.remove(); }, 15000);
 
-            // Browser notification (works even when tab is in background)
+            // Browser notification (service worker for mobile, fallback for desktop)
             if ('Notification' in window && Notification.permission === 'granted') {
                 var body = food ? food + ' (' + barcode + ')' : barcode;
-                var n = new Notification(title, { body: body, icon: '/static/vendor/tabler/tabler.svg', tag: barcode });
-                n.onclick = function() { window.focus(); window.location.href = link; };
+                if (swReg) {
+                    swReg.showNotification(title, { body: body, tag: barcode, data: { url: link } });
+                } else {
+                    var n = new Notification(title, { body: body, tag: barcode });
+                    n.onclick = function() { window.focus(); window.location.href = link; };
+                }
+            }
+
+            // Auto-refresh dashboard if currently viewing it
+            if (window.location.pathname === '/') {
+                clearTimeout(window._dashRefresh);
+                window._dashRefresh = setTimeout(function() { window.location.reload(); }, 2000);
             }
         });
 
