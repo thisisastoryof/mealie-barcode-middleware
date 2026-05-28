@@ -83,17 +83,8 @@ services:
       - "8000:8000"
     volumes:
       - ./middleware-data:/data
-    environment:
-      MEALIE_URL: http://mealie:9000
-      MEALIE_API_KEY: ${MEALIE_API_KEY}
-      MEALIE_SHOPPING_LIST_ID: ${MEALIE_SHOPPING_LIST_ID}
-      UPCDB_API_KEY: ${UPCDB_API_KEY:-}
-    networks:
-      - mealie_network
-
-networks:
-  mealie_network:
-    external: true
+    env_file:
+      - .env
 ```
 
 </details>
