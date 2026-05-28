@@ -19,6 +19,11 @@ env/
 .env.*
 !.env.example
 
+# Docker Compose (user's real config — only .example is tracked)
+docker-compose.yml
+docker-compose.yaml
+!docker-compose.yml.example
+
 # SQLite database
 *.db
 *.db-shm
