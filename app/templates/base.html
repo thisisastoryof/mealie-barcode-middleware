@@ -1,10 +1,17 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <title>{% block title %}Barcode Middleware{% endblock %}</title>
     <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
+    <script>
+      // Apply saved theme before render to avoid flash
+      (function() {
+        var t = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', t);
+      })();
+    </script>
 </head>
 <body class="d-flex flex-column">
     <div class="page">
@@ -26,6 +33,19 @@
                         <li class="nav-item"><a class="nav-link" href="/settings/tokens">Tokens</a></li>
                     </ul>
                 </div>
+                <div class="navbar-nav flex-row order-md-last">
+                    <a href="#" class="nav-link px-0" id="theme-toggle" title="Toggle dark mode">
+                        <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>
+                        </svg>
+                        <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" class="icon d-none" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/>
+                            <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>
+                        </svg>
+                    </a>
+                </div>
             </div>
         </header>
         <!-- Page body -->
@@ -38,6 +58,31 @@
         </div>
     </div>
     <script src="/static/vendor/tabler/js/tabler.min.js"></script>
+    <script>
+    (function() {
+        var toggle = document.getElementById('theme-toggle');
+        var iconMoon = document.getElementById('icon-moon');
+        var iconSun = document.getElementById('icon-sun');
+        function applyIcons(theme) {
+            if (theme === 'dark') {
+                iconMoon.classList.add('d-none');
+                iconSun.classList.remove('d-none');
+            } else {
+                iconMoon.classList.remove('d-none');
+                iconSun.classList.add('d-none');
+            }
+        }
+        applyIcons(document.documentElement.getAttribute('data-bs-theme'));
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            var current = document.documentElement.getAttribute('data-bs-theme');
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', next);
+            localStorage.setItem('theme', next);
+            applyIcons(next);
+        });
+    })();
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
