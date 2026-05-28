@@ -75,7 +75,7 @@ text_sensor:
             state: "scanning"
         - http_request.post:
             url: "http://YOUR-MIDDLEWARE-IP:8000/scan"
-            headers:
+            request_headers:
               Content-Type: "application/json"
               Authorization: "Bearer YOUR-TOKEN-HERE"
             body: !lambda |-
