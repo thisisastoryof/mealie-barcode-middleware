@@ -65,9 +65,18 @@
         </div>
     </div>
     {% if not cached.found %}
-    <div class="card-footer">
+    <div class="card-footer d-flex">
         <form method="post" action="/barcodes/{{ cached.barcode }}/retry-lookup" class="d-inline">
             <button type="submit" class="btn btn-warning">Retry Lookup</button>
+        </form>
+        <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline ms-auto" onsubmit="return confirm('Delete this barcode and its mapping?')">
+            <button type="submit" class="btn btn-outline-danger">Delete Barcode</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="card-footer d-flex justify-content-end">
+        <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline" onsubmit="return confirm('Delete this barcode and its mapping?')">
+            <button type="submit" class="btn btn-outline-danger">Delete Barcode</button>
         </form>
     </div>
     {% endif %}

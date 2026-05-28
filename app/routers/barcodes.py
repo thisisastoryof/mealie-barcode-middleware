@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.models import BarcodeCache, BarcodeFoodMapping, MealieFood
+from app.models import BarcodeCache, BarcodeFoodMapping, MealieFood, RetryQueue
 from app.services.barcode_lookup import perform_lookup
 from app.services.fuzzy import fuzzy_match
 
@@ -128,6 +128,20 @@ def barcode_unmap(barcode: str, db: Session = Depends(get_db)):
 def barcode_retry_lookup(barcode: str, db: Session = Depends(get_db)):
     perform_lookup(barcode, db)
     return RedirectResponse(f"/barcodes/{barcode}", status_code=303)
+
+
+@router.post("/barcodes/{barcode}/delete")
+def barcode_delete(barcode: str, db: Session = Depends(get_db)):
+    """Delete cached barcode and its mapping."""
+    db.query(RetryQueue).filter(RetryQueue.barcode == barcode).delete()
+    mapping = db.get(BarcodeFoodMapping, barcode)
+    if mapping:
+        db.delete(mapping)
+    cached = db.get(BarcodeCache, barcode)
+    if cached:
+        db.delete(cached)
+    db.commit()
+    return RedirectResponse("/barcodes", status_code=303)
 
 
 @router.get("/barcodes-search")
