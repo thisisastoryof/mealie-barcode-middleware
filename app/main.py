@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -10,9 +11,11 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from starlette.responses import StreamingResponse
 
 from app.config import settings
 from app.database import get_db, init_db
+from app.events import scan_events
 from app.models import BarcodeCache, BarcodeFoodMapping, RetryQueue
 from app.routers import barcodes, foods, health, scan, settings as settings_router
 from app.services.mealie import check_connectivity
@@ -119,3 +122,25 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         "mealie_reachable": mealie_reachable,
         "last_sync_time": last_sync_time,
     })
+
+
+@app.get("/events")
+async def sse_stream():
+    """Server-Sent Events stream for real-time scan notifications."""
+    queue = scan_events.subscribe()
+
+    async def _generate():
+        try:
+            while True:
+                msg = await queue.get()
+                yield msg
+        except asyncio.CancelledError:
+            pass
+        finally:
+            scan_events.unsubscribe(queue)
+
+    return StreamingResponse(
+        _generate(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

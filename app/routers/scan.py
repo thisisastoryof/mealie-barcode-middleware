@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.auth import require_token
 from app.config import settings
 from app.database import get_db
+from app.events import scan_events
 from app.models import BarcodeCache, BarcodeFoodMapping, MealieFood
 from app.services.barcode_lookup import perform_lookup
 from app.services.fuzzy import try_auto_map
@@ -49,7 +50,9 @@ def scan_barcode(
     # --- GENERIC QR code handling ---
     if barcode.upper().startswith("GENERIC:"):
         term = barcode[len("GENERIC:"):].strip()
-        return _handle_generic(term, barcode, db)
+        resp = _handle_generic(term, barcode, db)
+        _emit_scan_event(barcode, resp)
+        return resp
 
     # --- Standard barcode flow ---
     # Step 1: Check existing mapping
@@ -57,7 +60,9 @@ def scan_barcode(
     if mapping:
         food = db.get(MealieFood, mapping.mealie_food_id)
         food_name = food.name if food else barcode
-        return _add_via_food_id(mapping.mealie_food_id, food_name, barcode, db)
+        resp = _add_via_food_id(mapping.mealie_food_id, food_name, barcode, db)
+        _emit_scan_event(barcode, resp)
+        return resp
 
     # Step 2: Check cache / perform lookup
     cached = db.get(BarcodeCache, barcode)
@@ -80,26 +85,41 @@ def scan_barcode(
         note = barcode
         success = add_to_shopping_list_by_note(note)
         if success:
-            return ScanResponse(result="unknown", food=None, via=None)
+            resp = ScanResponse(result="unknown", food=None, via=None)
         else:
             _enqueue_note(barcode, note, db)
-            return ScanResponse(result="unknown", food=None, via=None)
+            resp = ScanResponse(result="unknown", food=None, via=None)
+        _emit_scan_event(barcode, resp)
+        return resp
 
     # Step 3: Attempt fuzzy auto-mapping
     food_id = try_auto_map(barcode, cached.title or barcode, cached.brand, db)
     if food_id:
         food = db.get(MealieFood, food_id)
         food_name = food.name if food else cached.title or barcode
-        return _add_via_food_id(food_id, food_name, barcode, db)
+        resp = _add_via_food_id(food_id, food_name, barcode, db)
+        _emit_scan_event(barcode, resp)
+        return resp
 
     # No mapping — add as note with product title
     note = cached.title or barcode
     success = add_to_shopping_list_by_note(note)
     if success:
-        return ScanResponse(result="added_as_note", food=note, via="note")
+        resp = ScanResponse(result="added_as_note", food=note, via="note")
     else:
         _enqueue_note(barcode, note, db)
-        return ScanResponse(result="queued", food=note, via="note")
+        resp = ScanResponse(result="queued", food=note, via="note")
+    _emit_scan_event(barcode, resp)
+    return resp
+
+
+def _emit_scan_event(barcode: str, resp: ScanResponse):
+    """Publish a scan event to all SSE listeners."""
+    scan_events.publish("scan", {
+        "barcode": barcode,
+        "result": resp.result,
+        "food": resp.food,
+    })
 
 
 def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:

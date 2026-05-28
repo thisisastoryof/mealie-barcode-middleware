@@ -48,6 +48,8 @@
                 </div>
             </div>
         </header>
+        <!-- Live scan alerts -->
+        <div id="scan-alerts" class="container-xl mt-2"></div>
         <!-- Page body -->
         <div class="page-wrapper">
             <div class="page-body">
@@ -81,6 +83,66 @@
             localStorage.setItem('theme', next);
             applyIcons(next);
         });
+    })();
+    </script>
+    <script>
+    (function() {
+        var alertsDiv = document.getElementById('scan-alerts');
+        if (!window.EventSource) return;
+        var es = new EventSource('/events');
+        es.addEventListener('scan', function(e) {
+            var data = JSON.parse(e.data);
+            var barcode = data.barcode;
+            var result = data.result;
+            var food = data.food;
+
+            var color, title, desc;
+            if (result === 'added') {
+                color = 'success';
+                title = 'Added to shopping list';
+                desc = '<strong>' + _esc(food) + '</strong> <span class="text-secondary">(' + _esc(barcode) + ')</span>';
+            } else if (result === 'added_as_note') {
+                color = 'info';
+                title = 'Added as note';
+                desc = '<strong>' + _esc(food) + '</strong> <span class="text-secondary">(' + _esc(barcode) + ')</span>';
+            } else if (result === 'queued') {
+                color = 'warning';
+                title = 'Queued for retry';
+                desc = _esc(food || barcode);
+            } else {
+                color = 'danger';
+                title = 'Unknown barcode';
+                desc = '<code>' + _esc(barcode) + '</code>';
+            }
+
+            var link = '/barcodes/' + encodeURIComponent(barcode);
+            var html = '<div class="alert alert-' + color + ' alert-dismissible" role="alert">'
+                + '<div class="d-flex align-items-center">'
+                + '<div class="alert-icon">'
+                + '<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
+                + '<path stroke="none" d="M0 0h24v24H0z" fill="none"/>'
+                + '<path d="M4 7v-1a2 2 0 0 1 2 -2h2"/><path d="M4 17v1a2 2 0 0 0 2 2h2"/>'
+                + '<path d="M16 4h2a2 2 0 0 1 2 2v1"/><path d="M16 20h2a2 2 0 0 0 2 -2v-1"/>'
+                + '<path d="M5 11h1v2h-1z"/><path d="M10 11v2"/><path d="M14 11h1v2h-1z"/><path d="M19 11v2"/>'
+                + '</svg></div>'
+                + '<div class="ms-2"><h4 class="alert-heading mb-0">' + title + '</h4>'
+                + '<div class="text-secondary">' + desc
+                + ' &mdash; <a href="' + link + '" class="alert-link">View / Map</a></div></div></div>'
+                + '<a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a></div>';
+
+            alertsDiv.insertAdjacentHTML('afterbegin', html);
+
+            // Auto-dismiss after 15s
+            var first = alertsDiv.firstElementChild;
+            setTimeout(function() { if (first && first.parentNode) first.remove(); }, 15000);
+        });
+
+        function _esc(s) {
+            if (!s) return '';
+            var d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
     })();
     </script>
     {% block scripts %}{% endblock %}
