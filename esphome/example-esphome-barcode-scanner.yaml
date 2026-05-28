@@ -2,7 +2,7 @@
 # ESP32 + GM67 Barcode Scanner — HTTP POST to Middleware
 #######################################################################################################
 #
-# This ESPHome config sends scanned barcodes directly to the barcode-mealie-middleware
+# This ESPHome config sends scanned barcodes directly to the mealie-barcode-middleware
 # via HTTP POST, removing Home Assistant from the critical data path.
 #
 # Replace placeholder values marked with ##### before flashing.

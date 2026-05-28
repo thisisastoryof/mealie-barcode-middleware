@@ -7,7 +7,7 @@ A self-hosted middleware service that connects an ESPHome barcode scanner to [Me
         │
         │ HTTP POST /scan
         ▼
-[barcode-mealie-middleware]  ◄──►  [OpenFoodFacts / UPCDatabase]
+[mealie-barcode-middleware]  ◄──►  [OpenFoodFacts / UPCDatabase]
         │
         │ Mealie REST API
         ▼
@@ -36,7 +36,7 @@ A self-hosted middleware service that connects an ESPHome barcode scanner to [Me
 
 ```bash
 # Clone and enter the repo
-cd barcode-mealie-middleware
+cd mealie-barcode-middleware
 
 # Create virtual environment
 python -m venv .venv
@@ -77,7 +77,7 @@ docker compose up -d
 services:
   barcode-middleware:
     build: .
-    image: barcode-mealie-middleware:latest
+    image: mealie-barcode-middleware:latest
     restart: unless-stopped
     ports:
       - "8000:8000"
@@ -92,8 +92,8 @@ services:
 Or build and run manually:
 
 ```bash
-docker build -t barcode-mealie-middleware .
-docker run -d -p 8000:8000 -v ./middleware-data:/data --env-file .env barcode-mealie-middleware
+docker build -t mealie-barcode-middleware .
+docker run -d -p 8000:8000 -v ./middleware-data:/data --env-file .env mealie-barcode-middleware
 ```
 
 ## Configuration
@@ -223,7 +223,7 @@ This is required because the upstream project ([HA-Mealie-Barcode-Scanner](https
 
 ```
 Copyright (C) 2025 Matt Fryer (original HA-Mealie-Barcode-Scanner)
-Copyright (C) 2026 Contributors (barcode-mealie-middleware modifications)
+Copyright (C) 2026 Contributors (mealie-barcode-middleware modifications)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

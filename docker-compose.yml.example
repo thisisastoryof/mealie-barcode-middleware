@@ -1,7 +1,7 @@
 services:
   barcode-middleware:
     build: .
-    image: barcode-mealie-middleware:latest
+    image: mealie-barcode-middleware:latest
     restart: unless-stopped
     ports:
       - "9930:8000"
