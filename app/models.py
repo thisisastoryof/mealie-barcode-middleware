@@ -61,3 +61,15 @@ class RetryQueue(Base):
     attempts: Mapped[int] = mapped_column(Integer, default=0)
     next_retry_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    barcode: Mapped[str] = mapped_column(String, nullable=False)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    result: Mapped[str] = mapped_column(String, nullable=False)  # added | queued | unknown | added_as_note
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)

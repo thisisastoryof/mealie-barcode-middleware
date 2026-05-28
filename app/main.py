@@ -17,7 +17,7 @@ from app.config import settings
 from app.database import get_db, init_db
 from app.events import scan_events
 from app.models import BarcodeCache, BarcodeFoodMapping, RetryQueue
-from app.routers import barcodes, foods, health, scan, settings as settings_router
+from app.routers import barcodes, foods, health, notifications, scan, settings as settings_router
 from app.services.mealie import check_connectivity
 from app.services.scheduler import start_scheduler, stop_scheduler
 
@@ -67,6 +67,7 @@ app.include_router(scan.router, tags=["scan"])
 app.include_router(health.router, tags=["health"])
 app.include_router(barcodes.router, tags=["barcodes"])
 app.include_router(foods.router, tags=["foods"])
+app.include_router(notifications.router, tags=["notifications"])
 app.include_router(settings_router.router, tags=["settings"])
 
 

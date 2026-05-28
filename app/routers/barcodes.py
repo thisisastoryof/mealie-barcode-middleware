@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.models import BarcodeCache, BarcodeFoodMapping, MealieFood, RetryQueue
+from app.models import BarcodeCache, BarcodeFoodMapping, MealieFood, Notification, RetryQueue
 from app.services.barcode_lookup import perform_lookup
 from app.services.fuzzy import fuzzy_match
 
@@ -111,6 +111,13 @@ def barcode_map(
         existing.mapped_by = "manual"
     else:
         db.add(BarcodeFoodMapping(barcode=barcode, mealie_food_id=food_id, mapped_by="manual"))
+
+    # Mark notifications for this barcode as read
+    db.query(Notification).filter(
+        Notification.barcode == barcode,
+        Notification.is_read == False,
+    ).update({"is_read": True})
+
     db.commit()
     return RedirectResponse(f"/barcodes/{barcode}", status_code=303)
 

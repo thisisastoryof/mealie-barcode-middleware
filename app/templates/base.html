@@ -45,6 +45,30 @@
                             <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>
                         </svg>
                     </a>
+                    <!-- Notification bell -->
+                    <div class="nav-item dropdown ms-2" id="notif-dropdown">
+                        <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications" data-bs-auto-close="outside">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                                <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path>
+                                <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
+                            </svg>
+                            <span class="badge bg-red d-none" id="notif-badge"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card" style="width: 22rem;">
+                            <div class="card">
+                                <div class="card-header d-flex">
+                                    <h3 class="card-title">Notifications</h3>
+                                    <div class="btn-close ms-auto" data-bs-dismiss="dropdown"></div>
+                                </div>
+                                <div class="list-group list-group-flush list-group-hoverable" id="notif-list" style="max-height: 20rem; overflow-y: auto;">
+                                    <div class="list-group-item text-center text-secondary" id="notif-empty">No new notifications</div>
+                                </div>
+                                <div class="card-body">
+                                    <a href="#" class="btn btn-2 w-100" id="notif-mark-all">Mark all as read</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -166,6 +190,9 @@
                 clearTimeout(window._dashRefresh);
                 window._dashRefresh = setTimeout(function() { window.location.reload(); }, 2000);
             }
+
+            // Add to notification bell
+            _addNotifItem({barcode: barcode, title: title, message: (food ? food + ' (' + barcode + ')' : barcode), result: result});
         });
 
         function _esc(s) {
@@ -174,6 +201,76 @@
             d.textContent = s;
             return d.innerHTML;
         }
+    })();
+    </script>
+    <script>
+    (function() {
+        var badge = document.getElementById('notif-badge');
+        var list = document.getElementById('notif-list');
+        var empty = document.getElementById('notif-empty');
+        var markAllBtn = document.getElementById('notif-mark-all');
+        var count = 0;
+
+        function _updateBadge() {
+            if (count > 0) {
+                badge.textContent = count;
+                badge.classList.remove('d-none');
+            } else {
+                badge.classList.add('d-none');
+            }
+            empty.style.display = count > 0 ? 'none' : '';
+        }
+
+        function _statusDotClass(result) {
+            if (result === 'added') return 'bg-green';
+            if (result === 'added_as_note') return 'bg-azure';
+            if (result === 'queued') return 'bg-yellow';
+            return 'bg-red';
+        }
+
+        window._addNotifItem = function(n) {
+            var link = '/barcodes/' + encodeURIComponent(n.barcode);
+            var dotClass = _statusDotClass(n.result);
+            var item = document.createElement('div');
+            item.className = 'list-group-item';
+            if (n.id) item.dataset.id = n.id;
+            item.dataset.barcode = n.barcode;
+            item.innerHTML = '<div class="row align-items-center">'
+                + '<div class="col-auto"><span class="status-dot status-dot-animated ' + dotClass + ' d-block"></span></div>'
+                + '<div class="col text-truncate">'
+                + '<a href="' + link + '" class="text-body d-block">' + _esc(n.title) + '</a>'
+                + '<div class="d-block text-secondary text-truncate mt-n1">' + _esc(n.message) + '</div>'
+                + '</div></div>';
+            list.insertBefore(item, list.firstChild);
+            count++;
+            _updateBadge();
+        };
+
+        function _esc(s) {
+            if (!s) return '';
+            var d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        // Load existing unread notifications on page load
+        fetch('/api/notifications').then(function(r) { return r.json(); }).then(function(items) {
+            items.reverse().forEach(function(n) {
+                _addNotifItem(n);
+            });
+        });
+
+        // Mark all as read
+        markAllBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetch('/api/notifications/read-all', { method: 'POST' }).then(function() {
+                // Remove all items from list
+                var items = list.querySelectorAll('.list-group-item:not(#notif-empty)');
+                items.forEach(function(el) { el.remove(); });
+                count = 0;
+                _updateBadge();
+            });
+        });
     })();
     </script>
     {% block scripts %}{% endblock %}
