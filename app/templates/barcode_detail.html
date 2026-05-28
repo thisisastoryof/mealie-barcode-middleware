@@ -2,15 +2,18 @@
 {% block title %}Barcode {{ cached.barcode if cached else '' }} — Barcode Middleware{% endblock %}
 
 {% block content %}
-<div class="page-header d-print-none">
-    <div class="row align-items-center">
-        <div class="col-auto">
-            <h2 class="page-title">Barcode: {{ cached.barcode if cached else 'Not Found' }}</h2>
+<div class="page-header d-print-none mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Barcode</div>
+            <h2 class="page-title">{{ cached.barcode if cached else 'Not Found' }}</h2>
         </div>
-        <div class="col-auto ms-auto">
-            {% if next_unmapped %}
-            <a href="/barcodes/{{ next_unmapped.barcode }}" class="btn btn-outline-primary">Next unmapped →</a>
-            {% endif %}
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+                {% if next_unmapped %}
+                <a href="/barcodes/{{ next_unmapped.barcode }}" class="btn btn-outline-primary">Next unmapped →</a>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>

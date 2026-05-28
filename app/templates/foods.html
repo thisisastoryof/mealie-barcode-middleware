@@ -2,15 +2,21 @@
 {% block title %}Foods — Barcode Middleware{% endblock %}
 
 {% block content %}
-<div class="page-header d-print-none">
-    <div class="row align-items-center">
-        <div class="col-auto">
-            <h2 class="page-title">Foods (Mealie Catalog)</h2>
+<div class="page-header d-print-none mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Mealie Catalog</div>
+            <h2 class="page-title">Foods</h2>
         </div>
-        <div class="col-auto ms-auto">
-            <form method="post" action="/foods/sync">
-                <button type="submit" class="btn btn-primary">Sync Now</button>
-            </form>
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+                <form method="post" action="/foods/sync">
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
+                        Sync Now
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

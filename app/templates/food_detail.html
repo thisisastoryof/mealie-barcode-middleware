@@ -2,10 +2,11 @@
 {% block title %}{{ food.name }} — Barcode Middleware{% endblock %}
 
 {% block content %}
-<div class="page-header d-print-none">
-    <div class="row align-items-center">
-        <div class="col-auto">
-            <h2 class="page-title">Food: {{ food.name }}</h2>
+<div class="page-header d-print-none mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Food</div>
+            <h2 class="page-title">{{ food.name }}</h2>
         </div>
     </div>
 </div>
