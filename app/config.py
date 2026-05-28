@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     lookup_ttl_days: int = 30
 
     db_path: str = "/data/barcode.db"
+    timezone: str = "Europe/Berlin"
     port: int = 8000
     log_level: str = "INFO"
 

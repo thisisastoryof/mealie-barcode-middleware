@@ -56,7 +56,7 @@
                 {% for token in tokens %}
                 <tr>
                     <td>{{ token.name }}</td>
-                    <td>{{ token.created_at.strftime('%Y-%m-%d %H:%M') if token.created_at else "—" }}</td>
+                    <td>{{ token.created_at|localtime }}</td>
                     <td>
                         <form method="post" action="/settings/tokens/{{ token.id }}/delete" onsubmit="return confirm('Delete token \'{{ token.name }}\'?')">
                             <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>

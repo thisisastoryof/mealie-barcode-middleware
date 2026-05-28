@@ -56,11 +56,11 @@
             </div>
             <div class="datagrid-item">
                 <div class="datagrid-title">Last Lookup</div>
-                <div class="datagrid-content">{{ cached.lookup_attempted_at.strftime('%Y-%m-%d %H:%M UTC') if cached.lookup_attempted_at else "—" }}</div>
+                <div class="datagrid-content">{{ cached.lookup_attempted_at|localtime }}</div>
             </div>
             <div class="datagrid-item">
                 <div class="datagrid-title">First Seen</div>
-                <div class="datagrid-content">{{ cached.created_at.strftime('%Y-%m-%d %H:%M UTC') if cached.created_at else "—" }}</div>
+                <div class="datagrid-content">{{ cached.created_at|localtime }}</div>
             </div>
         </div>
     </div>

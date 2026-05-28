@@ -1,6 +1,8 @@
 import logging
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.applications import FastAPI
@@ -25,6 +27,20 @@ logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+_tz = ZoneInfo(settings.timezone)
+
+
+def _localtime(value, fmt="%Y-%m-%d %H:%M"):
+    """Jinja2 filter: convert a UTC datetime to the configured local timezone."""
+    if not value:
+        return "\u2014"
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(_tz).strftime(fmt)
+
+
+templates.env.filters["localtime"] = _localtime
 
 
 @asynccontextmanager

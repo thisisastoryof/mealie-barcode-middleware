@@ -36,7 +36,7 @@
                         <span class="text-secondary">0</span>
                         {% endif %}
                     </td>
-                    <td>{{ item.food.synced_at.strftime('%Y-%m-%d %H:%M') if item.food.synced_at else "—" }}</td>
+                    <td>{{ item.food.synced_at|localtime }}</td>
                 </tr>
                 {% endfor %}
                 {% if not items %}

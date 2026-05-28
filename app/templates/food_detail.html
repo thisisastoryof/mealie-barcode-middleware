@@ -36,7 +36,7 @@
             </div>
             <div class="datagrid-item">
                 <div class="datagrid-title">Last Synced</div>
-                <div class="datagrid-content">{{ food.synced_at.strftime('%Y-%m-%d %H:%M UTC') if food.synced_at else "—" }}</div>
+                <div class="datagrid-content">{{ food.synced_at|localtime }}</div>
             </div>
         </div>
     </div>
