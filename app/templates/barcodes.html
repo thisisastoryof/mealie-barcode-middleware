@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Barcodes — Barcode Middleware{% endblock %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">Barcodes</h2>
+        </div>
+    </div>
+</div>
+
+<!-- Filter tabs -->
+<div class="mb-3">
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_status == 'all' }}" href="/barcodes?status=all">All</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_status == 'mapped' }}" href="/barcodes?status=mapped">Mapped</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_status == 'pending' }}" href="/barcodes?status=pending">Pending</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_status == 'unknown' }}" href="/barcodes?status=unknown">Unknown</a>
+        </li>
+    </ul>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+                <tr>
+                    <th>Barcode</th>
+                    <th>Title</th>
+                    <th>Brand</th>
+                    <th>Source</th>
+                    <th>Mapped To</th>
+                    <th>Scanned</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><a href="/barcodes/{{ item.barcode.barcode }}">{{ item.barcode.barcode }}</a></td>
+                    <td>{{ item.barcode.title or "—" }}</td>
+                    <td>{{ item.barcode.brand or "—" }}</td>
+                    <td>{{ item.barcode.source or "—" }}</td>
+                    <td>
+                        {% if item.food %}
+                        <a href="/foods/{{ item.food.id }}">{{ item.food.name }}</a>
+                        <span class="badge bg-azure ms-1">{{ item.mapping.mapped_by }}</span>
+                        {% else %}
+                        <span class="text-secondary">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.barcode.created_at.strftime('%Y-%m-%d %H:%M') if item.barcode.created_at else "—" }}</td>
+                </tr>
+                {% endfor %}
+                {% if not items %}
+                <tr><td colspan="6" class="text-center text-secondary">No barcodes cached yet</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

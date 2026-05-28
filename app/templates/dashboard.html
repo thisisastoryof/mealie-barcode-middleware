@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Barcode Middleware{% endblock %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">Dashboard</h2>
+        </div>
+    </div>
+</div>
+
+<!-- Health indicator -->
+<div class="row row-deck row-cards mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-{{ 'green' if mealie_reachable else 'red' }} me-2">&nbsp;</span>
+                    <span>Mealie: {{ "Connected" if mealie_reachable else "Unreachable" }}</span>
+                    {% if last_sync_time %}
+                    <span class="ms-3 text-secondary">Last food sync: {{ last_sync_time.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+                    {% else %}
+                    <span class="ms-3 text-secondary">No food sync yet</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats cards -->
+<div class="row row-deck row-cards mb-3">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <div class="subheader">Total Barcodes</div>
+                        <div class="h1 mb-0">{{ total_barcodes }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <div class="subheader">Mapped</div>
+                        <div class="h1 mb-0 text-green">{{ mapped_count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <div class="subheader">Pending Mapping</div>
+                        <div class="h1 mb-0 text-yellow">{{ pending_count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <div class="subheader">Retry Queue</div>
+                        <div class="h1 mb-0 text-orange">{{ queue_depth }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent scans -->
+<div class="row row-deck row-cards">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Scans</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table">
+                    <thead>
+                        <tr>
+                            <th>Barcode</th>
+                            <th>Title</th>
+                            <th>Source</th>
+                            <th>Status</th>
+                            <th>Scanned</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in recent_items %}
+                        <tr>
+                            <td><a href="/barcodes/{{ item.barcode.barcode }}">{{ item.barcode.barcode }}</a></td>
+                            <td>{{ item.barcode.title or "—" }}</td>
+                            <td>{{ item.barcode.source or "—" }}</td>
+                            <td>
+                                {% if item.status == "mapped" %}
+                                <span class="badge bg-green">Mapped</span>
+                                {% elif item.status == "queued" %}
+                                <span class="badge bg-orange">Queued</span>
+                                {% elif item.status == "unknown" %}
+                                <span class="badge bg-red">Unknown</span>
+                                {% else %}
+                                <span class="badge bg-yellow">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.barcode.created_at.strftime('%Y-%m-%d %H:%M') if item.barcode.created_at else "—" }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not recent_items %}
+                        <tr><td colspan="5" class="text-center text-secondary">No scans yet</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

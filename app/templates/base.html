@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title>{% block title %}Barcode Middleware{% endblock %}</title>
+    <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
+</head>
+<body class="d-flex flex-column">
+    <div class="page">
+        <!-- Navbar -->
+        <header class="navbar navbar-expand-md d-print-none">
+            <div class="container-xl">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <h1 class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+                    <a href="/">Barcode Middleware</a>
+                </h1>
+                <div class="collapse navbar-collapse" id="navbar-menu">
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a class="nav-link" href="/">Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/barcodes">Barcodes</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/foods">Foods</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/settings">Settings</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/settings/tokens">Tokens</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <!-- Page body -->
+        <div class="page-wrapper">
+            <div class="page-body">
+                <div class="container-xl">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/vendor/tabler/js/tabler.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

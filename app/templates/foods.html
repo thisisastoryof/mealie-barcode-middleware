@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Foods — Barcode Middleware{% endblock %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">Foods (Mealie Catalog)</h2>
+        </div>
+        <div class="col-auto ms-auto">
+            <form method="post" action="/foods/sync">
+                <button type="submit" class="btn btn-primary">Sync Now</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Mapped Barcodes</th>
+                    <th>Last Synced</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><a href="/foods/{{ item.food.id }}">{{ item.food.name }}</a></td>
+                    <td>
+                        {% if item.mapping_count > 0 %}
+                        <span class="badge bg-green">{{ item.mapping_count }}</span>
+                        {% else %}
+                        <span class="text-secondary">0</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.food.synced_at.strftime('%Y-%m-%d %H:%M') if item.food.synced_at else "—" }}</td>
+                </tr>
+                {% endfor %}
+                {% if not items %}
+                <tr><td colspan="3" class="text-center text-secondary">No foods synced yet. Click "Sync Now" to fetch from Mealie.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

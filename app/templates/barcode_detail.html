@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Barcode {{ cached.barcode if cached else '' }} — Barcode Middleware{% endblock %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">Barcode: {{ cached.barcode if cached else 'Not Found' }}</h2>
+        </div>
+        <div class="col-auto ms-auto">
+            {% if next_unmapped %}
+            <a href="/barcodes/{{ next_unmapped.barcode }}" class="btn btn-outline-primary">Next unmapped →</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if not cached %}
+<div class="alert alert-warning">This barcode is not in the cache.</div>
+{% else %}
+
+<!-- Product info -->
+<div class="card mb-3">
+    <div class="card-header"><h3 class="card-title">Product Information</h3></div>
+    <div class="card-body">
+        <div class="datagrid">
+            <div class="datagrid-item">
+                <div class="datagrid-title">Title</div>
+                <div class="datagrid-content">{{ cached.title or "—" }}</div>
+            </div>
+            <div class="datagrid-item">
+                <div class="datagrid-title">Brand</div>
+                <div class="datagrid-content">{{ cached.brand or "—" }}</div>
+            </div>
+            <div class="datagrid-item">
+                <div class="datagrid-title">Quantity</div>
+                <div class="datagrid-content">{{ cached.quantity or "—" }}</div>
+            </div>
+            <div class="datagrid-item">
+                <div class="datagrid-title">Type</div>
+                <div class="datagrid-content">{{ cached.product_type or "—" }}</div>
+            </div>
+            <div class="datagrid-item">
+                <div class="datagrid-title">Source</div>
+                <div class="datagrid-content">{{ cached.source or "—" }}</div>
+            </div>
+            <div class="datagrid-item">
+                <div class="datagrid-title">Found</div>
+                <div class="datagrid-content">
+                    {% if cached.found %}
+                    <span class="badge bg-green">Yes</span>
+                    {% else %}
+                    <span class="badge bg-red">No</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="datagrid-item">
+                <div class="datagrid-title">Last Lookup</div>
+                <div class="datagrid-content">{{ cached.lookup_attempted_at.strftime('%Y-%m-%d %H:%M UTC') if cached.lookup_attempted_at else "—" }}</div>
+            </div>
+            <div class="datagrid-item">
+                <div class="datagrid-title">First Seen</div>
+                <div class="datagrid-content">{{ cached.created_at.strftime('%Y-%m-%d %H:%M UTC') if cached.created_at else "—" }}</div>
+            </div>
+        </div>
+    </div>
+    {% if not cached.found %}
+    <div class="card-footer">
+        <form method="post" action="/barcodes/{{ cached.barcode }}/retry-lookup" style="display:inline">
+            <button type="submit" class="btn btn-warning">Retry Lookup</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Current mapping -->
+<div class="card mb-3">
+    <div class="card-header"><h3 class="card-title">Food Mapping</h3></div>
+    <div class="card-body">
+        {% if mapping and mapped_food %}
+        <div class="d-flex align-items-center">
+            <span class="me-2">Mapped to:</span>
+            <a href="/foods/{{ mapped_food.id }}" class="fw-bold">{{ mapped_food.name }}</a>
+            <span class="badge bg-azure ms-2">{{ mapping.mapped_by }}</span>
+            <form method="post" action="/barcodes/{{ cached.barcode }}/unmap" class="ms-auto">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Remove Mapping</button>
+            </form>
+        </div>
+        {% elif mapping %}
+        <div class="d-flex align-items-center">
+            <span class="me-2">Mapped to food ID:</span>
+            <code>{{ mapping.mealie_food_id }}</code>
+            <span class="badge bg-azure ms-2">{{ mapping.mapped_by }}</span>
+            <form method="post" action="/barcodes/{{ cached.barcode }}/unmap" class="ms-auto">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Remove Mapping</button>
+            </form>
+        </div>
+        {% else %}
+        <p class="text-secondary mb-0">Not mapped to any food.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Manual mapping form -->
+<div class="card mb-3">
+    <div class="card-header"><h3 class="card-title">Assign Food</h3></div>
+    <div class="card-body">
+        <form method="post" action="/barcodes/{{ cached.barcode }}/map">
+            <div class="row g-2 align-items-end">
+                <div class="col">
+                    <label class="form-label">Search food</label>
+                    <input type="text" id="food-search" class="form-control" placeholder="Type to search..." autocomplete="off">
+                    <div id="food-results" class="list-group mt-1" style="position:absolute;z-index:10;max-height:200px;overflow-y:auto;"></div>
+                </div>
+                <div class="col-auto">
+                    <input type="hidden" name="food_id" id="food-id-input">
+                    <button type="submit" class="btn btn-primary" id="map-btn" disabled>Map</button>
+                </div>
+            </div>
+            <div id="selected-food" class="mt-2 text-success" style="display:none"></div>
+        </form>
+    </div>
+</div>
+
+<!-- Fuzzy candidates -->
+{% if candidates %}
+<div class="card mb-3">
+    <div class="card-header"><h3 class="card-title">Fuzzy Match Candidates</h3></div>
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+                <tr>
+                    <th>Food</th>
+                    <th>Score</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in candidates %}
+                <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
+                    <td><a href="/foods/{{ c.food_id }}">{{ c.food_name }}</a></td>
+                    <td>
+                        <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}">{{ c.score }}</span>
+                    </td>
+                    <td>
+                        <form method="post" action="/barcodes/{{ cached.barcode }}/map" style="display:inline">
+                            <input type="hidden" name="food_id" value="{{ c.food_id }}">
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Map</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const searchInput = document.getElementById('food-search');
+    const resultsDiv = document.getElementById('food-results');
+    const foodIdInput = document.getElementById('food-id-input');
+    const mapBtn = document.getElementById('map-btn');
+    const selectedDiv = document.getElementById('selected-food');
+    let timeout = null;
+
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(timeout);
+        const q = this.value.trim();
+        if (q.length < 2) { resultsDiv.innerHTML = ''; return; }
+        timeout = setTimeout(function() {
+            fetch('/barcodes-search?q=' + encodeURIComponent(q))
+                .then(r => r.json())
+                .then(data => {
+                    resultsDiv.innerHTML = '';
+                    data.forEach(function(f) {
+                        const a = document.createElement('a');
+                        a.href = '#';
+                        a.className = 'list-group-item list-group-item-action';
+                        a.textContent = f.name;
+                        a.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            foodIdInput.value = f.id;
+                            mapBtn.disabled = false;
+                            selectedDiv.textContent = 'Selected: ' + f.name;
+                            selectedDiv.style.display = 'block';
+                            resultsDiv.innerHTML = '';
+                            searchInput.value = f.name;
+                        });
+                        resultsDiv.appendChild(a);
+                    });
+                });
+        }, 300);
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}API Tokens — Barcode Middleware{% endblock %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">API Tokens</h2>
+        </div>
+    </div>
+</div>
+
+<!-- Show-once new token -->
+{% if new_token %}
+<div class="alert alert-success alert-dismissible">
+    <h4 class="alert-title">Token created: {{ new_token_name }}</h4>
+    <p>Copy this token now — it will <strong>not</strong> be shown again:</p>
+    <div class="input-group mb-2" style="max-width: 600px;">
+        <input type="text" class="form-control font-monospace" value="{{ new_token }}" id="new-token-value" readonly>
+        <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('new-token-value').value)">Copy</button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Create token form -->
+<div class="card mb-3">
+    <div class="card-header"><h3 class="card-title">Create New Token</h3></div>
+    <div class="card-body">
+        <form method="post" action="/settings/tokens/create">
+            <div class="row g-2 align-items-end">
+                <div class="col-auto">
+                    <label class="form-label">Token Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. Kitchen scanner" required>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Existing tokens -->
+<div class="card">
+    <div class="card-header"><h3 class="card-title">Existing Tokens</h3></div>
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Created</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for token in tokens %}
+                <tr>
+                    <td>{{ token.name }}</td>
+                    <td>{{ token.created_at.strftime('%Y-%m-%d %H:%M') if token.created_at else "—" }}</td>
+                    <td>
+                        <form method="post" action="/settings/tokens/{{ token.id }}/delete" onsubmit="return confirm('Delete token \'{{ token.name }}\'?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not tokens %}
+                <tr><td colspan="3" class="text-center text-secondary">No tokens created yet</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
