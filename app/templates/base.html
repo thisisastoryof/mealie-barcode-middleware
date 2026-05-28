@@ -191,8 +191,16 @@
                 window._dashRefresh = setTimeout(function() { _refreshDashboard(); }, 2000);
             }
 
-            // Add to notification bell
-            _addNotifItem({barcode: barcode, title: title, message: (food ? food + ' (' + barcode + ')' : barcode), result: result});
+            // Add to notification bell only for actionable items (not already-mapped scans)
+            if (result !== 'added') {
+                var notifTitle = result === 'added_as_note' ? 'Mapping needed' :
+                                 result === 'unknown' ? 'Unknown barcode' :
+                                 result === 'queued' ? 'Mapping needed' : title;
+                var notifMsg = food ? food + ' (' + barcode + ')' : barcode;
+                var notifResult = result === 'unknown' ? 'unknown' :
+                                  result === 'added_as_note' || result === 'queued' ? 'needs_mapping' : result;
+                _addNotifItem({barcode: barcode, title: notifTitle, message: notifMsg, result: notifResult});
+            }
         });
 
         function _esc(s) {
@@ -256,9 +264,8 @@
         }
 
         function _statusDotClass(result) {
-            if (result === 'added') return 'bg-green';
-            if (result === 'added_as_note') return 'bg-azure';
-            if (result === 'queued') return 'bg-yellow';
+            if (result === 'auto_mapped') return 'bg-azure';
+            if (result === 'needs_mapping') return 'bg-yellow';
             return 'bg-red';
         }
 

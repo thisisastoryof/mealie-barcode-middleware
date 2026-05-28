@@ -51,7 +51,7 @@ def scan_barcode(
     if barcode.upper().startswith("GENERIC:"):
         term = barcode[len("GENERIC:"):].strip()
         resp = _handle_generic(term, barcode, db)
-        _emit_scan_event(barcode, resp, db)
+        _emit_scan_event(barcode, resp)
         return resp
 
     # --- Standard barcode flow ---
@@ -61,7 +61,7 @@ def scan_barcode(
         food = db.get(MealieFood, mapping.mealie_food_id)
         food_name = food.name if food else barcode
         resp = _add_via_food_id(mapping.mealie_food_id, food_name, barcode, db)
-        _emit_scan_event(barcode, resp, db)
+        _emit_scan_event(barcode, resp)
         return resp
 
     # Step 2: Check cache / perform lookup
@@ -89,7 +89,8 @@ def scan_barcode(
         else:
             _enqueue_note(barcode, note, db)
             resp = ScanResponse(result="unknown", food=None, via=None)
-        _emit_scan_event(barcode, resp, db)
+        _emit_scan_event(barcode, resp)
+        _save_notification(barcode, "Unknown barcode", f"Not found in any product database", "unknown", db)
         return resp
 
     # Step 3: Attempt fuzzy auto-mapping
@@ -98,7 +99,8 @@ def scan_barcode(
         food = db.get(MealieFood, food_id)
         food_name = food.name if food else cached.title or barcode
         resp = _add_via_food_id(food_id, food_name, barcode, db)
-        _emit_scan_event(barcode, resp, db)
+        _emit_scan_event(barcode, resp)
+        _save_notification(barcode, "Auto-mapped — confirm?", f"{cached.title or barcode} → {food_name}", "auto_mapped", db)
         return resp
 
     # No mapping — add as note with product title
@@ -109,37 +111,27 @@ def scan_barcode(
     else:
         _enqueue_note(barcode, note, db)
         resp = ScanResponse(result="queued", food=note, via="note")
-    _emit_scan_event(barcode, resp, db)
+    _emit_scan_event(barcode, resp)
+    _save_notification(barcode, "Mapping needed", f"{note} — assign to a Mealie food", "needs_mapping", db)
     return resp
 
 
-def _emit_scan_event(barcode: str, resp: ScanResponse, db: Session):
-    """Publish a scan event to all SSE listeners and persist a notification."""
+def _emit_scan_event(barcode: str, resp: ScanResponse):
+    """Publish a scan event to all SSE listeners (live alerts only)."""
     scan_events.publish("scan", {
         "barcode": barcode,
         "result": resp.result,
         "food": resp.food,
     })
 
-    # Build notification title/message
-    if resp.result == "added":
-        title = "Added to shopping list"
-        message = f"{resp.food} ({barcode})"
-    elif resp.result == "added_as_note":
-        title = "Added as note"
-        message = f"{resp.food} ({barcode})"
-    elif resp.result == "queued":
-        title = "Queued for retry"
-        message = resp.food or barcode
-    else:
-        title = "Unknown barcode"
-        message = barcode
 
+def _save_notification(barcode: str, title: str, message: str, result: str, db: Session):
+    """Persist an actionable notification for the bell dropdown."""
     db.add(Notification(
         barcode=barcode,
         title=title,
         message=message,
-        result=resp.result,
+        result=result,
     ))
     db.commit()
 
