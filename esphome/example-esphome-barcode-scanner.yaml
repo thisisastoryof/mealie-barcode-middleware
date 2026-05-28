@@ -83,16 +83,16 @@ text_sensor:
             on_response:
               then:
                 - lambda: |-
-                    if (response->status_code == 200) {
+                    if (status_code == 200) {
                       // Parse the "food" field from the JSON response for display
-                      std::string body = response->get_string();
+                      std::string resp = body;
                       // Simple extraction — find "food":"..."
-                      size_t pos = body.find("\"food\":\"");
+                      size_t pos = resp.find("\"food\":\"");
                       if (pos != std::string::npos) {
                         pos += 8;  // skip past "food":"
-                        size_t end = body.find("\"", pos);
+                        size_t end = resp.find("\"", pos);
                         if (end != std::string::npos) {
-                          std::string food_name = body.substr(pos, end - pos);
+                          std::string food_name = resp.substr(pos, end - pos);
                           id(last_result).publish_state(food_name.c_str());
                           id(screen_mode).publish_state("result");
                         }
