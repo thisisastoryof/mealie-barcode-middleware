@@ -159,6 +159,7 @@
             <thead>
                 <tr>
                     <th>Item</th>
+                    <th>Source</th>
                     <th data-bs-toggle="tooltip" title="Fuzzy name similarity between the barcode product and the item">Match</th>
                     <th class="w-1"></th>
                 </tr>
@@ -167,7 +168,8 @@
                 {% if candidates %}
                 {% for c in candidates %}
                 <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
-                    <td><a href="/items/{{ c.item_id }}">{{ c.item_name }}</a>{% if c.source == 'manual' %} <span class="badge bg-purple text-purple-fg">custom</span>{% endif %}</td>
+                    <td><a href="/items/{{ c.item_id }}">{{ c.item_name }}</a></td>
+                    <td class="text-secondary">{{ 'Mealie' if c.source == 'mealie' else 'Custom' }}</td>
                     <td>
                         <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}%</span>
                     </td>
@@ -180,7 +182,7 @@
                 </tr>
                 {% endfor %}
                 {% else %}
-                <tr class="empty-row"><td colspan="3" class="text-center text-secondary">Type to search or create a new item</td></tr>
+                <tr class="empty-row"><td colspan="4" class="text-center text-secondary">Type to search or create a new item</td></tr>
                 {% endif %}
             </tbody>
         </table>
