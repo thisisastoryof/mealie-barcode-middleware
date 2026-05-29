@@ -57,11 +57,6 @@ def settings_page(request: Request, tab: str = Query("configuration"), db: Sessi
     })
 
 
-@router.get("/settings/tokens")
-def tokens_redirect():
-    return RedirectResponse("/settings?tab=tokens", status_code=302)
-
-
 @router.post("/settings/tokens/create", response_class=HTMLResponse)
 def create_token(request: Request, name: str = Form(...), db: Session = Depends(get_db)):
     raw = generate_token()

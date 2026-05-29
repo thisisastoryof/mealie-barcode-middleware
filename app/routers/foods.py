@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -18,8 +18,11 @@ def _templates():
 
 
 @router.get("/foods", response_class=HTMLResponse)
-def foods_list(request: Request, db: Session = Depends(get_db)):
-    foods = db.query(MealieFood).order_by(MealieFood.name).all()
+def foods_list(request: Request, q: str = Query(""), db: Session = Depends(get_db)):
+    query = db.query(MealieFood)
+    if q:
+        query = query.filter(MealieFood.name.ilike(f"%{q}%") | MealieFood.aliases.ilike(f"%{q}%"))
+    foods = query.order_by(MealieFood.name).all()
 
     # Count mappings per food
     mapping_counts = {}
@@ -30,6 +33,7 @@ def foods_list(request: Request, db: Session = Depends(get_db)):
 
     return _templates().TemplateResponse(request, "foods.html", {
         "items": items,
+        "search_query": q,
     })
 
 

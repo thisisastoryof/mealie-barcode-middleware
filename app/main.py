@@ -46,6 +46,17 @@ def _localtime(value, fmt="%Y-%m-%d %H:%M"):
 templates.env.filters["localtime"] = _localtime
 
 
+import json as _json
+
+def _fromjson(value):
+    try:
+        return _json.loads(value)
+    except (TypeError, ValueError):
+        return []
+
+templates.env.filters["fromjson"] = _fromjson
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
