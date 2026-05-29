@@ -76,23 +76,28 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     # Build recent items with status
     mappings = {m.barcode: m for m in db.query(BarcodeFoodMapping).all()}
     queued_barcodes = set(r.barcode for r in db.query(RetryQueue).all())
+    food_ids = [m.mealie_food_id for m in mappings.values()]
+    foods = {f.id: f for f in db.query(MealieFood).filter(MealieFood.id.in_(food_ids)).all()} if food_ids else {}
 
     recent_items = []
     for bc in recent:
         if bc.barcode in mappings:
             status = "mapped"
-        elif bc.barcode in queued_barcodes:
-            status = "queued"
-        elif not bc.found:
-            status = "unknown"
+            mapping = mappings[bc.barcode]
+            food = foods.get(mapping.mealie_food_id)
         else:
-            status = "pending"
-        recent_items.append({"barcode": bc, "status": status})
+            food = None
+            if bc.barcode in queued_barcodes:
+                status = "queued"
+            elif not bc.found:
+                status = "unknown"
+            else:
+                status = "pending"
+        recent_items.append({"barcode": bc, "status": status, "food": food})
 
     # Health
     mealie_reachable = check_connectivity()
 
-    from app.models import MealieFood
     last_sync = db.query(MealieFood.synced_at).order_by(MealieFood.synced_at.desc()).first()
     last_sync_time = last_sync[0] if last_sync else None
 
@@ -172,19 +177,27 @@ def dashboard_api(db: Session = Depends(get_db)):
     recent = db.query(BarcodeCache).order_by(BarcodeCache.created_at.desc()).limit(10).all()
     mappings = {m.barcode: m for m in db.query(BarcodeFoodMapping).all()}
     queued_barcodes = set(r.barcode for r in db.query(RetryQueue).all())
+    food_ids = [m.mealie_food_id for m in mappings.values()]
+    foods = {f.id: f for f in db.query(MealieFood).filter(MealieFood.id.in_(food_ids)).all()} if food_ids else {}
 
     recent_items = []
     for bc in recent:
         if bc.barcode in mappings:
             status = "mapped"
-        elif bc.barcode in queued_barcodes:
-            status = "queued"
-        elif not bc.found:
-            status = "unknown"
+            mapping = mappings[bc.barcode]
+            food = foods.get(mapping.mealie_food_id)
         else:
-            status = "pending"
+            food = None
+            if bc.barcode in queued_barcodes:
+                status = "queued"
+            elif not bc.found:
+                status = "unknown"
+            else:
+                status = "pending"
         recent_items.append({
             "barcode": bc.barcode,
+            "food_name": food.name if food else None,
+            "food_id": food.id if food else None,
             "title": bc.title or "\u2014",
             "source": bc.source or "\u2014",
             "status": status,

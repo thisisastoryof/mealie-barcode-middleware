@@ -147,9 +147,12 @@
                 var rows = '';
                 d.recent_items.forEach(function(item) {
                     var bg = badgeMap[item.status] || 'secondary';
+                    var foodCol = item.food_name
+                        ? '<a href="/foods/' + esc(item.food_id) + '">' + esc(item.food_name) + '</a>'
+                        : esc(item.title);
                     rows += '<tr>'
                         + '<td><a href="/barcodes/' + esc(item.barcode) + '">' + esc(item.barcode) + '</a></td>'
-                        + '<td>' + esc(item.title) + '</td>'
+                        + '<td>' + foodCol + '</td>'
                         + '<td>' + esc(item.source) + '</td>'
                         + '<td><span class="badge bg-' + bg + ' text-' + bg + '-fg">' + labelMap[item.status] + '</span></td>'
                         + '<td>' + esc(item.created_at) + '</td>'

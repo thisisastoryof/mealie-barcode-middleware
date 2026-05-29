@@ -116,7 +116,7 @@
                     <thead>
                         <tr>
                             <th>Barcode</th>
-                            <th>Title</th>
+                            <th>Food</th>
                             <th>Source</th>
                             <th>Status</th>
                             <th>Scanned</th>
@@ -126,7 +126,13 @@
                         {% for item in recent_items %}
                         <tr>
                             <td><a href="/barcodes/{{ item.barcode.barcode }}">{{ item.barcode.barcode }}</a></td>
-                            <td>{{ item.barcode.title or "—" }}</td>
+                            <td>
+                                {% if item.food %}
+                                <a href="/foods/{{ item.food.id }}">{{ item.food.name }}</a>
+                                {% else %}
+                                {{ item.barcode.title or "—" }}
+                                {% endif %}
+                            </td>
                             <td>{{ item.barcode.source or "—" }}</td>
                             <td>
                                 {% if item.status == "mapped" %}
