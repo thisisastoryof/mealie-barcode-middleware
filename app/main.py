@@ -204,11 +204,14 @@ def dashboard_api(db: Session = Depends(get_db)):
             "created_at": _localtime(bc.created_at),
         })
 
+    unknown_count = db.query(BarcodeCache).filter(BarcodeCache.found == False).count()
+
     return {
         "total_barcodes": total_barcodes,
         "mapped_count": mapped_count,
         "pending_count": pending_count,
         "queue_depth": queue_depth,
+        "unknown_count": unknown_count,
         "recent_items": recent_items,
     }
 

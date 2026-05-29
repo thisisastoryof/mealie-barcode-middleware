@@ -11,9 +11,9 @@
     </div>
 </div>
 
-<!-- Health indicator -->
+<!-- Health indicator + Retry Queue -->
 <div class="row row-deck row-cards mb-3">
-    <div class="col-12">
+    <div class="col-lg-9">
         <div class="card">
             <div class="card-body">
                 <div class="row g-3 align-items-center">
@@ -36,6 +36,18 @@
                                 {% endif %}
                             </ul>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <div class="subheader">Retry Queue</div>
+                        <div class="h1 mb-0 text-{{ 'green' if queue_depth == 0 else 'red' }}" id="stat-queue">{{ queue_depth }}</div>
                     </div>
                 </div>
             </div>
@@ -82,16 +94,16 @@
         </a>
     </div>
     <div class="col-sm-6 col-lg-3">
-        <div class="card">
+        <a href="/barcodes?status=unknown" class="card card-link">
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div>
-                        <div class="subheader">Retry Queue</div>
-                        <div class="h1 mb-0 text-{{ 'green' if queue_depth == 0 else 'red' }}" id="stat-queue">{{ queue_depth }}</div>
+                        <div class="subheader">Unknown</div>
+                        <div class="h1 mb-0 text-{{ 'green' if unknown_count == 0 else 'red' }}" id="stat-unknown">{{ unknown_count }}</div>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 

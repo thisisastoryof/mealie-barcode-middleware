@@ -168,6 +168,11 @@
             if (el) el.textContent = d.mapped_count;
             el = document.getElementById('stat-pending');
             if (el) el.textContent = d.pending_count;
+            el = document.getElementById('stat-unknown');
+            if (el) {
+                el.textContent = d.unknown_count;
+                el.className = 'h1 mb-0 text-' + (d.unknown_count === 0 ? 'green' : 'red');
+            }
             el = document.getElementById('stat-queue');
             if (el) {
                 el.textContent = d.queue_depth;
