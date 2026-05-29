@@ -225,11 +225,8 @@ async def sse_stream():
     async def _generate():
         try:
             while True:
-                try:
-                    msg = await asyncio.wait_for(queue.get(), timeout=30)
-                    yield msg
-                except asyncio.TimeoutError:
-                    yield ": keepalive\n\n"
+                msg = await queue.get()
+                yield msg
         except asyncio.CancelledError:
             pass
         finally:
