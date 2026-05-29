@@ -16,7 +16,7 @@ from starlette.responses import StreamingResponse
 from app.config import settings
 from app.database import get_db, init_db
 from app.events import scan_events
-from app.models import BarcodeCache, BarcodeFoodMapping, RetryQueue
+from app.models import BarcodeCache, BarcodeFoodMapping, MealieFood, RetryQueue
 from app.routers import barcodes, foods, health, notifications, scan, settings as settings_router
 from app.services.mealie import check_connectivity
 from app.services.scheduler import start_scheduler, stop_scheduler
@@ -123,6 +123,52 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         "mealie_reachable": mealie_reachable,
         "last_sync_time": last_sync_time,
     })
+
+
+@app.get("/api/barcodes")
+def barcodes_api(status: str = "all", db: Session = Depends(get_db)):
+    """JSON endpoint for live-refreshing the barcodes table."""
+    from sqlalchemy import func
+
+    query = db.query(BarcodeCache).order_by(BarcodeCache.created_at.desc())
+
+    if status == "mapped":
+        mapped_sub = db.query(BarcodeFoodMapping.barcode).subquery()
+        query = query.filter(BarcodeCache.barcode.in_(mapped_sub))
+    elif status == "pending":
+        mapped_sub = db.query(BarcodeFoodMapping.barcode).subquery()
+        query = query.filter(
+            BarcodeCache.found == True,
+            ~BarcodeCache.barcode.in_(mapped_sub),
+        )
+    elif status == "unknown":
+        query = query.filter(BarcodeCache.found == False)
+
+    barcodes_list = query.limit(200).all()
+
+    mappings = {m.barcode: m for m in db.query(BarcodeFoodMapping).all()}
+    food_ids = [m.mealie_food_id for m in mappings.values()]
+    foods = (
+        {f.id: f for f in db.query(MealieFood).filter(MealieFood.id.in_(food_ids)).all()}
+        if food_ids else {}
+    )
+
+    items = []
+    for bc in barcodes_list:
+        mapping = mappings.get(bc.barcode)
+        food = foods.get(mapping.mealie_food_id) if mapping else None
+        items.append({
+            "barcode": bc.barcode,
+            "title": bc.title or "\u2014",
+            "brand": bc.brand or "\u2014",
+            "source": bc.source or "\u2014",
+            "food_name": food.name if food else None,
+            "food_id": food.id if food else None,
+            "mapped_by": mapping.mapped_by if mapping else None,
+            "created_at": _localtime(bc.created_at),
+        })
+
+    return {"items": items}
 
 
 @app.get("/api/dashboard")

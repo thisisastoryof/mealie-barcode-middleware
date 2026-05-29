@@ -42,7 +42,7 @@
                     <th>Scanned</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="barcodes-tbody">
                 {% for item in items %}
                 <tr>
                     <td><a href="/barcodes/{{ item.barcode.barcode }}">{{ item.barcode.barcode }}</a></td>
