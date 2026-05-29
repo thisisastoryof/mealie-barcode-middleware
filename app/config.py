@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     fuzzy_match_threshold: int = 85
     fuzzy_ambiguity_gap: int = 10
     lookup_ttl_days: int = 30
+    max_retry_attempts: int = 10
 
     db_path: str = "/data/barcode.db"
     timezone: str = "Europe/Berlin"

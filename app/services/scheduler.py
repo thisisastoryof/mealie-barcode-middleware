@@ -6,7 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.config import settings
 from app.database import SessionLocal
-from app.models import RetryQueue
+from app.models import Notification, RetryQueue
 from app.services.mealie import sync_foods
 
 logger = logging.getLogger(__name__)
@@ -62,19 +62,70 @@ def _process_retry_queue():
                     logger.info(f"Retry success for barcode={item.barcode}")
                 else:
                     item.attempts += 1
-                    backoff = min(2**item.attempts, 60)
-                    item.next_retry_at = now + timedelta(minutes=backoff)
-                    logger.warning(
-                        f"Retry failed for {item.barcode}: HTTP {resp.status_code}, "
-                        f"next retry in {backoff}m"
-                    )
+                    if item.attempts >= settings.max_retry_attempts:
+                        _create_retry_failed_notification(item, db)
+                        db.delete(item)
+                        logger.warning(
+                            f"Retry permanently failed for {item.barcode} after "
+                            f"{item.attempts} attempts (HTTP {resp.status_code})"
+                        )
+                    else:
+                        backoff = min(2**item.attempts, 60)
+                        item.next_retry_at = now + timedelta(minutes=backoff)
+                        logger.warning(
+                            f"Retry failed for {item.barcode}: HTTP {resp.status_code}, "
+                            f"next retry in {backoff}m"
+                        )
             except httpx.HTTPError as e:
                 item.attempts += 1
-                backoff = min(2**item.attempts, 60)
-                item.next_retry_at = now + timedelta(minutes=backoff)
-                logger.warning(f"Retry error for {item.barcode}: {e}, next in {backoff}m")
+                if item.attempts >= settings.max_retry_attempts:
+                    _create_retry_failed_notification(item, db)
+                    db.delete(item)
+                    logger.warning(
+                        f"Retry permanently failed for {item.barcode} after "
+                        f"{item.attempts} attempts: {e}"
+                    )
+                else:
+                    backoff = min(2**item.attempts, 60)
+                    item.next_retry_at = now + timedelta(minutes=backoff)
+                    logger.warning(f"Retry error for {item.barcode}: {e}, next in {backoff}m")
 
         db.commit()
+    finally:
+        db.close()
+
+
+def _create_retry_failed_notification(item: RetryQueue, db):
+    """Create a notification when a retry queue item permanently fails."""
+    try:
+        payload = json.loads(item.payload)
+        food_hint = payload.get("note") or payload.get("foodId") or item.barcode
+    except (json.JSONDecodeError, TypeError):
+        food_hint = item.barcode
+
+    db.add(Notification(
+        barcode=item.barcode,
+        title="Failed to add to shopping list",
+        message=f"{food_hint} — could not reach Mealie after {item.attempts} retries",
+        result="retry_failed",
+    ))
+
+
+def _purge_old_notifications():
+    """Delete read notifications older than 30 days."""
+    db = SessionLocal()
+    try:
+        cutoff = _utcnow() - timedelta(days=30)
+        deleted = (
+            db.query(Notification)
+            .filter(Notification.is_read == True, Notification.created_at < cutoff)
+            .delete()
+        )
+        db.commit()
+        if deleted:
+            logger.info(f"Purged {deleted} old read notifications")
+    except Exception as e:
+        logger.error(f"Notification purge failed: {e}")
     finally:
         db.close()
 
@@ -95,8 +146,15 @@ def start_scheduler():
         id="retry_queue",
         replace_existing=True,
     )
+    scheduler.add_job(
+        _purge_old_notifications,
+        "interval",
+        hours=24,
+        id="notification_purge",
+        replace_existing=True,
+    )
     scheduler.start()
-    logger.info("Scheduler started (food sync + retry queue)")
+    logger.info("Scheduler started (food sync + retry queue + notification purge)")
 
 
 def stop_scheduler():
