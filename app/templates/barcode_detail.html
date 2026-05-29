@@ -23,9 +23,9 @@
 {% else %}
 
 <div class="row row-deck row-cards mb-3">
-    <!-- Product info (left) -->
+    <!-- Product info -->
     <div class="col-lg-8">
-        <div class="card h-100">
+        <div class="card">
             <div class="card-header"><h3 class="card-title">Product Information</h3></div>
             <div class="card-body">
                 <div class="datagrid">
@@ -69,63 +69,70 @@
                     </div>
                 </div>
             </div>
-            {% if not cached.found %}
-            <div class="card-footer d-flex">
+            <div class="card-footer d-flex justify-content-end gap-2">
+                {% if not cached.found %}
                 <form method="post" action="/barcodes/{{ cached.barcode }}/retry-lookup" class="d-inline">
-                    <button type="submit" class="btn btn-warning">Retry Lookup</button>
+                    <button type="submit" class="btn btn-sm btn-warning">Retry Lookup</button>
                 </form>
-                <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline ms-auto" onsubmit="return confirm('Delete this barcode and its mapping?')">
-                    <button type="submit" class="btn btn-outline-danger">Delete</button>
-                </form>
-            </div>
-            {% else %}
-            <div class="card-footer d-flex justify-content-end">
+                {% endif %}
                 <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline" onsubmit="return confirm('Delete this barcode and its mapping?')">
-                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                 </form>
             </div>
-            {% endif %}
         </div>
     </div>
 
-    <!-- Item mapping (right sidebar) -->
+    <!-- Linked Item -->
     <div class="col-lg-4">
-        <div class="card h-100">
+        <div class="card">
             <div class="card-header"><h3 class="card-title">Linked Item</h3></div>
+            {% if mapping and mapped_item %}
             <div class="card-body">
-                {% if mapping and mapped_item %}
-                <div class="mb-3 text-center">
-                    <a href="/items/{{ mapped_item.id }}" class="h3 d-block mb-1">{{ mapped_item.name }}</a>
-                    <span class="badge bg-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }} text-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }}-fg">{{ 'Mealie food' if mapped_item.source == 'mealie' else 'Custom item' }}</span>
-                </div>
-                <div class="text-secondary small text-center mb-3">
-                    {% if mapping.mapped_by == 'auto' %}Automatically matched{% elif mapping.mapped_by == 'manual' %}Manually assigned{% else %}{{ mapping.mapped_by }}{% endif %}
-                    · {{ mapping.created_at|localtime }}
-                </div>
-                <div class="text-center">
-                    <form method="post" action="/barcodes/{{ cached.barcode }}/unmap">
-                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Remove Link</button>
-                    </form>
-                </div>
-                {% elif mapping %}
-                <div class="mb-2">
-                    <span class="text-secondary">Mapped to item ID:</span><br>
-                    <code class="small">{{ mapping.item_id }}</code>
-                </div>
-                <div class="text-secondary small mb-3">Item may have been deleted</div>
-                <form method="post" action="/barcodes/{{ cached.barcode }}/unmap">
-                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">Remove Link</button>
-                </form>
-                {% else %}
-                <div class="text-center py-3">
-                    <div class="text-secondary mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-lg" width="40" height="40" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 15l6 -6"/><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/></svg>
+                <div class="datagrid">
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Item</div>
+                        <div class="datagrid-content">
+                            <a href="/items/{{ mapped_item.id }}">{{ mapped_item.name }}</a>
+                        </div>
                     </div>
-                    <p class="text-secondary mb-0">No item linked yet</p>
-                    <p class="text-secondary small">Use the search below to find or create one</p>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Type</div>
+                        <div class="datagrid-content">
+                            <span class="badge bg-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }} text-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }}-fg">{{ 'Mealie' if mapped_item.source == 'mealie' else 'Custom' }}</span>
+                        </div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Linked</div>
+                        <div class="datagrid-content">
+                            {% if mapping.mapped_by == 'auto' %}Automatic{% elif mapping.mapped_by == 'manual' %}Manual{% else %}{{ mapping.mapped_by }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Date</div>
+                        <div class="datagrid-content">{{ mapping.created_at|localtime }}</div>
+                    </div>
                 </div>
-                {% endif %}
             </div>
+            <div class="card-footer d-flex justify-content-end">
+                <form method="post" action="/barcodes/{{ cached.barcode }}/unmap">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Unlink</button>
+                </form>
+            </div>
+            {% elif mapping %}
+            <div class="card-body">
+                <p class="text-secondary mb-1">Mapped to a deleted item</p>
+                <code class="small">{{ mapping.item_id }}</code>
+            </div>
+            <div class="card-footer d-flex justify-content-end">
+                <form method="post" action="/barcodes/{{ cached.barcode }}/unmap">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Unlink</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="card-body">
+                <p class="text-secondary mb-0">Not linked to any item yet.<br><small>Use the search below to find or create one.</small></p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -137,12 +144,12 @@
             <div class="col">
                 <h3 class="card-title mb-0">Search or Create Item</h3>
             </div>
-            <div class="col-md-auto col-sm-12">
-                <div class="input-group input-group-flat w-auto">
-                    <span class="input-group-text">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path></svg>
+            <div class="col-auto">
+                <div class="input-icon">
+                    <span class="input-icon-addon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path></svg>
                     </span>
-                    <input type="text" id="food-search" class="form-control" placeholder="Search existing or type new name…" autocomplete="off">
+                    <input type="text" id="food-search" class="form-control" placeholder="Find or create…" autocomplete="off">
                 </div>
             </div>
         </div>
@@ -153,7 +160,7 @@
                 <tr>
                     <th>Item</th>
                     <th data-bs-toggle="tooltip" title="Fuzzy name similarity between the barcode product and the item">Match</th>
-                    <th class="w-1">Action</th>
+                    <th class="w-1"></th>
                 </tr>
             </thead>
             <tbody id="food-assign-tbody">
