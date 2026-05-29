@@ -245,14 +245,6 @@
 
     // ─── Notification Bell ──────────────────────────────────────────────────────
     var badge = document.getElementById('notif-badge');
-    var notifDropdown = document.getElementById('notif-dropdown');
-    var notifClose = document.getElementById('notif-close');
-    if (notifClose && notifDropdown) {
-        notifClose.addEventListener('click', function() {
-            var dd = bootstrap.Dropdown.getOrCreateInstance(notifDropdown.querySelector('[data-bs-toggle="dropdown"]'));
-            dd.hide();
-        });
-    }
 
     var list = document.getElementById('notif-list');
     var empty = document.getElementById('notif-empty');
