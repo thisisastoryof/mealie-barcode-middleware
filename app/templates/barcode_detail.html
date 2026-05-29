@@ -5,8 +5,8 @@
 <div class="page-header d-print-none mb-3">
     <div class="row g-2 align-items-center">
         <div class="col">
-            <div class="page-pretitle">Barcode</div>
-            <h2 class="page-title">{{ cached.barcode if cached else 'Not Found' }}{% if cached and cached.title %}&nbsp;<small class="text-secondary">&mdash; {{ cached.title }}</small>{% endif %}</h2>
+            <div class="page-pretitle">Barcode {{ cached.barcode if cached else '' }}</div>
+            <h2 class="page-title">{{ cached.title if cached and cached.title else ('Not Found' if not cached else 'Unknown product') }}</h2>
         </div>
         <div class="col-auto ms-auto d-print-none">
             <div class="btn-list">
