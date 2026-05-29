@@ -18,7 +18,7 @@
             <div class="card-body">
                 <div class="row g-3 align-items-center">
                     <div class="col-auto">
-                        <span class="status-indicator status-{{ 'green' if mealie_reachable else 'red' }}{{ ' status-indicator-animated' if mealie_reachable }}">
+                        <span id="health-indicator" class="status-indicator status-{{ 'green' if mealie_reachable else 'red' }}{{ ' status-indicator-animated' if mealie_reachable }}">
                             <span class="status-indicator-circle"></span>
                             <span class="status-indicator-circle"></span>
                             <span class="status-indicator-circle"></span>
@@ -28,7 +28,7 @@
                         <h2 class="page-title mb-0">Mealie</h2>
                         <div class="text-secondary">
                             <ul class="list-inline list-inline-dots mb-0">
-                                <li class="list-inline-item"><span class="text-{{ 'green' if mealie_reachable else 'red' }}">{{ "Connected" if mealie_reachable else "Unreachable" }}</span></li>
+                                <li class="list-inline-item"><span id="health-status" class="text-{{ 'green' if mealie_reachable else 'red' }}">{{ "Connected" if mealie_reachable else "Unreachable" }}</span></li>
                                 {% if last_sync_time %}
                                 <li class="list-inline-item">Last sync: {{ last_sync_time|localtime }}</li>
                                 {% else %}
@@ -151,4 +151,36 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var indicator = document.getElementById('health-indicator');
+    var statusEl = document.getElementById('health-status');
+    var timer = null;
+
+    function pollHealth() {
+        fetch('/health').then(function(r) { return r.json(); }).then(function(d) {
+            var up = d.mealie_reachable;
+            indicator.className = 'status-indicator status-' + (up ? 'green' : 'red') + (up ? ' status-indicator-animated' : '');
+            statusEl.className = 'text-' + (up ? 'green' : 'red');
+            statusEl.textContent = up ? 'Connected' : 'Unreachable';
+        }).catch(function() {
+            indicator.className = 'status-indicator status-red';
+            statusEl.className = 'text-red';
+            statusEl.textContent = 'Unreachable';
+        });
+    }
+
+    function start() { if (!timer) timer = setInterval(pollHealth, 30000); }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+
+    // Only poll when tab is visible
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) stop(); else start();
+    });
+    if (!document.hidden) start();
+})();
+</script>
 {% endblock %}
