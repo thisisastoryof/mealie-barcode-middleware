@@ -123,7 +123,14 @@ def _emit_scan_event(barcode: str, resp: ScanResponse):
 
 
 def _save_notification(barcode: str, title: str, message: str, result: str, db: Session):
-    """Persist an actionable notification for the bell dropdown."""
+    """Persist an actionable notification for the bell dropdown (deduplicated)."""
+    existing = (
+        db.query(Notification)
+        .filter(Notification.barcode == barcode, Notification.is_read == False)
+        .first()
+    )
+    if existing:
+        return
     db.add(Notification(
         barcode=barcode,
         title=title,

@@ -6,6 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.config import settings
 from app.database import SessionLocal
+from app.events import scan_events
 from app.models import Notification, RetryQueue
 from app.services.mealie import sync_foods
 from app.utils import utcnow
@@ -100,19 +101,29 @@ def _create_retry_failed_notification(item: RetryQueue, db):
     except (json.JSONDecodeError, TypeError):
         food_hint = item.barcode
 
+    title = "Failed to add to shopping list"
+    message = f"{food_hint} — could not reach Mealie after {item.attempts} retries"
+
     db.add(Notification(
         barcode=item.barcode,
-        title="Failed to add to shopping list",
-        message=f"{food_hint} — could not reach Mealie after {item.attempts} retries",
+        title=title,
+        message=message,
         result="retry_failed",
     ))
 
+    # Emit real-time SSE event so open browsers get a toast + browser notification
+    scan_events.publish_threadsafe("scan", {
+        "barcode": item.barcode,
+        "result": "retry_failed",
+        "food": str(food_hint),
+    })
+
 
 def _purge_old_notifications():
-    """Delete read notifications older than 30 days."""
+    """Delete read notifications older than 7 days."""
     db = SessionLocal()
     try:
-        cutoff = utcnow() - timedelta(days=30)
+        cutoff = utcnow() - timedelta(days=7)
         deleted = (
             db.query(Notification)
             .filter(Notification.is_read == True, Notification.created_at < cutoff)

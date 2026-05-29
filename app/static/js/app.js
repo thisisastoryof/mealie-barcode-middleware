@@ -47,13 +47,29 @@
         navigator.serviceWorker.register('/static/sw.js').then(function(reg) { swReg = reg; });
     }
 
-    // Request browser notification permission on first visit
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
+    // Browser notification permission — requested on first actionable scan (not page load)
+    var notifPermAsked = false;
+    function ensureNotifPermission() {
+        if (notifPermAsked) return;
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+            notifPermAsked = true;
+        }
     }
 
-    var es = new EventSource('/events');
-    es.addEventListener('scan', function(e) {
+    var esRetryDelay = 1000;
+    var es;
+    function connectSSE() {
+        es = new EventSource('/events');
+        es.addEventListener('open', function() { esRetryDelay = 1000; });
+        es.onerror = function() {
+            es.close();
+            setTimeout(connectSSE, esRetryDelay);
+            esRetryDelay = Math.min(esRetryDelay * 2, 30000);
+        };
+        es.addEventListener('scan', onScanEvent);
+    }
+    function onScanEvent(e) {
         var data = JSON.parse(e.data);
         var barcode = data.barcode;
         var result = data.result;
@@ -72,6 +88,10 @@
             color = 'warning';
             title = 'Queued for retry';
             desc = esc(food || barcode);
+        } else if (result === 'retry_failed') {
+            color = 'danger';
+            title = 'Retry failed';
+            desc = '<strong>' + esc(food || barcode) + '</strong> — could not reach Mealie';
         } else {
             color = 'danger';
             title = 'Unknown barcode';
@@ -99,14 +119,18 @@
         var first = alertsDiv.firstElementChild;
         setTimeout(function() { if (first && first.parentNode) first.remove(); }, 15000);
 
-        // Browser notification
-        if ('Notification' in window && Notification.permission === 'granted') {
-            var body = food ? food + ' (' + barcode + ')' : barcode;
-            if (swReg) {
-                swReg.showNotification(title, { body: body, tag: barcode, data: { url: link } });
-            } else {
-                var n = new Notification(title, { body: body, tag: barcode });
-                n.onclick = function() { window.focus(); window.location.href = link; };
+        // Browser notification — only for actionable results
+        var isActionable = (result !== 'added' && result !== 'queued');
+        if (isActionable) {
+            ensureNotifPermission();
+            if ('Notification' in window && Notification.permission === 'granted') {
+                var body = food ? food + ' (' + barcode + ')' : barcode;
+                if (swReg) {
+                    swReg.showNotification(title, { body: body, tag: barcode, data: { url: link } });
+                } else {
+                    var n = new Notification(title, { body: body, tag: barcode });
+                    n.onclick = function() { window.focus(); window.location.href = link; };
+                }
             }
         }
 
@@ -131,7 +155,8 @@
                               result === 'added_as_note' ? 'needs_mapping' : result;
             addNotifItem({barcode: barcode, title: notifTitle, message: notifMsg, result: notifResult});
         }
-    });
+    }
+    connectSSE();
 
     // ─── Dashboard partial refresh ──────────────────────────────────────────────
     function refreshDashboard() {
