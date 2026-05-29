@@ -16,6 +16,8 @@
     // ─── Theme Toggle ────────────────────────────────────────────────────────────
     var toggleDark = document.getElementById('theme-toggle-dark');
     var toggleLight = document.getElementById('theme-toggle-light');
+    var toggleDarkMobile = document.getElementById('theme-toggle-dark-mobile');
+    var toggleLightMobile = document.getElementById('theme-toggle-light-mobile');
 
     function setTheme(theme) {
         document.documentElement.setAttribute('data-bs-theme', theme);
@@ -27,6 +29,22 @@
     }
     if (toggleLight) {
         toggleLight.addEventListener('click', function(e) { e.preventDefault(); setTheme('light'); });
+    }
+    if (toggleDarkMobile) {
+        toggleDarkMobile.addEventListener('click', function(e) { e.preventDefault(); setTheme('dark'); });
+    }
+    if (toggleLightMobile) {
+        toggleLightMobile.addEventListener('click', function(e) { e.preventDefault(); setTheme('light'); });
+    }
+
+    // ─── Mobile notification link (opens desktop dropdown or scrolls to top) ────
+    var mobileNotifLink = document.getElementById('mobile-notif-link');
+    if (mobileNotifLink) {
+        mobileNotifLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            var dropdown = document.querySelector('#notif-dropdown .nav-link');
+            if (dropdown) dropdown.click();
+        });
     }
 
     // ─── SSE Scan Events ─────────────────────────────────────────────────────────
@@ -194,6 +212,7 @@
 
     // ─── Notification Bell ──────────────────────────────────────────────────────
     var badge = document.getElementById('notif-badge');
+    var badgeMobile = document.getElementById('notif-badge-mobile');
     var list = document.getElementById('notif-list');
     var empty = document.getElementById('notif-empty');
     var markAllBtn = document.getElementById('notif-mark-all');
@@ -202,9 +221,12 @@
     function updateBadge() {
         if (count > 0) {
             badge.classList.remove('d-none');
+            if (badgeMobile) badgeMobile.classList.remove('d-none');
         } else {
             badge.classList.add('d-none');
+            if (badgeMobile) badgeMobile.classList.add('d-none');
         }
+        if (badgeMobile) badgeMobile.textContent = count > 0 ? count : '';
         empty.style.display = count > 0 ? 'none' : '';
     }
 

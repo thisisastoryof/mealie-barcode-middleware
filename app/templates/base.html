@@ -88,6 +88,11 @@
                         <li class="nav-item{{ ' active' if request.url.path.startswith('/barcodes') }}"><a class="nav-link" href="/barcodes">Barcodes</a></li>
                         <li class="nav-item{{ ' active' if request.url.path.startswith('/foods') }}"><a class="nav-link" href="/foods">Foods</a></li>
                         <li class="nav-item d-md-none{{ ' active' if request.url.path.startswith('/settings') }}"><a class="nav-link" href="/settings">Settings</a></li>
+                        <li class="nav-item d-md-none"><a class="nav-link" href="#" id="mobile-notif-link">Notifications <span class="badge bg-red d-none" id="notif-badge-mobile"></span></a></li>
+                        <li class="nav-item d-md-none">
+                            <a href="#" class="nav-link hide-theme-dark" id="theme-toggle-dark-mobile">Dark mode</a>
+                            <a href="#" class="nav-link hide-theme-light" id="theme-toggle-light-mobile">Light mode</a>
+                        </li>
                     </ul>
                 </div>
             </div>
