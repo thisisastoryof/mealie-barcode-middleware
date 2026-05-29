@@ -6,7 +6,7 @@ import httpx
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import MealieFood, RetryQueue
+from app.models import BarcodeMapping, Item, Notification, RetryQueue
 from app.utils import utcnow
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ def check_connectivity() -> bool:
 
 
 def sync_foods(db: Session) -> int:
-    """Fetch all foods from Mealie and upsert into mealie_foods table. Returns count."""
+    """Fetch all foods from Mealie, upsert into items table, detect stale. Returns count."""
     url = f"{settings.mealie_url}/api/foods"
     try:
         resp = httpx.get(url, headers=_headers(), params={"perPage": -1}, timeout=30)
@@ -57,14 +57,37 @@ def sync_foods(db: Session) -> int:
         aliases_list = [a.get("name", a) if isinstance(a, dict) else a for a in aliases_raw]
         aliases_json = json.dumps(aliases_list)
 
-        existing = db.get(MealieFood, food_id)
+        existing = db.get(Item, food_id)
         if existing:
             existing.name = name
             existing.aliases = aliases_json
             existing.synced_at = now
         else:
-            db.add(MealieFood(id=food_id, name=name, aliases=aliases_json, synced_at=now))
+            db.add(Item(id=food_id, name=name, source="mealie", aliases=aliases_json, synced_at=now))
         count += 1
+
+    db.flush()
+
+    # Detect stale items (deleted in Mealie since last sync)
+    stale_items = (
+        db.query(Item)
+        .filter(Item.source == "mealie", Item.synced_at < now)
+        .all()
+    )
+    for stale in stale_items:
+        # Find broken mappings
+        broken = db.query(BarcodeMapping).filter(BarcodeMapping.item_id == stale.id).all()
+        for m in broken:
+            db.add(Notification(
+                barcode=m.barcode,
+                title="Mapping broken",
+                message=f"{stale.name} was deleted in Mealie — remap needed",
+                result="broken",
+            ))
+            db.delete(m)
+        db.delete(stale)
+        if broken:
+            logger.warning(f"Stale item '{stale.name}' removed, {len(broken)} mapping(s) broken")
 
     db.commit()
     logger.info(f"Synced {count} foods from Mealie")

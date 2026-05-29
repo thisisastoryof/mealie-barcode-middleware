@@ -8,13 +8,15 @@ from app.database import Base
 from app.utils import utcnow
 
 
-class MealieFood(Base):
-    __tablename__ = "mealie_foods"
+class Item(Base):
+    __tablename__ = "items"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String, nullable=False)
+    source: Mapped[str] = mapped_column(String, nullable=False)  # mealie | manual
     aliases: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON array
-    synced_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    synced_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class BarcodeCache(Base):
@@ -31,11 +33,11 @@ class BarcodeCache(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
-class BarcodeFoodMapping(Base):
-    __tablename__ = "barcode_food_mapping"
+class BarcodeMapping(Base):
+    __tablename__ = "barcode_mappings"
 
     barcode: Mapped[str] = mapped_column(String, primary_key=True)
-    mealie_food_id: Mapped[str] = mapped_column(String, nullable=False)
+    item_id: Mapped[str] = mapped_column(String, nullable=False)  # FK to items.id
     mapped_by: Mapped[str] = mapped_column(String, default="manual")  # auto | manual
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 

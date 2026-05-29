@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.models import BarcodeCache, BarcodeFoodMapping, MealieFood, Notification, RetryQueue
+from app.models import BarcodeCache, BarcodeMapping, Item, Notification, RetryQueue
 from app.services.barcode_lookup import perform_lookup
 from app.services.fuzzy import fuzzy_match
 from app.templating import templates
@@ -26,10 +26,10 @@ def barcodes_list(
     query = db.query(BarcodeCache).order_by(BarcodeCache.created_at.desc())
 
     if status == "mapped":
-        mapped_barcodes = db.query(BarcodeFoodMapping.barcode).subquery()
+        mapped_barcodes = db.query(BarcodeMapping.barcode).subquery()
         query = query.filter(BarcodeCache.barcode.in_(mapped_barcodes))
     elif status == "pending":
-        mapped_barcodes = db.query(BarcodeFoodMapping.barcode).subquery()
+        mapped_barcodes = db.query(BarcodeMapping.barcode).subquery()
         query = query.filter(
             BarcodeCache.found == True,
             ~BarcodeCache.barcode.in_(mapped_barcodes),
@@ -40,18 +40,18 @@ def barcodes_list(
     barcodes = query.all()
 
     # Attach mapping info
-    mappings = {m.barcode: m for m in db.query(BarcodeFoodMapping).all()}
-    food_ids = [m.mealie_food_id for m in mappings.values()]
-    foods = {f.id: f for f in db.query(MealieFood).filter(MealieFood.id.in_(food_ids)).all()} if food_ids else {}
+    mappings = {m.barcode: m for m in db.query(BarcodeMapping).all()}
+    item_ids = [m.item_id for m in mappings.values()]
+    items_map = {i.id: i for i in db.query(Item).filter(Item.id.in_(item_ids)).all()} if item_ids else {}
 
     items = []
     for bc in barcodes:
         mapping = mappings.get(bc.barcode)
-        food = foods.get(mapping.mealie_food_id) if mapping else None
+        item = items_map.get(mapping.item_id) if mapping else None
         items.append({
             "barcode": bc,
             "mapping": mapping,
-            "food": food,
+            "item": item,
         })
 
     return templates.TemplateResponse(request, "barcodes.html", {
@@ -67,8 +67,8 @@ def barcode_detail(
     db: Session = Depends(get_db),
 ):
     cached = db.get(BarcodeCache, barcode)
-    mapping = db.get(BarcodeFoodMapping, barcode)
-    mapped_food = db.get(MealieFood, mapping.mealie_food_id) if mapping else None
+    mapping = db.get(BarcodeMapping, barcode)
+    mapped_item = db.get(Item, mapping.item_id) if mapping else None
 
     # Auto-clear notifications for this barcode on visit
     db.query(Notification).filter(
@@ -83,7 +83,7 @@ def barcode_detail(
         candidates = fuzzy_match(cached.title, cached.brand, db)[:10]
 
     # Find next unmapped barcode
-    mapped_barcodes = [m.barcode for m in db.query(BarcodeFoodMapping).all()]
+    mapped_barcodes = [m.barcode for m in db.query(BarcodeMapping).all()]
     next_unmapped = (
         db.query(BarcodeCache)
         .filter(BarcodeCache.found == True, ~BarcodeCache.barcode.in_(mapped_barcodes))
@@ -95,7 +95,7 @@ def barcode_detail(
     return templates.TemplateResponse(request, "barcode_detail.html", {
         "cached": cached,
         "mapping": mapping,
-        "mapped_food": mapped_food,
+        "mapped_item": mapped_item,
         "candidates": candidates,
         "next_unmapped": next_unmapped,
         "threshold": settings.fuzzy_match_threshold,
@@ -108,12 +108,12 @@ def barcode_map(
     food_id: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    existing = db.get(BarcodeFoodMapping, barcode)
+    existing = db.get(BarcodeMapping, barcode)
     if existing:
-        existing.mealie_food_id = food_id
+        existing.item_id = food_id
         existing.mapped_by = "manual"
     else:
-        db.add(BarcodeFoodMapping(barcode=barcode, mealie_food_id=food_id, mapped_by="manual"))
+        db.add(BarcodeMapping(barcode=barcode, item_id=food_id, mapped_by="manual"))
 
     # Mark notifications for this barcode as read
     db.query(Notification).filter(
@@ -127,7 +127,7 @@ def barcode_map(
 
 @router.post("/barcodes/{barcode}/unmap")
 def barcode_unmap(barcode: str, db: Session = Depends(get_db)):
-    existing = db.get(BarcodeFoodMapping, barcode)
+    existing = db.get(BarcodeMapping, barcode)
     if existing:
         db.delete(existing)
         db.commit()
@@ -144,7 +144,7 @@ def barcode_retry_lookup(barcode: str, db: Session = Depends(get_db)):
 def barcode_delete(barcode: str, db: Session = Depends(get_db)):
     """Delete cached barcode and its mapping."""
     db.query(RetryQueue).filter(RetryQueue.barcode == barcode).delete()
-    mapping = db.get(BarcodeFoodMapping, barcode)
+    mapping = db.get(BarcodeMapping, barcode)
     if mapping:
         db.delete(mapping)
     cached = db.get(BarcodeCache, barcode)
@@ -156,13 +156,13 @@ def barcode_delete(barcode: str, db: Session = Depends(get_db)):
 
 @router.get("/barcodes-search")
 def barcodes_search(q: str = Query(default=""), db: Session = Depends(get_db)):
-    """AJAX endpoint for food search on barcode detail page."""
+    """AJAX endpoint for item search on barcode detail page."""
     if not q.strip():
         return []
-    foods = (
-        db.query(MealieFood)
-        .filter(MealieFood.name.ilike(f"%{q}%"))
+    items = (
+        db.query(Item)
+        .filter(Item.name.ilike(f"%{q}%"))
         .limit(20)
         .all()
     )
-    return [{"id": f.id, "name": f.name} for f in foods]
+    return [{"id": i.id, "name": i.name, "source": i.source} for i in items]

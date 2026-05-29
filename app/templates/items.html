@@ -1,13 +1,28 @@
 {% extends "base.html" %}
-{% block title %}Foods — Barcode Middleware{% endblock %}
+{% block title %}Items — Barcode Middleware{% endblock %}
 
 {% block content %}
 <div class="page-header d-print-none mb-3">
     <div class="row g-2 align-items-center">
         <div class="col">
-            <div class="page-pretitle">Mealie Catalog</div>
-            <h2 class="page-title">Foods</h2>
+            <div class="page-pretitle">Catalog</div>
+            <h2 class="page-title">Items</h2>
         </div>
+    </div>
+</div>
+
+<!-- Add custom item -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="post" action="/items/add" class="row g-2 align-items-end">
+            <div class="col">
+                <label class="form-label">Add custom item</label>
+                <input type="text" name="name" class="form-control" placeholder="e.g. Fairy Dish Soap" required>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Add</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -15,8 +30,8 @@
     <div class="card-header">
         <div class="row w-100">
             <div class="col">
-                <h3 class="card-title mb-0">{{ items|length }} food{{ 's' if items|length != 1 }}</h3>
-                <p class="text-secondary m-0">{% if last_synced %}Last synced {{ last_synced|localtime }}{% else %}Not synced yet{% endif %}</p>
+                <h3 class="card-title mb-0">{{ items|length }} item{{ 's' if items|length != 1 }}</h3>
+                <p class="text-secondary m-0">{% if last_synced %}Last Mealie sync {{ last_synced|localtime }}{% else %}Not synced yet{% endif %}</p>
             </div>
             <div class="col-md-auto col-sm-12">
                 <div class="ms-auto d-flex flex-wrap btn-list">
@@ -27,25 +42,28 @@
                                 <path d="M21 21l-6 -6"></path>
                             </svg>
                         </span>
-                        <input id="foods-table-search" type="text" class="form-control" placeholder="Filter…" autocomplete="off" value="{{ search_query }}">
+                        <input id="items-table-search" type="text" class="form-control" placeholder="Filter…" autocomplete="off" value="{{ search_query }}">
                     </div>
-                    <form method="post" action="/foods/sync">
+                    <form method="post" action="/items/sync">
                         <button type="submit" class="btn btn-primary">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
-                            Sync Now
+                            Sync Mealie
                         </button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-    <div id="foods-table-container">
+    <div id="items-table-container">
         <div class="table-responsive">
-            <table class="table table-vcenter card-table" id="foods-table">
+            <table class="table table-vcenter card-table" id="items-table">
                 <thead>
                     <tr>
                         <th>
                             <button class="table-sort d-flex justify-content-between active asc" data-sort="sort-name">Name</button>
+                        </th>
+                        <th>
+                            <button class="table-sort d-flex justify-content-between" data-sort="sort-source">Source</button>
                         </th>
                         <th>
                             <button class="table-sort d-flex justify-content-between" data-sort="sort-aliases">Aliases</button>
@@ -56,13 +74,20 @@
                     </tr>
                 </thead>
                 <tbody class="table-tbody">
-                    {% for item in items %}
+                    {% for entry in items %}
                     <tr>
-                        <td class="sort-name"><a href="/foods/{{ item.food.id }}">{{ item.food.name }}</a></td>
-                        <td class="sort-aliases text-secondary">{{ item.food.aliases | fromjson | join(', ') if item.food.aliases else '' }}</td>
+                        <td class="sort-name"><a href="/items/{{ entry.item.id }}">{{ entry.item.name }}</a></td>
+                        <td class="sort-source">
+                            {% if entry.item.source == 'mealie' %}
+                            <span class="badge bg-blue text-blue-fg">mealie</span>
+                            {% else %}
+                            <span class="badge bg-purple text-purple-fg">manual</span>
+                            {% endif %}
+                        </td>
+                        <td class="sort-aliases text-secondary">{{ entry.item.aliases | fromjson | join(', ') if entry.item.aliases else '' }}</td>
                         <td class="sort-mappings">
-                            {% if item.mapping_count > 0 %}
-                            <span class="badge bg-green text-green-fg">{{ item.mapping_count }}</span>
+                            {% if entry.mapping_count > 0 %}
+                            <span class="badge bg-green text-green-fg">{{ entry.mapping_count }}</span>
                             {% else %}
                             <span class="text-secondary">0</span>
                             {% endif %}
@@ -70,7 +95,7 @@
                     </tr>
                     {% endfor %}
                     {% if not items %}
-                    <tr class="foods-empty-row"><td colspan="3" class="text-center text-secondary">No foods synced yet. Click "Sync Now" to fetch from Mealie.</td></tr>
+                    <tr class="items-empty-row"><td colspan="4" class="text-center text-secondary">No items yet. Sync from Mealie or add a custom item above.</td></tr>
                     {% endif %}
                 </tbody>
             </table>
@@ -87,7 +112,7 @@
                     <a class="dropdown-item" href="#" data-page-size="100">100 records</a>
                 </div>
             </div>
-            <ul class="pagination m-0 ms-auto" id="foods-pagination"></ul>
+            <ul class="pagination m-0 ms-auto" id="items-pagination"></ul>
         </div>
     </div>
 </div>
@@ -97,13 +122,13 @@
 <script src="/static/js/table.js"></script>
 <script>
 initAdvancedTable({
-    tableId: 'foods-table',
-    searchId: 'foods-table-search',
-    paginationId: 'foods-pagination',
+    tableId: 'items-table',
+    searchId: 'items-table-search',
+    paginationId: 'items-pagination',
     pageSizeId: 'page-size-label',
     defaultSort: 'sort-name',
     numericCols: ['sort-mappings'],
-    emptyRowClass: 'foods-empty-row'
+    emptyRowClass: 'items-empty-row'
 });
 </script>
 {% endblock %}

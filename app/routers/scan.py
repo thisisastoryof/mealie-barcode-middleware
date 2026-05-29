@@ -10,7 +10,7 @@ from app.auth import require_token
 from app.config import settings
 from app.database import get_db
 from app.events import scan_events
-from app.models import BarcodeCache, BarcodeFoodMapping, MealieFood, Notification
+from app.models import BarcodeCache, BarcodeMapping, Item, Notification
 from app.services.barcode_lookup import perform_lookup
 from app.services.fuzzy import try_auto_map
 from app.services.mealie import (
@@ -53,11 +53,11 @@ def scan_barcode(
 
     # --- Standard barcode flow ---
     # Step 1: Check existing mapping
-    mapping = db.get(BarcodeFoodMapping, barcode)
+    mapping = db.get(BarcodeMapping, barcode)
     if mapping:
-        food = db.get(MealieFood, mapping.mealie_food_id)
-        food_name = food.name if food else barcode
-        resp = _add_via_food_id(mapping.mealie_food_id, food_name, barcode, db)
+        item = db.get(Item, mapping.item_id)
+        item_name = item.name if item else barcode
+        resp = _add_via_item(item, item_name, barcode, db)
         _emit_scan_event(barcode, resp)
         return resp
 
@@ -93,11 +93,11 @@ def scan_barcode(
     # Step 3: Attempt fuzzy auto-mapping
     food_id = try_auto_map(barcode, cached.title or barcode, cached.brand, db)
     if food_id:
-        food = db.get(MealieFood, food_id)
-        food_name = food.name if food else cached.title or barcode
-        resp = _add_via_food_id(food_id, food_name, barcode, db)
+        item = db.get(Item, food_id)
+        item_name = item.name if item else cached.title or barcode
+        resp = _add_via_item(item, item_name, barcode, db)
         _emit_scan_event(barcode, resp)
-        _save_notification(barcode, "Auto-mapped — confirm?", f"{cached.title or barcode} → {food_name}", "auto_mapped", db)
+        _save_notification(barcode, "Auto-mapped — confirm?", f"{cached.title or barcode} → {item_name}", "auto_mapped", db)
         return resp
 
     # No mapping — add as note with product title
@@ -161,15 +161,15 @@ def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
         db.add(existing)
         db.commit()
 
-    # Search mealie_foods
-    foods = db.query(MealieFood).all()
+    # Search items
+    all_items = db.query(Item).all()
     best_score = 0
-    best_food = None
-    for food in foods:
-        score = fuzz.token_sort_ratio(term.lower(), food.name.lower())
-        if food.aliases:
+    best_item = None
+    for item in all_items:
+        score = fuzz.token_sort_ratio(term.lower(), item.name.lower())
+        if item.aliases:
             try:
-                aliases = json.loads(food.aliases)
+                aliases = json.loads(item.aliases)
                 for alias in aliases:
                     alias_score = fuzz.token_sort_ratio(term.lower(), alias.lower())
                     score = max(score, alias_score)
@@ -177,10 +177,10 @@ def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
                 pass
         if score > best_score:
             best_score = score
-            best_food = food
+            best_item = item
 
-    if best_food and best_score >= settings.fuzzy_match_threshold:
-        return _add_via_food_id(best_food.id, best_food.name, barcode, db)
+    if best_item and best_score >= settings.fuzzy_match_threshold:
+        return _add_via_item(best_item, best_item.name, barcode, db)
 
     # Fallback: add as note
     success = add_to_shopping_list_by_note(term)
@@ -191,19 +191,28 @@ def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
         return ScanResponse(result="queued", food=term, via="note")
 
 
-def _add_via_food_id(food_id: str, food_name: str, barcode: str, db: Session) -> ScanResponse:
-    """Try adding via food_id; queue on failure."""
-    success = add_to_shopping_list_by_food(food_id)
-    if success:
-        return ScanResponse(result="added", food=food_name, via="food_id")
+def _add_via_item(item: Item | None, item_name: str, barcode: str, db: Session) -> ScanResponse:
+    """Add to shopping list based on item source; queue on failure."""
+    if item and item.source == "mealie":
+        success = add_to_shopping_list_by_food(item.id)
+        if success:
+            return ScanResponse(result="added", food=item_name, via="food_id")
+        else:
+            payload = {
+                "shoppingListId": settings.mealie_shopping_list_id,
+                "foodId": item.id,
+                "quantity": 1,
+            }
+            enqueue_retry(barcode, payload, db)
+            return ScanResponse(result="queued", food=item_name, via="food_id")
     else:
-        payload = {
-            "shoppingListId": settings.mealie_shopping_list_id,
-            "foodId": food_id,
-            "quantity": 1,
-        }
-        enqueue_retry(barcode, payload, db)
-        return ScanResponse(result="queued", food=food_name, via="food_id")
+        note = item.name if item else item_name
+        success = add_to_shopping_list_by_note(note)
+        if success:
+            return ScanResponse(result="added", food=note, via="note")
+        else:
+            _enqueue_note(barcode, note, db)
+            return ScanResponse(result="queued", food=note, via="note")
 
 
 def _enqueue_note(barcode: str, note: str, db: Session) -> None:

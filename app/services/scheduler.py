@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from app.config import settings
 from app.database import SessionLocal
 from app.events import scan_events
-from app.models import Notification, RetryQueue
+from app.models import BarcodeMapping, Item, Notification, RetryQueue
 from app.services.mealie import sync_foods
 from app.utils import utcnow
 

@@ -1,5 +1,5 @@
 /**
- * food-search.js — Search foods and show results in the assign table.
+ * food-search.js — Search items and show results in the assign table.
  * Fuzzy candidates are shown by default; typing replaces them with search results.
  */
 (function() {
@@ -15,20 +15,23 @@
     var barcode = table.dataset.barcode;
     var originalRows = tbody.innerHTML;
 
-    function buildRow(food) {
+    function buildRow(item) {
         var tr = document.createElement('tr');
         var tdName = document.createElement('td');
         var a = document.createElement('a');
-        a.href = '/foods/' + food.id;
-        a.textContent = food.name;
+        a.href = '/items/' + item.id;
+        a.textContent = item.name;
         tdName.appendChild(a);
+        if (item.source === 'manual') {
+            tdName.insertAdjacentHTML('beforeend', ' <span class="badge bg-purple text-purple-fg">manual</span>');
+        }
 
         var tdScore = document.createElement('td');
         tdScore.innerHTML = '<span class="text-secondary">—</span>';
 
         var tdAction = document.createElement('td');
         tdAction.innerHTML = '<form method="post" action="/barcodes/' + barcode + '/map" class="d-inline">' +
-            '<input type="hidden" name="food_id" value="' + food.id + '">' +
+            '<input type="hidden" name="food_id" value="' + item.id + '">' +
             '<button type="submit" class="btn btn-sm btn-primary">Map</button></form>';
 
         tr.appendChild(tdName);
@@ -50,7 +53,7 @@
                 .then(function(data) {
                     tbody.innerHTML = '';
                     if (data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-secondary">No foods found</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-secondary">No items found</td></tr>';
                         return;
                     }
                     data.forEach(function(f) {

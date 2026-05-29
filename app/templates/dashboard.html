@@ -130,8 +130,8 @@
                         <tr>
                             <td><a href="/barcodes/{{ item.barcode.barcode }}">{{ item.barcode.barcode }}</a></td>
                             <td>
-                                {% if item.food %}
-                                <a href="/foods/{{ item.food.id }}">{{ item.food.name }}</a>
+                                {% if item.item %}
+                                <a href="/items/{{ item.item.id }}">{{ item.item.name }}</a>
                                 {% else %}
                                 {{ item.barcode.title or "—" }}
                                 {% endif %}

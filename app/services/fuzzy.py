@@ -6,7 +6,7 @@ from rapidfuzz import fuzz
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import BarcodeFoodMapping, MealieFood
+from app.models import BarcodeMapping, Item
 
 logger = logging.getLogger(__name__)
 
@@ -52,9 +52,9 @@ def fuzzy_match(
     threshold: int | None = None,
 ) -> list[dict]:
     """
-    Score normalised title against all mealie_foods.
+    Score normalised title against all items.
     Returns list of candidates sorted by score descending.
-    Each entry: {"food_id": str, "food_name": str, "score": int}
+    Each entry: {"item_id": str, "item_name": str, "score": int, "source": str}
     """
     if threshold is None:
         threshold = 0  # Return all for ranking; caller filters by threshold
@@ -63,17 +63,17 @@ def fuzzy_match(
     if not normalised:
         return []
 
-    foods = db.query(MealieFood).all()
+    items = db.query(Item).all()
     candidates = []
 
-    for food in foods:
-        # Score against food name
-        score = _score_pair(normalised, food.name)
+    for item in items:
+        # Score against item name
+        score = _score_pair(normalised, item.name)
         # Also score against aliases
         aliases = []
-        if food.aliases:
+        if item.aliases:
             try:
-                aliases = json.loads(food.aliases)
+                aliases = json.loads(item.aliases)
             except (json.JSONDecodeError, TypeError):
                 pass
         for alias in aliases:
@@ -81,8 +81,9 @@ def fuzzy_match(
             score = max(score, alias_score)
 
         candidates.append({
-            "food_id": food.id,
-            "food_name": food.name,
+            "item_id": item.id,
+            "item_name": item.name,
+            "source": item.source,
             "score": int(score),
         })
 
@@ -115,22 +116,22 @@ def try_auto_map(barcode: str, title: str, brand: str | None, db: Session) -> st
         if gap < settings.fuzzy_ambiguity_gap:
             logger.info(
                 f"Ambiguous match for {barcode}: "
-                f"{top['food_name']}({top['score']}) vs "
-                f"{second['food_name']}({second['score']}), gap={gap} < {settings.fuzzy_ambiguity_gap}"
+                f"{top['item_name']}({top['score']}) vs "
+                f"{second['item_name']}({second['score']}), gap={gap} < {settings.fuzzy_ambiguity_gap}"
             )
             return None
 
     # Clear winner — insert or update mapping
-    existing = db.get(BarcodeFoodMapping, barcode)
+    existing = db.get(BarcodeMapping, barcode)
     if existing:
-        existing.mealie_food_id = top["food_id"]
+        existing.item_id = top["item_id"]
         existing.mapped_by = "auto"
     else:
-        db.add(BarcodeFoodMapping(
+        db.add(BarcodeMapping(
             barcode=barcode,
-            mealie_food_id=top["food_id"],
+            item_id=top["item_id"],
             mapped_by="auto",
         ))
     db.commit()
-    logger.info(f"Auto-mapped {barcode} → {top['food_name']} (score={top['score']})")
-    return top["food_id"]
+    logger.info(f"Auto-mapped {barcode} → {top['item_name']} (score={top['score']})")
+    return top["item_id"]

@@ -87,45 +87,46 @@
 
 <!-- Current mapping -->
 <div class="card mb-3">
-    <div class="card-header"><h3 class="card-title">Food Mapping</h3></div>
+    <div class="card-header"><h3 class="card-title">Item Mapping</h3></div>
     <div class="card-body">
-        {% if mapping and mapped_food %}
+        {% if mapping and mapped_item %}
         <div class="d-flex align-items-center">
             <span class="me-2">Mapped to:</span>
-            <a href="/foods/{{ mapped_food.id }}" class="fw-bold">{{ mapped_food.name }}</a>
-            <span class="badge bg-azure text-azure-fg ms-2">{{ mapping.mapped_by }}</span>
+            <a href="/items/{{ mapped_item.id }}" class="fw-bold">{{ mapped_item.name }}</a>
+            <span class="badge bg-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }} text-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }}-fg ms-2">{{ mapped_item.source }}</span>
+            <span class="badge bg-azure text-azure-fg ms-1">{{ mapping.mapped_by }}</span>
             <form method="post" action="/barcodes/{{ cached.barcode }}/unmap" class="ms-auto">
                 <button type="submit" class="btn btn-sm btn-outline-danger">Remove Mapping</button>
             </form>
         </div>
         {% elif mapping %}
         <div class="d-flex align-items-center">
-            <span class="me-2">Mapped to food ID:</span>
-            <code>{{ mapping.mealie_food_id }}</code>
+            <span class="me-2">Mapped to item ID:</span>
+            <code>{{ mapping.item_id }}</code>
             <span class="badge bg-azure text-azure-fg ms-2">{{ mapping.mapped_by }}</span>
             <form method="post" action="/barcodes/{{ cached.barcode }}/unmap" class="ms-auto">
                 <button type="submit" class="btn btn-sm btn-outline-danger">Remove Mapping</button>
             </form>
         </div>
         {% else %}
-        <p class="text-secondary mb-0">Not mapped to any food.</p>
+        <p class="text-secondary mb-0">Not mapped to any item.</p>
         {% endif %}
     </div>
 </div>
 
-<!-- Assign Food -->
+<!-- Assign Item -->
 <div class="card mb-3">
     <div class="card-header">
         <div class="row w-100 align-items-center">
             <div class="col">
-                <h3 class="card-title mb-0">Assign Food</h3>
+                <h3 class="card-title mb-0">Assign Item</h3>
             </div>
             <div class="col-md-auto col-sm-12">
                 <div class="input-group input-group-flat w-auto">
                     <span class="input-group-text">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path></svg>
                     </span>
-                    <input type="text" id="food-search" class="form-control" placeholder="Search foods…" autocomplete="off">
+                    <input type="text" id="food-search" class="form-control" placeholder="Search items…" autocomplete="off">
                 </div>
             </div>
         </div>
@@ -134,8 +135,8 @@
         <table class="table table-vcenter card-table" id="food-assign-table" data-barcode="{{ cached.barcode }}">
             <thead>
                 <tr>
-                    <th>Food</th>
-                    <th data-bs-toggle="tooltip" title="Fuzzy name similarity between the barcode product and the Mealie food">Match</th>
+                    <th>Item</th>
+                    <th data-bs-toggle="tooltip" title="Fuzzy name similarity between the barcode product and the item">Match</th>
                     <th class="w-1">Action</th>
                 </tr>
             </thead>
@@ -143,20 +144,20 @@
                 {% if candidates %}
                 {% for c in candidates %}
                 <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
-                    <td><a href="/foods/{{ c.food_id }}">{{ c.food_name }}</a></td>
+                    <td><a href="/items/{{ c.item_id }}">{{ c.item_name }}</a>{% if c.source == 'manual' %} <span class="badge bg-purple text-purple-fg">manual</span>{% endif %}</td>
                     <td>
                         <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}%</span>
                     </td>
                     <td>
                         <form method="post" action="/barcodes/{{ cached.barcode }}/map" class="d-inline">
-                            <input type="hidden" name="food_id" value="{{ c.food_id }}">
+                            <input type="hidden" name="food_id" value="{{ c.item_id }}">
                             <button type="submit" class="btn btn-sm btn-primary">Map</button>
                         </form>
                     </td>
                 </tr>
                 {% endfor %}
                 {% else %}
-                <tr class="empty-row"><td colspan="3" class="text-center text-secondary">Type to search for foods</td></tr>
+                <tr class="empty-row"><td colspan="3" class="text-center text-secondary">Type to search for items</td></tr>
                 {% endif %}
             </tbody>
         </table>
