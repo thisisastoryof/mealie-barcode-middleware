@@ -11,25 +11,29 @@
     </div>
 </div>
 
-<div class="card">
+<p class="text-secondary mb-3">Configuration is read from environment variables. To change a value, edit <code>docker-compose.yml</code> or <code>.env</code> and restart the container.</p>
+
+{% for group_name, items in config_groups %}
+<div class="card mb-3">
     <div class="card-header">
-        <h3 class="card-title">Current Configuration</h3>
+        <h3 class="card-title">{{ group_name }}</h3>
     </div>
     <div class="card-body">
-        <p class="text-secondary mb-3">Configuration is read from environment variables. To change a value, edit <code>docker-compose.yml</code> or <code>.env</code> and restart the container.</p>
         <div class="table-responsive">
             <table class="table table-vcenter">
                 <thead>
                     <tr>
                         <th>Variable</th>
                         <th>Value</th>
+                        <th>Description</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for key, value in config.items() %}
+                    {% for key, value, description in items %}
                     <tr>
                         <td><code>{{ key }}</code></td>
                         <td>{{ value }}</td>
+                        <td class="text-secondary">{{ description }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -37,4 +41,5 @@
         </div>
     </div>
 </div>
+{% endfor %}
 {% endblock %}
