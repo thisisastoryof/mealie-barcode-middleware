@@ -33,7 +33,7 @@ BASE_DIR = Path(__file__).resolve().parent
 async def lifespan(app: FastAPI):
     # Startup
     init_db()
-    scan_events.set_loop(asyncio.get_event_loop())
+    scan_events.set_loop(asyncio.get_running_loop())
     logger.info("Database initialized")
     start_scheduler()
     yield
@@ -225,8 +225,11 @@ async def sse_stream():
     async def _generate():
         try:
             while True:
-                msg = await queue.get()
-                yield msg
+                try:
+                    msg = await asyncio.wait_for(queue.get(), timeout=30)
+                    yield msg
+                except asyncio.TimeoutError:
+                    yield ": keepalive\n\n"
         except asyncio.CancelledError:
             pass
         finally:
