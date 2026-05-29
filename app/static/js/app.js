@@ -38,8 +38,8 @@
     }
 
     // ─── SSE Scan Events ─────────────────────────────────────────────────────────
-    var alertsDiv = document.getElementById('scan-alerts');
-    if (!window.EventSource || !alertsDiv) return;
+    var toastContainer = document.getElementById('scan-toasts');
+    if (!window.EventSource || !toastContainer) return;
 
     // Service worker for mobile notification support
     var swReg = null;
@@ -79,11 +79,11 @@
         if (result === 'added') {
             color = 'success';
             title = 'Added to shopping list';
-            desc = '<strong>' + esc(food) + '</strong> <span class="text-secondary">(' + esc(barcode) + ')</span>';
+            desc = food ? esc(food) + ' (' + esc(barcode) + ')' : esc(barcode);
         } else if (result === 'added_as_note') {
             color = 'info';
             title = 'Added as note';
-            desc = '<strong>' + esc(food) + '</strong> <span class="text-secondary">(' + esc(barcode) + ')</span>';
+            desc = food ? esc(food) + ' (' + esc(barcode) + ')' : esc(barcode);
         } else if (result === 'queued') {
             color = 'warning';
             title = 'Queued for retry';
@@ -91,33 +91,42 @@
         } else if (result === 'retry_failed') {
             color = 'danger';
             title = 'Retry failed';
-            desc = '<strong>' + esc(food || barcode) + '</strong> — could not reach Mealie';
+            desc = esc(food || barcode) + ' — could not reach Mealie';
         } else {
             color = 'danger';
             title = 'Unknown barcode';
-            desc = '<code>' + esc(barcode) + '</code>';
+            desc = esc(barcode);
         }
 
         var link = '/barcodes/' + encodeURIComponent(barcode);
-        var html = '<div class="alert alert-' + color + ' alert-dismissible" role="alert">'
-            + '<div class="d-flex align-items-center">'
-            + '<div class="alert-icon">'
-            + '<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
+        var toastEl = document.createElement('div');
+        toastEl.className = 'toast show';
+        toastEl.setAttribute('role', 'alert');
+        toastEl.setAttribute('aria-live', 'assertive');
+        toastEl.setAttribute('aria-atomic', 'true');
+        toastEl.innerHTML = '<div class="toast-header">'
+            + '<span class="avatar avatar-xs me-2 bg-' + color + '">'
+            + '<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm text-white" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
             + '<path stroke="none" d="M0 0h24v24H0z" fill="none"/>'
             + '<path d="M4 7v-1a2 2 0 0 1 2 -2h2"/><path d="M4 17v1a2 2 0 0 0 2 2h2"/>'
             + '<path d="M16 4h2a2 2 0 0 1 2 2v1"/><path d="M16 20h2a2 2 0 0 0 2 -2v-1"/>'
             + '<path d="M5 11h1v2h-1z"/><path d="M10 11v2"/><path d="M14 11h1v2h-1z"/><path d="M19 11v2"/>'
-            + '</svg></div>'
-            + '<div class="ms-2"><h4 class="alert-heading mb-0">' + title + '</h4>'
-            + '<div class="text-secondary">' + desc
-            + ' &mdash; <a href="' + link + '" class="alert-link">View / Map</a></div></div></div>'
-            + '<a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a></div>';
+            + '</svg></span>'
+            + '<strong class="me-auto">' + title + '</strong>'
+            + '<button type="button" class="ms-2 btn-close" data-bs-dismiss="toast" aria-label="Close"></button>'
+            + '</div>'
+            + '<div class="toast-body">'
+            + desc + ' &mdash; <a href="' + link + '">View</a>'
+            + '</div>';
 
-        alertsDiv.insertAdjacentHTML('afterbegin', html);
+        toastContainer.prepend(toastEl);
 
-        // Auto-dismiss after 15s
-        var first = alertsDiv.firstElementChild;
-        setTimeout(function() { if (first && first.parentNode) first.remove(); }, 15000);
+        // Auto-dismiss after 8s
+        setTimeout(function() {
+            toastEl.classList.remove('show');
+            toastEl.classList.add('hide');
+            setTimeout(function() { toastEl.remove(); }, 500);
+        }, 8000);
 
         // Browser notification — only for actionable results
         var isActionable = (result !== 'added' && result !== 'queued');
