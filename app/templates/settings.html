@@ -11,6 +11,19 @@
     </div>
 </div>
 
+<!-- Tabs -->
+<div class="mb-3">
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_tab == 'configuration' }}" href="/settings?tab=configuration">Configuration</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_tab == 'tokens' }}" href="/settings?tab=tokens">API Tokens</a>
+        </li>
+    </ul>
+</div>
+
+{% if current_tab == 'configuration' %}
 <p class="text-secondary mb-3">Configuration is read from environment variables. To change a value, edit <code>docker-compose.yml</code> or <code>.env</code> and restart the container.</p>
 
 {% for group_name, items in config_groups %}
@@ -42,4 +55,68 @@
     </div>
 </div>
 {% endfor %}
+
+{% elif current_tab == 'tokens' %}
+<!-- Show-once new token -->
+{% if new_token %}
+<div class="alert alert-success alert-dismissible">
+    <h4 class="alert-title">Token created: {{ new_token_name }}</h4>
+    <p>Copy this token now — it will <strong>not</strong> be shown again:</p>
+    <div class="input-group mb-2 w-auto">
+        <input type="text" class="form-control font-monospace" value="{{ new_token }}" id="new-token-value" readonly>
+        <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('new-token-value').value)">Copy</button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Create token form -->
+<div class="card mb-3">
+    <div class="card-header"><h3 class="card-title">Create New Token</h3></div>
+    <div class="card-body">
+        <form method="post" action="/settings/tokens/create">
+            <div class="row g-2 align-items-end">
+                <div class="col-auto">
+                    <label class="form-label">Token Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. Kitchen scanner" required>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Existing tokens -->
+<div class="card">
+    <div class="card-header"><h3 class="card-title">Existing Tokens</h3></div>
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Created</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for token in tokens %}
+                <tr>
+                    <td>{{ token.name }}</td>
+                    <td>{{ token.created_at|localtime }}</td>
+                    <td>
+                        <form method="post" action="/settings/tokens/{{ token.id }}/delete" onsubmit="return confirm('Delete token \'{{ token.name }}\'?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not tokens %}
+                <tr><td colspan="3" class="text-center text-secondary">No tokens created yet</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

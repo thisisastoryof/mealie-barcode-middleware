@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -19,7 +19,7 @@ def _templates():
 
 
 @router.get("/settings", response_class=HTMLResponse)
-def settings_page(request: Request):
+def settings_page(request: Request, tab: str = Query("configuration"), db: Session = Depends(get_db)):
     config_groups = [
         ("Mealie Connection", [
             ("MEALIE_URL", settings.mealie_url, "Base URL of your Mealie instance"),
@@ -46,18 +46,20 @@ def settings_page(request: Request):
             ("LOG_LEVEL", settings.log_level, "Application log verbosity"),
         ]),
     ]
+
+    tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all() if tab == "tokens" else []
+
     return _templates().TemplateResponse(request, "settings.html", {
         "config_groups": config_groups,
-    })
-
-
-@router.get("/settings/tokens", response_class=HTMLResponse)
-def tokens_page(request: Request, db: Session = Depends(get_db)):
-    tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all()
-    return _templates().TemplateResponse(request, "tokens.html", {
         "tokens": tokens,
+        "current_tab": tab,
         "new_token": None,
     })
+
+
+@router.get("/settings/tokens")
+def tokens_redirect():
+    return RedirectResponse("/settings?tab=tokens", status_code=302)
 
 
 @router.post("/settings/tokens/create", response_class=HTMLResponse)
@@ -70,8 +72,10 @@ def create_token(request: Request, name: str = Form(...), db: Session = Depends(
     db.refresh(token)
 
     tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all()
-    return _templates().TemplateResponse(request, "tokens.html", {
+    return _templates().TemplateResponse(request, "settings.html", {
+        "config_groups": [],
         "tokens": tokens,
+        "current_tab": "tokens",
         "new_token": raw,
         "new_token_name": name,
     })
@@ -83,4 +87,5 @@ def delete_token(token_id: str, db: Session = Depends(get_db)):
     if token:
         db.delete(token)
         db.commit()
+    return RedirectResponse("/settings?tab=tokens", status_code=303)
     return RedirectResponse("/settings/tokens", status_code=303)
