@@ -74,6 +74,13 @@ def barcode_detail(
     mapping = db.get(BarcodeFoodMapping, barcode)
     mapped_food = db.get(MealieFood, mapping.mealie_food_id) if mapping else None
 
+    # Auto-clear notifications for this barcode on visit
+    db.query(Notification).filter(
+        Notification.barcode == barcode,
+        Notification.is_read == False,
+    ).update({"is_read": True})
+    db.commit()
+
     # Get fuzzy candidates
     candidates = []
     if cached and cached.title:
