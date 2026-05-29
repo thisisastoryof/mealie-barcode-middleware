@@ -1,15 +1,12 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import Depends, Request
 from fastapi.applications import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.responses import StreamingResponse
 
@@ -20,6 +17,7 @@ from app.models import BarcodeCache, BarcodeFoodMapping, MealieFood, RetryQueue
 from app.routers import barcodes, foods, health, notifications, scan, settings as settings_router
 from app.services.mealie import check_connectivity
 from app.services.scheduler import start_scheduler, stop_scheduler
+from app.templating import templates
 
 # Configure logging
 logging.basicConfig(
@@ -29,32 +27,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-
-_tz = ZoneInfo(settings.timezone)
-
-
-def _localtime(value, fmt="%Y-%m-%d %H:%M"):
-    """Jinja2 filter: convert a UTC datetime to the configured local timezone."""
-    if not value:
-        return "\u2014"
-    if value.tzinfo is None:
-        value = value.replace(tzinfo=timezone.utc)
-    return value.astimezone(_tz).strftime(fmt)
-
-
-templates.env.filters["localtime"] = _localtime
-
-
-import json as _json
-
-def _fromjson(value):
-    try:
-        return _json.loads(value)
-    except (TypeError, ValueError):
-        return []
-
-templates.env.filters["fromjson"] = _fromjson
 
 
 @asynccontextmanager

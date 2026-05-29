@@ -13,7 +13,7 @@
 
 <div class="card">
     <div class="card-header">
-        <div class="row w-full">
+        <div class="row w-100">
             <div class="col">
                 <h3 class="card-title mb-0">{{ items|length }} food{{ 's' if items|length != 1 }}</h3>
                 <p class="text-secondary m-0">{% if last_synced %}Last synced {{ last_synced|localtime }}{% else %}Not synced yet{% endif %}</p>
@@ -94,128 +94,16 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/table.js"></script>
 <script>
-(function() {
-    const table = document.getElementById('foods-table');
-    const tbody = table.querySelector('.table-tbody');
-    const searchInput = document.getElementById('foods-table-search');
-    const pagination = document.getElementById('foods-pagination');
-    const pageSizeLabel = document.getElementById('page-size-label');
-
-    let allRows = Array.from(tbody.querySelectorAll('tr:not(.foods-empty-row)'));
-    let filteredRows = allRows.slice();
-    let pageSize = 20;
-    let currentPage = 1;
-    let sortCol = 'sort-name';
-    let sortAsc = true;
-
-    function getText(row, col) {
-        const td = row.querySelector('.' + col);
-        return td ? td.textContent.trim().toLowerCase() : '';
-    }
-
-    function getNumeric(row, col) {
-        const txt = getText(row, col);
-        const n = parseFloat(txt);
-        return isNaN(n) ? 0 : n;
-    }
-
-    function sortRows() {
-        filteredRows.sort(function(a, b) {
-            let av, bv;
-            if (sortCol === 'sort-mappings') {
-                av = getNumeric(a, sortCol);
-                bv = getNumeric(b, sortCol);
-            } else {
-                av = getText(a, sortCol);
-                bv = getText(b, sortCol);
-            }
-            if (av < bv) return sortAsc ? -1 : 1;
-            if (av > bv) return sortAsc ? 1 : -1;
-            return 0;
-        });
-    }
-
-    function filterRows() {
-        const q = searchInput.value.toLowerCase();
-        filteredRows = allRows.filter(function(row) {
-            if (!q) return true;
-            return row.textContent.toLowerCase().indexOf(q) !== -1;
-        });
-        currentPage = 1;
-        sortRows();
-    }
-
-    function render() {
-        const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
-        if (currentPage > totalPages) currentPage = totalPages;
-
-        // Show/hide rows
-        tbody.querySelectorAll('tr').forEach(function(r) { r.style.display = 'none'; });
-        const start = (currentPage - 1) * pageSize;
-        const end = start + pageSize;
-        filteredRows.slice(start, end).forEach(function(r) { r.style.display = ''; });
-
-        // Pagination
-        pagination.innerHTML = '';
-        if (totalPages <= 1) return;
-        for (let i = 1; i <= totalPages; i++) {
-            if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
-                if (pagination.lastChild && !pagination.lastChild.classList.contains('disabled')) {
-                    const li = document.createElement('li');
-                    li.className = 'page-item disabled';
-                    li.innerHTML = '<a class="page-link">…</a>';
-                    pagination.appendChild(li);
-                }
-                continue;
-            }
-            const li = document.createElement('li');
-            li.className = 'page-item' + (i === currentPage ? ' active' : '');
-            const a = document.createElement('a');
-            a.className = 'page-link cursor-pointer';
-            a.textContent = i;
-            a.onclick = function() { currentPage = i; render(); };
-            li.appendChild(a);
-            pagination.appendChild(li);
-        }
-    }
-
-    // Sort handlers
-    table.querySelectorAll('.table-sort').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            const col = btn.dataset.sort;
-            if (sortCol === col) {
-                sortAsc = !sortAsc;
-            } else {
-                sortCol = col;
-                sortAsc = true;
-            }
-            table.querySelectorAll('.table-sort').forEach(function(b) {
-                b.classList.remove('active', 'asc', 'desc');
-            });
-            btn.classList.add('active', sortAsc ? 'asc' : 'desc');
-            sortRows();
-            currentPage = 1;
-            render();
-        });
-    });
-
-    // Search
-    searchInput.addEventListener('input', function() { filterRows(); render(); });
-
-    // Page size
-    document.querySelectorAll('[data-page-size]').forEach(function(a) {
-        a.addEventListener('click', function(e) {
-            e.preventDefault();
-            pageSize = parseInt(a.dataset.pageSize);
-            pageSizeLabel.textContent = pageSize;
-            currentPage = 1;
-            render();
-        });
-    });
-
-    // Init
-    render();
-})();
+initAdvancedTable({
+    tableId: 'foods-table',
+    searchId: 'foods-table-search',
+    paginationId: 'foods-pagination',
+    pageSizeId: 'page-size-label',
+    defaultSort: 'sort-name',
+    numericCols: ['sort-mappings'],
+    emptyRowClass: 'foods-empty-row'
+});
 </script>
 {% endblock %}

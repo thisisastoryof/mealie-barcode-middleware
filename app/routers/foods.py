@@ -8,14 +8,10 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import BarcodeFoodMapping, BarcodeCache, MealieFood
 from app.services.mealie import sync_foods
+from app.templating import templates
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-
-def _templates():
-    from app.main import templates
-    return templates
 
 
 @router.get("/foods", response_class=HTMLResponse)
@@ -34,7 +30,7 @@ def foods_list(request: Request, q: str = Query(""), db: Session = Depends(get_d
 
     last_synced = foods[0].synced_at if foods else None
 
-    return _templates().TemplateResponse(request, "foods.html", {
+    return templates.TemplateResponse(request, "foods.html", {
         "items": items,
         "search_query": q,
         "last_synced": last_synced,
@@ -58,7 +54,7 @@ def food_detail(request: Request, food_id: str, db: Session = Depends(get_db)):
         bc = barcode_map.get(m.barcode)
         mapped_items.append({"mapping": m, "barcode": bc})
 
-    return _templates().TemplateResponse(request, "food_detail.html", {
+    return templates.TemplateResponse(request, "food_detail.html", {
         "food": food,
         "mapped_items": mapped_items,
     })

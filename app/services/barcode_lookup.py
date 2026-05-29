@@ -7,12 +7,9 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.models import BarcodeCache
+from app.utils import utcnow
 
 logger = logging.getLogger(__name__)
-
-
-def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
 
 
 def lookup_openfoodfacts(barcode: str) -> dict | None:
@@ -91,7 +88,7 @@ def perform_lookup(barcode: str, db: Session) -> BarcodeCache:
         result = lookup_upcdatabase(barcode)
 
     existing = db.get(BarcodeCache, barcode)
-    now = _utcnow()
+    now = utcnow()
 
     if result:
         if existing:

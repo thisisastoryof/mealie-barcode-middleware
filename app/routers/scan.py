@@ -18,13 +18,10 @@ from app.services.mealie import (
     add_to_shopping_list_by_note,
     enqueue_retry,
 )
+from app.utils import utcnow
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-
-def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
 
 
 class ScanRequest(BaseModel):
@@ -74,7 +71,7 @@ def scan_barcode(
         # Check TTL
         if cached.lookup_attempted_at:
             ttl_expiry = cached.lookup_attempted_at + timedelta(days=settings.lookup_ttl_days)
-            if _utcnow() > ttl_expiry:
+            if utcnow() > ttl_expiry:
                 needs_lookup = True
 
     if needs_lookup:
@@ -151,8 +148,8 @@ def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
             source="generic",
             title=term,
             found=True,
-            lookup_attempted_at=_utcnow(),
-            created_at=_utcnow(),
+            lookup_attempted_at=utcnow(),
+            created_at=utcnow(),
         )
         db.add(existing)
         db.commit()

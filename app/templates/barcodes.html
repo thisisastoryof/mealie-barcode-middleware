@@ -30,41 +30,103 @@
 </div>
 
 <div class="card">
-    <div class="table-responsive">
-        <table class="table table-vcenter card-table">
-            <thead>
-                <tr>
-                    <th>Barcode</th>
-                    <th>Title</th>
-                    <th>Brand</th>
-                    <th>Source</th>
-                    <th>Mapped To</th>
-                    <th>Scanned</th>
-                </tr>
-            </thead>
-            <tbody id="barcodes-tbody">
-                {% for item in items %}
-                <tr>
-                    <td><a href="/barcodes/{{ item.barcode.barcode }}">{{ item.barcode.barcode }}</a></td>
-                    <td>{{ item.barcode.title or "—" }}</td>
-                    <td>{{ item.barcode.brand or "—" }}</td>
-                    <td>{{ item.barcode.source or "—" }}</td>
-                    <td>
-                        {% if item.food %}
-                        <a href="/foods/{{ item.food.id }}">{{ item.food.name }}</a>
-                        <span class="badge bg-azure text-azure-fg ms-1">{{ item.mapping.mapped_by }}</span>
-                        {% else %}
-                        <span class="text-secondary">—</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ item.barcode.created_at|localtime }}</td>
-                </tr>
-                {% endfor %}
-                {% if not items %}
-                <tr><td colspan="6" class="text-center text-secondary">No barcodes cached yet</td></tr>
-                {% endif %}
-            </tbody>
-        </table>
+    <div class="card-header">
+        <div class="row w-100">
+            <div class="col">
+                <h3 class="card-title mb-0">{{ items|length }} barcode{{ 's' if items|length != 1 }}</h3>
+            </div>
+            <div class="col-md-auto col-sm-12">
+                <div class="input-group input-group-flat w-auto">
+                    <span class="input-group-text">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                            <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
+                            <path d="M21 21l-6 -6"></path>
+                        </svg>
+                    </span>
+                    <input id="barcodes-table-search" type="text" class="form-control" placeholder="Filter…" autocomplete="off">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="barcodes-table-container">
+        <div class="table-responsive">
+            <table class="table table-vcenter card-table" id="barcodes-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <button class="table-sort d-flex justify-content-between" data-sort="sort-barcode">Barcode</button>
+                        </th>
+                        <th>
+                            <button class="table-sort d-flex justify-content-between" data-sort="sort-title">Title</button>
+                        </th>
+                        <th>
+                            <button class="table-sort d-flex justify-content-between" data-sort="sort-brand">Brand</button>
+                        </th>
+                        <th>
+                            <button class="table-sort d-flex justify-content-between" data-sort="sort-source">Source</button>
+                        </th>
+                        <th>
+                            <button class="table-sort d-flex justify-content-between" data-sort="sort-mapped">Mapped To</button>
+                        </th>
+                        <th>
+                            <button class="table-sort d-flex justify-content-between active desc" data-sort="sort-scanned">Scanned</button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="table-tbody" id="barcodes-tbody">
+                    {% for item in items %}
+                    <tr>
+                        <td class="sort-barcode"><a href="/barcodes/{{ item.barcode.barcode }}">{{ item.barcode.barcode }}</a></td>
+                        <td class="sort-title">{{ item.barcode.title or "—" }}</td>
+                        <td class="sort-brand">{{ item.barcode.brand or "—" }}</td>
+                        <td class="sort-source">{{ item.barcode.source or "—" }}</td>
+                        <td class="sort-mapped">
+                            {% if item.food %}
+                            <a href="/foods/{{ item.food.id }}">{{ item.food.name }}</a>
+                            <span class="badge bg-azure text-azure-fg ms-1">{{ item.mapping.mapped_by }}</span>
+                            {% else %}
+                            <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="sort-scanned">{{ item.barcode.created_at|localtime }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not items %}
+                    <tr class="barcodes-empty-row"><td colspan="6" class="text-center text-secondary">No barcodes cached yet</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex align-items-center">
+            <div class="dropdown">
+                <a class="btn dropdown-toggle" data-bs-toggle="dropdown">
+                    <span id="bc-page-size-label">20</span> records
+                </a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="#" data-page-size="10">10 records</a>
+                    <a class="dropdown-item" href="#" data-page-size="20">20 records</a>
+                    <a class="dropdown-item" href="#" data-page-size="50">50 records</a>
+                    <a class="dropdown-item" href="#" data-page-size="100">100 records</a>
+                </div>
+            </div>
+            <ul class="pagination m-0 ms-auto" id="barcodes-pagination"></ul>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/table.js"></script>
+<script>
+initAdvancedTable({
+    tableId: 'barcodes-table',
+    searchId: 'barcodes-table-search',
+    paginationId: 'barcodes-pagination',
+    pageSizeId: 'bc-page-size-label',
+    defaultSort: 'sort-scanned',
+    defaultAsc: false,
+    numericCols: [],
+    emptyRowClass: 'barcodes-empty-row'
+});
+</script>
 {% endblock %}

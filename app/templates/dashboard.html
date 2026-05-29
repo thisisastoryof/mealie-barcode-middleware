@@ -38,7 +38,7 @@
                         </div>
                     </div>
                     <div class="col-md-auto ms-auto d-print-none">
-                        <a href="/settings" class="btn btn-2">
+                        <a href="/settings" class="btn btn-secondary">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-2">
                                 <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"></path>
                                 <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path>
@@ -154,33 +154,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-(function() {
-    var indicator = document.getElementById('health-indicator');
-    var statusEl = document.getElementById('health-status');
-    var timer = null;
-
-    function pollHealth() {
-        fetch('/health').then(function(r) { return r.json(); }).then(function(d) {
-            var up = d.mealie_reachable;
-            indicator.className = 'status-indicator status-' + (up ? 'green' : 'red') + (up ? ' status-indicator-animated' : '');
-            statusEl.className = 'text-' + (up ? 'green' : 'red');
-            statusEl.textContent = up ? 'Connected' : 'Unreachable';
-        }).catch(function() {
-            indicator.className = 'status-indicator status-red';
-            statusEl.className = 'text-red';
-            statusEl.textContent = 'Unreachable';
-        });
-    }
-
-    function start() { if (!timer) timer = setInterval(pollHealth, 30000); }
-    function stop() { if (timer) { clearInterval(timer); timer = null; } }
-
-    // Only poll when tab is visible
-    document.addEventListener('visibilitychange', function() {
-        if (document.hidden) stop(); else start();
-    });
-    if (!document.hidden) start();
-})();
-</script>
+<script src="/static/js/health.js"></script>
 {% endblock %}

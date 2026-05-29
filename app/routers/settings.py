@@ -8,14 +8,10 @@ from app.auth import generate_token, hash_token
 from app.config import settings
 from app.database import get_db
 from app.models import ApiToken
+from app.templating import templates
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-
-def _templates():
-    from app.main import templates
-    return templates
 
 
 @router.get("/settings", response_class=HTMLResponse)
@@ -49,7 +45,7 @@ def settings_page(request: Request, tab: str = Query("configuration"), db: Sessi
 
     tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all() if tab == "tokens" else []
 
-    return _templates().TemplateResponse(request, "settings.html", {
+    return templates.TemplateResponse(request, "settings.html", {
         "config_groups": config_groups,
         "tokens": tokens,
         "current_tab": tab,
@@ -67,7 +63,7 @@ def create_token(request: Request, name: str = Form(...), db: Session = Depends(
     db.refresh(token)
 
     tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all()
-    return _templates().TemplateResponse(request, "settings.html", {
+    return templates.TemplateResponse(request, "settings.html", {
         "config_groups": [],
         "tokens": tokens,
         "current_tab": "tokens",
@@ -83,4 +79,3 @@ def delete_token(token_id: str, db: Session = Depends(get_db)):
         db.delete(token)
         db.commit()
     return RedirectResponse("/settings?tab=tokens", status_code=303)
-    return RedirectResponse("/settings/tokens", status_code=303)

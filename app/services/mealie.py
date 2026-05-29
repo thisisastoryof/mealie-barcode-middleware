@@ -7,12 +7,9 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.models import MealieFood, RetryQueue
+from app.utils import utcnow
 
 logger = logging.getLogger(__name__)
-
-
-def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
 
 
 def _headers() -> dict:
@@ -48,7 +45,7 @@ def sync_foods(db: Session) -> int:
 
     data = resp.json()
     items = data.get("items", data) if isinstance(data, dict) else data
-    now = _utcnow()
+    now = utcnow()
     count = 0
 
     for food in items:
@@ -113,7 +110,7 @@ def enqueue_retry(barcode: str, payload: dict, db: Session) -> None:
         barcode=barcode,
         payload=json.dumps(payload),
         attempts=0,
-        next_retry_at=_utcnow(),
-        created_at=_utcnow(),
+        next_retry_at=utcnow(),
+        created_at=utcnow(),
     ))
     db.commit()

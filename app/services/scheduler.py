@@ -8,13 +8,10 @@ from app.config import settings
 from app.database import SessionLocal
 from app.models import Notification, RetryQueue
 from app.services.mealie import sync_foods
+from app.utils import utcnow
 
 logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
-
-
-def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
 
 
 def _run_food_sync():
@@ -35,7 +32,7 @@ def _process_retry_queue():
 
     db = SessionLocal()
     try:
-        now = _utcnow()
+        now = utcnow()
         pending = (
             db.query(RetryQueue)
             .filter(RetryQueue.next_retry_at <= now)
@@ -115,7 +112,7 @@ def _purge_old_notifications():
     """Delete read notifications older than 30 days."""
     db = SessionLocal()
     try:
-        cutoff = _utcnow() - timedelta(days=30)
+        cutoff = utcnow() - timedelta(days=30)
         deleted = (
             db.query(Notification)
             .filter(Notification.is_read == True, Notification.created_at < cutoff)

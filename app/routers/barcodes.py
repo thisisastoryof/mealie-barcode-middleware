@@ -11,14 +11,10 @@ from app.database import get_db
 from app.models import BarcodeCache, BarcodeFoodMapping, MealieFood, Notification, RetryQueue
 from app.services.barcode_lookup import perform_lookup
 from app.services.fuzzy import fuzzy_match
+from app.templating import templates
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-
-def _templates():
-    from app.main import templates
-    return templates
 
 
 @router.get("/barcodes", response_class=HTMLResponse)
@@ -58,7 +54,7 @@ def barcodes_list(
             "food": food,
         })
 
-    return _templates().TemplateResponse(request, "barcodes.html", {
+    return templates.TemplateResponse(request, "barcodes.html", {
         "items": items,
         "current_status": status,
     })
@@ -96,7 +92,7 @@ def barcode_detail(
         .first()
     )
 
-    return _templates().TemplateResponse(request, "barcode_detail.html", {
+    return templates.TemplateResponse(request, "barcode_detail.html", {
         "cached": cached,
         "mapping": mapping,
         "mapped_food": mapped_food,
