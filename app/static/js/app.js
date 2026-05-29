@@ -104,6 +104,8 @@
         toastEl.setAttribute('role', 'alert');
         toastEl.setAttribute('aria-live', 'assertive');
         toastEl.setAttribute('aria-atomic', 'true');
+        toastEl.setAttribute('data-bs-autohide', 'false');
+        toastEl.setAttribute('data-bs-toggle', 'toast');
         toastEl.innerHTML = '<div class="toast-header">'
             + '<span class="avatar avatar-xs me-2 bg-' + color + '">'
             + '<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm text-white" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
@@ -113,18 +115,15 @@
             + '<path d="M5 11h1v2h-1z"/><path d="M10 11v2"/><path d="M14 11h1v2h-1z"/><path d="M19 11v2"/>'
             + '</svg></span>'
             + '<strong class="me-auto">' + title + '</strong>'
-            + '<div class="btn-close ms-2" aria-label="Close"></div>'
+            + '<button type="button" class="ms-2 btn-close" data-bs-dismiss="toast" aria-label="Close"></button>'
             + '</div>'
             + '<div class="toast-body">'
             + desc + ' &mdash; <a href="' + link + '">View</a>'
             + '</div>';
 
-        // Close button handler
-        toastEl.querySelector('.btn-close').addEventListener('click', function() { toastEl.remove(); });
-
         toastContainer.prepend(toastEl);
 
-        // Auto-dismiss after 8s
+        // Auto-dismiss after 8s (remove from DOM)
         setTimeout(function() { if (toastEl.parentNode) toastEl.remove(); }, 8000);
 
         // Browser notification — only for actionable results
