@@ -35,13 +35,15 @@ def normalise_title(title: str, brand: str | None = None) -> str:
 def _score_pair(product: str, food_term: str) -> int:
     """
     Score a normalised product title against a single food name/alias.
-    Uses max of token_sort_ratio and token_set_ratio for best coverage.
+    Uses max of token_sort_ratio, token_set_ratio, and partial_ratio
+    for best coverage across languages and partial matches.
     """
     p = product.lower()
     f = food_term.lower()
     return max(
         fuzz.token_sort_ratio(p, f),
         fuzz.token_set_ratio(p, f),
+        fuzz.partial_ratio(p, f),
     )
 
 

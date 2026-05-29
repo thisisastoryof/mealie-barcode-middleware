@@ -3,7 +3,7 @@ import logging
 
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -189,12 +189,13 @@ def barcode_delete(barcode: str, db: Session = Depends(get_db)):
 @router.get("/barcodes-search")
 def barcodes_search(q: str = Query(default=""), db: Session = Depends(get_db)):
     """AJAX endpoint for item search on barcode detail page."""
-    if not q.strip():
+    q = q.strip()
+    if not q:
         return []
-    items = (
-        db.query(Item)
-        .filter(Item.name.ilike(f"%{q}%"))
-        .limit(20)
-        .all()
-    )
+    # Split query into words, match items containing ANY word
+    words = [w for w in q.split() if len(w) >= 2]
+    if not words:
+        words = [q]
+    conditions = [Item.name.ilike(f"%{word}%") for word in words]
+    items = db.query(Item).filter(or_(*conditions)).limit(20).all()
     return [{"id": i.id, "name": i.name, "source": i.source} for i in items]
