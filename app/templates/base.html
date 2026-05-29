@@ -56,27 +56,27 @@
                                 </svg>
                             </a>
                         </div>
-                        <!-- Notification bell -->
-                        <div class="nav-item dropdown ms-2" id="notif-dropdown">
-                            <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications" data-bs-auto-close="outside">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
-                                    <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path>
-                                    <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
-                                </svg>
-                                <span class="badge bg-red badge-empty d-none" id="notif-badge"></span>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card">
-                                <div class="card">
-                                    <div class="card-header d-flex">
-                                        <h3 class="card-title">Notifications</h3>
-                                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="dropdown" aria-label="Close"></button>
-                                    </div>
-                                    <div class="list-group list-group-flush list-group-hoverable notif-list" id="notif-list">
-                                        <div class="list-group-item text-center text-secondary" id="notif-empty">No new notifications</div>
-                                    </div>
-                                    <div class="card-body">
-                                        <a href="#" class="btn btn-secondary w-100" id="notif-mark-all">Mark all as read</a>
-                                    </div>
+                    </div>
+                    <!-- Notification bell (always visible) -->
+                    <div class="nav-item dropdown ms-2" id="notif-dropdown">
+                        <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications" data-bs-auto-close="outside">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                                <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path>
+                                <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
+                            </svg>
+                            <span class="badge bg-red badge-empty d-none" id="notif-badge"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card">
+                            <div class="card">
+                                <div class="card-header d-flex">
+                                    <h3 class="card-title">Notifications</h3>
+                                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="dropdown" aria-label="Close"></button>
+                                </div>
+                                <div class="list-group list-group-flush list-group-hoverable notif-list" id="notif-list">
+                                    <div class="list-group-item text-center text-secondary" id="notif-empty">No new notifications</div>
+                                </div>
+                                <div class="card-body">
+                                    <a href="#" class="btn btn-secondary w-100" id="notif-mark-all">Mark all as read</a>
                                 </div>
                             </div>
                         </div>
@@ -88,7 +88,6 @@
                         <li class="nav-item{{ ' active' if request.url.path.startswith('/barcodes') }}"><a class="nav-link" href="/barcodes">Barcodes</a></li>
                         <li class="nav-item{{ ' active' if request.url.path.startswith('/foods') }}"><a class="nav-link" href="/foods">Foods</a></li>
                         <li class="nav-item d-md-none{{ ' active' if request.url.path.startswith('/settings') }}"><a class="nav-link" href="/settings">Settings</a></li>
-                        <li class="nav-item d-md-none"><a class="nav-link" href="#" id="mobile-notif-link">Notifications <span class="badge bg-red d-none" id="notif-badge-mobile"></span></a></li>
                         <li class="nav-item d-md-none">
                             <a href="#" class="nav-link hide-theme-dark" id="theme-toggle-dark-mobile">Dark mode</a>
                             <a href="#" class="nav-link hide-theme-light" id="theme-toggle-light-mobile">Light mode</a>
