@@ -100,7 +100,7 @@
 
         var link = '/barcodes/' + encodeURIComponent(barcode);
         var toastEl = document.createElement('div');
-        toastEl.className = 'toast show';
+        toastEl.className = 'toast';
         toastEl.setAttribute('role', 'alert');
         toastEl.setAttribute('aria-live', 'assertive');
         toastEl.setAttribute('aria-atomic', 'true');
@@ -121,12 +121,10 @@
 
         toastContainer.prepend(toastEl);
 
-        // Auto-dismiss after 8s
-        setTimeout(function() {
-            toastEl.classList.remove('show');
-            toastEl.classList.add('hide');
-            setTimeout(function() { toastEl.remove(); }, 500);
-        }, 8000);
+        // Initialize via Bootstrap Toast API (enables data-bs-dismiss and auto-hide)
+        var bsToast = new bootstrap.Toast(toastEl, { delay: 8000 });
+        bsToast.show();
+        toastEl.addEventListener('hidden.bs.toast', function() { toastEl.remove(); });
 
         // Browser notification — only for actionable results
         var isActionable = (result !== 'added' && result !== 'queued');
