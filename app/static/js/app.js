@@ -100,7 +100,7 @@
 
         var link = '/barcodes/' + encodeURIComponent(barcode);
         var toastEl = document.createElement('div');
-        toastEl.className = 'toast';
+        toastEl.className = 'toast show';
         toastEl.setAttribute('role', 'alert');
         toastEl.setAttribute('aria-live', 'assertive');
         toastEl.setAttribute('aria-atomic', 'true');
@@ -113,18 +113,19 @@
             + '<path d="M5 11h1v2h-1z"/><path d="M10 11v2"/><path d="M14 11h1v2h-1z"/><path d="M19 11v2"/>'
             + '</svg></span>'
             + '<strong class="me-auto">' + title + '</strong>'
-            + '<button type="button" class="ms-2 btn-close" data-bs-dismiss="toast" aria-label="Close"></button>'
+            + '<div class="btn-close ms-2" aria-label="Close"></div>'
             + '</div>'
             + '<div class="toast-body">'
             + desc + ' &mdash; <a href="' + link + '">View</a>'
             + '</div>';
 
+        // Close button handler
+        toastEl.querySelector('.btn-close').addEventListener('click', function() { toastEl.remove(); });
+
         toastContainer.prepend(toastEl);
 
-        // Initialize via Bootstrap Toast API (enables data-bs-dismiss and auto-hide)
-        var bsToast = new bootstrap.Toast(toastEl, { delay: 8000 });
-        bsToast.show();
-        toastEl.addEventListener('hidden.bs.toast', function() { toastEl.remove(); });
+        // Auto-dismiss after 8s
+        setTimeout(function() { if (toastEl.parentNode) toastEl.remove(); }, 8000);
 
         // Browser notification — only for actionable results
         var isActionable = (result !== 'added' && result !== 'queued');

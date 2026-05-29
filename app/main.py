@@ -33,7 +33,6 @@ BASE_DIR = Path(__file__).resolve().parent
 async def lifespan(app: FastAPI):
     # Startup
     init_db()
-    scan_events.set_loop(asyncio.get_running_loop())
     logger.info("Database initialized")
     start_scheduler()
     yield
