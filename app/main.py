@@ -17,7 +17,7 @@ from app.models import BarcodeCache, BarcodeMapping, Item, RetryQueue
 from app.routers import barcodes, items, health, notifications, scan, settings as settings_router
 from app.services.mealie import check_connectivity
 from app.services.scheduler import start_scheduler, stop_scheduler
-from app.templating import templates
+from app.templating import templates, _localtime
 
 # Configure logging
 logging.basicConfig(
