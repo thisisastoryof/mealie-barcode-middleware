@@ -165,9 +165,15 @@
             el = document.getElementById('stat-total');
             if (el) el.textContent = d.total_barcodes;
             el = document.getElementById('stat-mapped');
-            if (el) el.textContent = d.mapped_count;
+            if (el) {
+                el.textContent = d.mapped_count;
+                el.className = 'h1 mb-0' + (d.mapped_count > 0 ? ' text-green' : '');
+            }
             el = document.getElementById('stat-pending');
-            if (el) el.textContent = d.pending_count;
+            if (el) {
+                el.textContent = d.pending_count;
+                el.className = 'h1 mb-0 text-' + (d.pending_count === 0 ? 'green' : 'yellow');
+            }
             el = document.getElementById('stat-unknown');
             if (el) {
                 el.textContent = d.unknown_count;

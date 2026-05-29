@@ -75,7 +75,7 @@
                 <div class="d-flex align-items-center">
                     <div>
                         <div class="subheader">Mapped</div>
-                        <div class="h1 mb-0 text-green" id="stat-mapped">{{ mapped_count }}</div>
+                        <div class="h1 mb-0{{ ' text-green' if mapped_count > 0 else '' }}" id="stat-mapped">{{ mapped_count }}</div>
                     </div>
                 </div>
             </div>
@@ -87,7 +87,7 @@
                 <div class="d-flex align-items-center">
                     <div>
                         <div class="subheader">Pending Mapping</div>
-                        <div class="h1 mb-0 text-yellow" id="stat-pending">{{ pending_count }}</div>
+                        <div class="h1 mb-0 text-{{ 'green' if pending_count == 0 else 'yellow' }}" id="stat-pending">{{ pending_count }}</div>
                     </div>
                 </div>
             </div>
