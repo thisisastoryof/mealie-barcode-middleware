@@ -4,10 +4,8 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <title>{% block title %}Barcode Middleware{% endblock %}</title>
-    <!-- Inter font (required by Tabler) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <!-- Inter font (bundled for offline use) -->
+    <link rel="stylesheet" href="/static/vendor/inter/inter.css">
     <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
     <script>
       // Apply saved theme before render to avoid flash
@@ -61,7 +59,7 @@
                                 <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path>
                                 <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
                             </svg>
-                            <span class="badge bg-red badge-notification d-none" id="notif-badge"></span>
+                            <span class="badge bg-red badge-empty d-none" id="notif-badge"></span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card" style="width: 22rem;">
                             <div class="card">
@@ -291,7 +289,6 @@
         function _updateBadge() {
             if (count > 0) {
                 badge.classList.remove('d-none');
-                badge.textContent = count > 9 ? '9+' : count;
             } else {
                 badge.classList.add('d-none');
             }
