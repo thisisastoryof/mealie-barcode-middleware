@@ -125,6 +125,38 @@ def barcode_map(
     return RedirectResponse(f"/barcodes/{barcode}", status_code=303)
 
 
+@router.post("/barcodes/{barcode}/create-and-map")
+def barcode_create_and_map(
+    barcode: str,
+    name: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    """Create a new manual item and map this barcode to it in one step."""
+    name = name.strip()
+    if not name:
+        return RedirectResponse(f"/barcodes/{barcode}", status_code=303)
+
+    item = Item(name=name, source="manual")
+    db.add(item)
+    db.flush()  # get the generated id
+
+    existing = db.get(BarcodeMapping, barcode)
+    if existing:
+        existing.item_id = item.id
+        existing.mapped_by = "manual"
+    else:
+        db.add(BarcodeMapping(barcode=barcode, item_id=item.id, mapped_by="manual"))
+
+    # Mark notifications for this barcode as read
+    db.query(Notification).filter(
+        Notification.barcode == barcode,
+        Notification.is_read == False,
+    ).update({"is_read": True})
+
+    db.commit()
+    return RedirectResponse(f"/barcodes/{barcode}", status_code=303)
+
+
 @router.post("/barcodes/{barcode}/unmap")
 def barcode_unmap(barcode: str, db: Session = Depends(get_db)):
     existing = db.get(BarcodeMapping, barcode)

@@ -1,6 +1,7 @@
 /**
  * food-search.js — Search items and show results in the assign table.
  * Fuzzy candidates are shown by default; typing replaces them with search results.
+ * Always shows a "Create & Map" row at the bottom when there's text in the search box.
  */
 (function() {
     'use strict';
@@ -14,6 +15,27 @@
 
     var barcode = table.dataset.barcode;
     var originalRows = tbody.innerHTML;
+
+    function esc(s) {
+        var d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    function buildCreateRow(query) {
+        var tr = document.createElement('tr');
+        tr.className = 'table-active';
+        tr.innerHTML = '<td colspan="2" class="text-muted">' +
+            '<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm me-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>' +
+            'Create <strong>"' + esc(query) + '"</strong> as manual item' +
+            '</td>' +
+            '<td>' +
+            '<form method="post" action="/barcodes/' + esc(barcode) + '/create-and-map" class="d-inline">' +
+            '<input type="hidden" name="name" value="' + esc(query) + '">' +
+            '<button type="submit" class="btn btn-sm btn-success">Create &amp; Map</button>' +
+            '</form></td>';
+        return tr;
+    }
 
     function buildRow(item) {
         var tr = document.createElement('tr');
@@ -53,12 +75,14 @@
                 .then(function(data) {
                     tbody.innerHTML = '';
                     if (data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-secondary">No items found</td></tr>';
-                        return;
+                        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-secondary">No matching items</td></tr>';
+                    } else {
+                        data.forEach(function(f) {
+                            tbody.appendChild(buildRow(f));
+                        });
                     }
-                    data.forEach(function(f) {
-                        tbody.appendChild(buildRow(f));
-                    });
+                    // Always append the create row as escape hatch
+                    tbody.appendChild(buildCreateRow(q));
                 });
         }, 300);
     });
