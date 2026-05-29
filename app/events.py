@@ -13,10 +13,14 @@ class EventBus:
         self._subscribers: list[asyncio.Queue] = []
         self._loop: asyncio.AbstractEventLoop | None = None
 
+    def set_loop(self, loop: asyncio.AbstractEventLoop):
+        self._loop = loop
+
     def subscribe(self) -> asyncio.Queue:
         q: asyncio.Queue = asyncio.Queue()
         self._subscribers.append(q)
-        self._loop = asyncio.get_event_loop()
+        if not self._loop:
+            self._loop = asyncio.get_event_loop()
         return q
 
     def unsubscribe(self, q: asyncio.Queue):

@@ -115,7 +115,7 @@ def scan_barcode(
 
 def _emit_scan_event(barcode: str, resp: ScanResponse):
     """Publish a scan event to all SSE listeners (live alerts only)."""
-    scan_events.publish("scan", {
+    scan_events.publish_threadsafe("scan", {
         "barcode": barcode,
         "result": resp.result,
         "food": resp.food,
