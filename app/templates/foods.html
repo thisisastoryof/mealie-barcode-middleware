@@ -8,58 +8,218 @@
             <div class="page-pretitle">Mealie Catalog</div>
             <h2 class="page-title">Foods</h2>
         </div>
-        <div class="col-auto ms-auto d-print-none">
-            <div class="d-flex align-items-center gap-2">
-                <form method="get" action="/foods" class="d-flex">
-                    <div class="input-icon">
-                        <span class="input-icon-addon">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/><path d="M21 21l-6 -6"/></svg>
-                        </span>
-                        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Search foods…" aria-label="Search foods">
-                    </div>
-                </form>
-                <form method="post" action="/foods/sync">
-                    <button type="submit" class="btn btn-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
-                        Sync Now
-                    </button>
-                </form>
-            </div>
-        </div>
     </div>
 </div>
 
 <div class="card">
-    <div class="table-responsive">
-        <table class="table table-vcenter card-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Aliases</th>
-                    <th>Mapped Barcodes</th>
-                    <th>Last Synced</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
-                <tr>
-                    <td><a href="/foods/{{ item.food.id }}">{{ item.food.name }}</a></td>
-                    <td class="text-secondary">{{ item.food.aliases | fromjson | join(', ') if item.food.aliases else '' }}</td>
-                    <td>
-                        {% if item.mapping_count > 0 %}
-                        <span class="badge bg-green text-green-fg">{{ item.mapping_count }}</span>
-                        {% else %}
-                        <span class="text-secondary">0</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ item.food.synced_at|localtime }}</td>
-                </tr>
-                {% endfor %}
-                {% if not items %}
-                <tr><td colspan="4" class="text-center text-secondary">No foods synced yet. Click "Sync Now" to fetch from Mealie.</td></tr>
-                {% endif %}
-            </tbody>
-        </table>
+    <div class="card-header">
+        <div class="row w-full">
+            <div class="col">
+                <h3 class="card-title mb-0">{{ items|length }} food{{ 's' if items|length != 1 }}</h3>
+                <p class="text-secondary m-0">Synced from Mealie</p>
+            </div>
+            <div class="col-md-auto col-sm-12">
+                <div class="ms-auto d-flex flex-wrap btn-list">
+                    <div class="input-group input-group-flat w-auto">
+                        <span class="input-group-text">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                                <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
+                                <path d="M21 21l-6 -6"></path>
+                            </svg>
+                        </span>
+                        <input id="foods-table-search" type="text" class="form-control" placeholder="Filter…" autocomplete="off" value="{{ search_query }}">
+                    </div>
+                    <form method="post" action="/foods/sync">
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
+                            Sync Now
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="foods-table-container">
+        <div class="table-responsive">
+            <table class="table table-vcenter card-table" id="foods-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <button class="table-sort d-flex justify-content-between active asc" data-sort="sort-name">Name</button>
+                        </th>
+                        <th>
+                            <button class="table-sort d-flex justify-content-between" data-sort="sort-aliases">Aliases</button>
+                        </th>
+                        <th>
+                            <button class="table-sort d-flex justify-content-between" data-sort="sort-mappings">Mapped Barcodes</button>
+                        </th>
+                        <th>
+                            <button class="table-sort d-flex justify-content-between" data-sort="sort-synced">Last Synced</button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="table-tbody">
+                    {% for item in items %}
+                    <tr>
+                        <td class="sort-name"><a href="/foods/{{ item.food.id }}">{{ item.food.name }}</a></td>
+                        <td class="sort-aliases text-secondary">{{ item.food.aliases | fromjson | join(', ') if item.food.aliases else '' }}</td>
+                        <td class="sort-mappings">
+                            {% if item.mapping_count > 0 %}
+                            <span class="badge bg-green text-green-fg">{{ item.mapping_count }}</span>
+                            {% else %}
+                            <span class="text-secondary">0</span>
+                            {% endif %}
+                        </td>
+                        <td class="sort-synced">{{ item.food.synced_at|localtime }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not items %}
+                    <tr class="foods-empty-row"><td colspan="4" class="text-center text-secondary">No foods synced yet. Click "Sync Now" to fetch from Mealie.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex align-items-center">
+            <div class="dropdown">
+                <a class="btn dropdown-toggle" data-bs-toggle="dropdown">
+                    <span id="page-size-label">20</span> records
+                </a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="#" data-page-size="10">10 records</a>
+                    <a class="dropdown-item" href="#" data-page-size="20">20 records</a>
+                    <a class="dropdown-item" href="#" data-page-size="50">50 records</a>
+                    <a class="dropdown-item" href="#" data-page-size="100">100 records</a>
+                </div>
+            </div>
+            <ul class="pagination m-0 ms-auto" id="foods-pagination"></ul>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const table = document.getElementById('foods-table');
+    const tbody = table.querySelector('.table-tbody');
+    const searchInput = document.getElementById('foods-table-search');
+    const pagination = document.getElementById('foods-pagination');
+    const pageSizeLabel = document.getElementById('page-size-label');
+
+    let allRows = Array.from(tbody.querySelectorAll('tr:not(.foods-empty-row)'));
+    let filteredRows = allRows.slice();
+    let pageSize = 20;
+    let currentPage = 1;
+    let sortCol = 'sort-name';
+    let sortAsc = true;
+
+    function getText(row, col) {
+        const td = row.querySelector('.' + col);
+        return td ? td.textContent.trim().toLowerCase() : '';
+    }
+
+    function getNumeric(row, col) {
+        const txt = getText(row, col);
+        const n = parseFloat(txt);
+        return isNaN(n) ? 0 : n;
+    }
+
+    function sortRows() {
+        filteredRows.sort(function(a, b) {
+            let av, bv;
+            if (sortCol === 'sort-mappings') {
+                av = getNumeric(a, sortCol);
+                bv = getNumeric(b, sortCol);
+            } else {
+                av = getText(a, sortCol);
+                bv = getText(b, sortCol);
+            }
+            if (av < bv) return sortAsc ? -1 : 1;
+            if (av > bv) return sortAsc ? 1 : -1;
+            return 0;
+        });
+    }
+
+    function filterRows() {
+        const q = searchInput.value.toLowerCase();
+        filteredRows = allRows.filter(function(row) {
+            if (!q) return true;
+            return row.textContent.toLowerCase().indexOf(q) !== -1;
+        });
+        currentPage = 1;
+        sortRows();
+    }
+
+    function render() {
+        const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        // Show/hide rows
+        tbody.querySelectorAll('tr').forEach(function(r) { r.style.display = 'none'; });
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        filteredRows.slice(start, end).forEach(function(r) { r.style.display = ''; });
+
+        // Pagination
+        pagination.innerHTML = '';
+        if (totalPages <= 1) return;
+        for (let i = 1; i <= totalPages; i++) {
+            if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+                if (pagination.lastChild && !pagination.lastChild.classList.contains('disabled')) {
+                    const li = document.createElement('li');
+                    li.className = 'page-item disabled';
+                    li.innerHTML = '<a class="page-link">…</a>';
+                    pagination.appendChild(li);
+                }
+                continue;
+            }
+            const li = document.createElement('li');
+            li.className = 'page-item' + (i === currentPage ? ' active' : '');
+            const a = document.createElement('a');
+            a.className = 'page-link cursor-pointer';
+            a.textContent = i;
+            a.onclick = function() { currentPage = i; render(); };
+            li.appendChild(a);
+            pagination.appendChild(li);
+        }
+    }
+
+    // Sort handlers
+    table.querySelectorAll('.table-sort').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const col = btn.dataset.sort;
+            if (sortCol === col) {
+                sortAsc = !sortAsc;
+            } else {
+                sortCol = col;
+                sortAsc = true;
+            }
+            table.querySelectorAll('.table-sort').forEach(function(b) {
+                b.classList.remove('active', 'asc', 'desc');
+            });
+            btn.classList.add('active', sortAsc ? 'asc' : 'desc');
+            sortRows();
+            currentPage = 1;
+            render();
+        });
+    });
+
+    // Search
+    searchInput.addEventListener('input', function() { filterRows(); render(); });
+
+    // Page size
+    document.querySelectorAll('[data-page-size]').forEach(function(a) {
+        a.addEventListener('click', function(e) {
+            e.preventDefault();
+            pageSize = parseInt(a.dataset.pageSize);
+            pageSizeLabel.textContent = pageSize;
+            currentPage = 1;
+            render();
+        });
+    });
+
+    // Init
+    render();
+})();
+</script>
 {% endblock %}

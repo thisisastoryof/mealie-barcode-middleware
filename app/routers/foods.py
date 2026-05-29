@@ -2,6 +2,7 @@ import logging
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -22,7 +23,7 @@ def foods_list(request: Request, q: str = Query(""), db: Session = Depends(get_d
     query = db.query(MealieFood)
     if q:
         query = query.filter(MealieFood.name.ilike(f"%{q}%") | MealieFood.aliases.ilike(f"%{q}%"))
-    foods = query.order_by(MealieFood.name).all()
+    foods = query.order_by(func.lower(MealieFood.name)).all()
 
     # Count mappings per food
     mapping_counts = {}
