@@ -8,6 +8,7 @@
     <!-- Inter font (bundled for offline use) -->
     <link rel="stylesheet" href="/static/vendor/inter/inter.css">
     <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
+    <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
     <link rel="stylesheet" href="/static/css/app.css">
     <script>
       // Apply saved theme before render to avoid flash
@@ -84,13 +85,13 @@
                 </div>
                 <div class="collapse navbar-collapse" id="navbar-menu">
                     <ul class="navbar-nav">
-                        <li class="nav-item{{ ' active' if request.url.path == '/' }}"><a class="nav-link" href="/">Dashboard</a></li>
-                        <li class="nav-item{{ ' active' if request.url.path.startswith('/barcodes') }}"><a class="nav-link" href="/barcodes">Barcodes</a></li>
-                        <li class="nav-item{{ ' active' if request.url.path.startswith('/foods') }}"><a class="nav-link" href="/foods">Foods</a></li>
-                        <li class="nav-item d-md-none{{ ' active' if request.url.path.startswith('/settings') }}"><a class="nav-link" href="/settings">Settings</a></li>
+                        <li class="nav-item{{ ' active' if request.url.path == '/' }}"><a class="nav-link" href="/"><i class="ti ti-dashboard me-1"></i>Dashboard</a></li>
+                        <li class="nav-item{{ ' active' if request.url.path.startswith('/barcodes') }}"><a class="nav-link" href="/barcodes"><i class="ti ti-barcode me-1"></i>Barcodes</a></li>
+                        <li class="nav-item{{ ' active' if request.url.path.startswith('/foods') }}"><a class="nav-link" href="/foods"><i class="ti ti-apple me-1"></i>Foods</a></li>
+                        <li class="nav-item d-md-none{{ ' active' if request.url.path.startswith('/settings') }}"><a class="nav-link" href="/settings"><i class="ti ti-settings me-1"></i>Settings</a></li>
                         <li class="nav-item d-md-none">
-                            <a href="#" class="nav-link hide-theme-dark" id="theme-toggle-dark-mobile">Dark mode</a>
-                            <a href="#" class="nav-link hide-theme-light" id="theme-toggle-light-mobile">Light mode</a>
+                            <a href="#" class="nav-link hide-theme-dark" id="theme-toggle-dark-mobile"><i class="ti ti-moon me-1"></i>Dark mode</a>
+                            <a href="#" class="nav-link hide-theme-light" id="theme-toggle-light-mobile"><i class="ti ti-sun me-1"></i>Light mode</a>
                         </li>
                     </ul>
                 </div>
