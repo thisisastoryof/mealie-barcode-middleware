@@ -16,7 +16,7 @@
         <div class="row w-full">
             <div class="col">
                 <h3 class="card-title mb-0">{{ items|length }} food{{ 's' if items|length != 1 }}</h3>
-                <p class="text-secondary m-0">Synced from Mealie</p>
+                <p class="text-secondary m-0">{% if last_synced %}Last synced {{ last_synced|localtime }}{% else %}Not synced yet{% endif %}</p>
             </div>
             <div class="col-md-auto col-sm-12">
                 <div class="ms-auto d-flex flex-wrap btn-list">
@@ -53,9 +53,6 @@
                         <th>
                             <button class="table-sort d-flex justify-content-between" data-sort="sort-mappings">Mapped Barcodes</button>
                         </th>
-                        <th>
-                            <button class="table-sort d-flex justify-content-between" data-sort="sort-synced">Last Synced</button>
-                        </th>
                     </tr>
                 </thead>
                 <tbody class="table-tbody">
@@ -70,11 +67,10 @@
                             <span class="text-secondary">0</span>
                             {% endif %}
                         </td>
-                        <td class="sort-synced">{{ item.food.synced_at|localtime }}</td>
                     </tr>
                     {% endfor %}
                     {% if not items %}
-                    <tr class="foods-empty-row"><td colspan="4" class="text-center text-secondary">No foods synced yet. Click "Sync Now" to fetch from Mealie.</td></tr>
+                    <tr class="foods-empty-row"><td colspan="3" class="text-center text-secondary">No foods synced yet. Click "Sync Now" to fetch from Mealie.</td></tr>
                     {% endif %}
                 </tbody>
             </table>

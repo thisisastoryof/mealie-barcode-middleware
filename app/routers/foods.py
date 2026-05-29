@@ -32,9 +32,12 @@ def foods_list(request: Request, q: str = Query(""), db: Session = Depends(get_d
 
     items = [{"food": f, "mapping_count": mapping_counts.get(f.id, 0)} for f in foods]
 
+    last_synced = foods[0].synced_at if foods else None
+
     return _templates().TemplateResponse(request, "foods.html", {
         "items": items,
         "search_query": q,
+        "last_synced": last_synced,
     })
 
 
