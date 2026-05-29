@@ -6,7 +6,7 @@
     <div class="row g-2 align-items-center">
         <div class="col">
             <div class="page-pretitle">Barcode</div>
-            <h2 class="page-title">{{ cached.barcode if cached else 'Not Found' }}</h2>
+            <h2 class="page-title">{{ cached.barcode if cached else 'Not Found' }}{% if cached and cached.title %} <small class="text-secondary">&mdash; {{ cached.title }}</small>{% endif %}</h2>
         </div>
         <div class="col-auto ms-auto d-print-none">
             <div class="btn-list">
@@ -135,7 +135,7 @@
             <thead>
                 <tr>
                     <th>Food</th>
-                    <th>Score</th>
+                    <th data-bs-toggle="tooltip" title="Fuzzy name similarity between the barcode product and the Mealie food">Match</th>
                     <th class="w-1">Action</th>
                 </tr>
             </thead>
@@ -145,7 +145,7 @@
                 <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
                     <td><a href="/foods/{{ c.food_id }}">{{ c.food_name }}</a></td>
                     <td>
-                        <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}</span>
+                        <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}%</span>
                     </td>
                     <td>
                         <form method="post" action="/barcodes/{{ cached.barcode }}/map" class="d-inline">
