@@ -22,111 +22,127 @@
 <div class="alert alert-warning">This barcode is not in the cache.</div>
 {% else %}
 
-<!-- Product info -->
-<div class="card mb-3">
-    <div class="card-header"><h3 class="card-title">Product Information</h3></div>
-    <div class="card-body">
-        <div class="datagrid">
-            <div class="datagrid-item">
-                <div class="datagrid-title">Title</div>
-                <div class="datagrid-content">{{ cached.title or "—" }}</div>
-            </div>
-            <div class="datagrid-item">
-                <div class="datagrid-title">Brand</div>
-                <div class="datagrid-content">{{ cached.brand or "—" }}</div>
-            </div>
-            <div class="datagrid-item">
-                <div class="datagrid-title">Quantity</div>
-                <div class="datagrid-content">{{ cached.quantity or "—" }}</div>
-            </div>
-            <div class="datagrid-item">
-                <div class="datagrid-title">Type</div>
-                <div class="datagrid-content">{{ cached.product_type or "—" }}</div>
-            </div>
-            <div class="datagrid-item">
-                <div class="datagrid-title">Source</div>
-                <div class="datagrid-content">{{ cached.source or "—" }}</div>
-            </div>
-            <div class="datagrid-item">
-                <div class="datagrid-title">Found</div>
-                <div class="datagrid-content">
-                    {% if cached.found %}
-                    <span class="badge bg-green text-green-fg">Yes</span>
-                    {% else %}
-                    <span class="badge bg-red text-red-fg">No</span>
-                    {% endif %}
+<div class="row row-deck row-cards mb-3">
+    <!-- Product info (left) -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header"><h3 class="card-title">Product Information</h3></div>
+            <div class="card-body">
+                <div class="datagrid">
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Title</div>
+                        <div class="datagrid-content">{{ cached.title or "—" }}</div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Brand</div>
+                        <div class="datagrid-content">{{ cached.brand or "—" }}</div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Quantity</div>
+                        <div class="datagrid-content">{{ cached.quantity or "—" }}</div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Type</div>
+                        <div class="datagrid-content">{{ cached.product_type or "—" }}</div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Lookup Source</div>
+                        <div class="datagrid-content">{{ cached.source or "—" }}</div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Found</div>
+                        <div class="datagrid-content">
+                            {% if cached.found %}
+                            <span class="badge bg-green text-green-fg">Yes</span>
+                            {% else %}
+                            <span class="badge bg-red text-red-fg">No</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Last Lookup</div>
+                        <div class="datagrid-content">{{ cached.lookup_attempted_at|localtime }}</div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">First Seen</div>
+                        <div class="datagrid-content">{{ cached.created_at|localtime }}</div>
+                    </div>
                 </div>
             </div>
-            <div class="datagrid-item">
-                <div class="datagrid-title">Last Lookup</div>
-                <div class="datagrid-content">{{ cached.lookup_attempted_at|localtime }}</div>
+            {% if not cached.found %}
+            <div class="card-footer d-flex">
+                <form method="post" action="/barcodes/{{ cached.barcode }}/retry-lookup" class="d-inline">
+                    <button type="submit" class="btn btn-warning">Retry Lookup</button>
+                </form>
+                <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline ms-auto" onsubmit="return confirm('Delete this barcode and its mapping?')">
+                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                </form>
             </div>
-            <div class="datagrid-item">
-                <div class="datagrid-title">First Seen</div>
-                <div class="datagrid-content">{{ cached.created_at|localtime }}</div>
+            {% else %}
+            <div class="card-footer d-flex justify-content-end">
+                <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline" onsubmit="return confirm('Delete this barcode and its mapping?')">
+                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Item mapping (right sidebar) -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header"><h3 class="card-title">Linked Item</h3></div>
+            <div class="card-body">
+                {% if mapping and mapped_item %}
+                <div class="mb-3 text-center">
+                    <a href="/items/{{ mapped_item.id }}" class="h3 d-block mb-1">{{ mapped_item.name }}</a>
+                    <span class="badge bg-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }} text-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }}-fg">{{ 'Mealie food' if mapped_item.source == 'mealie' else 'Custom item' }}</span>
+                </div>
+                <div class="text-secondary small text-center mb-3">
+                    {% if mapping.mapped_by == 'auto' %}Automatically matched{% elif mapping.mapped_by == 'manual' %}Manually assigned{% else %}{{ mapping.mapped_by }}{% endif %}
+                    · {{ mapping.created_at|localtime }}
+                </div>
+                <div class="text-center">
+                    <form method="post" action="/barcodes/{{ cached.barcode }}/unmap">
+                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Remove Link</button>
+                    </form>
+                </div>
+                {% elif mapping %}
+                <div class="mb-2">
+                    <span class="text-secondary">Mapped to item ID:</span><br>
+                    <code class="small">{{ mapping.item_id }}</code>
+                </div>
+                <div class="text-secondary small mb-3">Item may have been deleted</div>
+                <form method="post" action="/barcodes/{{ cached.barcode }}/unmap">
+                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">Remove Link</button>
+                </form>
+                {% else %}
+                <div class="text-center py-3">
+                    <div class="text-secondary mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-lg" width="40" height="40" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 15l6 -6"/><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/></svg>
+                    </div>
+                    <p class="text-secondary mb-0">No item linked yet</p>
+                    <p class="text-secondary small">Use the search below to find or create one</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
-    {% if not cached.found %}
-    <div class="card-footer d-flex">
-        <form method="post" action="/barcodes/{{ cached.barcode }}/retry-lookup" class="d-inline">
-            <button type="submit" class="btn btn-warning">Retry Lookup</button>
-        </form>
-        <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline ms-auto" onsubmit="return confirm('Delete this barcode and its mapping?')">
-            <button type="submit" class="btn btn-outline-danger">Delete Barcode</button>
-        </form>
-    </div>
-    {% else %}
-    <div class="card-footer d-flex justify-content-end">
-        <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline" onsubmit="return confirm('Delete this barcode and its mapping?')">
-            <button type="submit" class="btn btn-outline-danger">Delete Barcode</button>
-        </form>
-    </div>
-    {% endif %}
 </div>
 
-<!-- Current mapping -->
-<div class="card mb-3">
-    <div class="card-header"><h3 class="card-title">Item Mapping</h3></div>
-    <div class="card-body">
-        {% if mapping and mapped_item %}
-        <div class="d-flex align-items-center">
-            <span class="me-2">Mapped to:</span>
-            <a href="/items/{{ mapped_item.id }}" class="fw-bold">{{ mapped_item.name }}</a>
-            <span class="badge bg-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }} text-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }}-fg ms-2">{{ mapped_item.source }}</span>
-            <span class="badge bg-azure text-azure-fg ms-1">{{ mapping.mapped_by }}</span>
-            <form method="post" action="/barcodes/{{ cached.barcode }}/unmap" class="ms-auto">
-                <button type="submit" class="btn btn-sm btn-outline-danger">Remove Mapping</button>
-            </form>
-        </div>
-        {% elif mapping %}
-        <div class="d-flex align-items-center">
-            <span class="me-2">Mapped to item ID:</span>
-            <code>{{ mapping.item_id }}</code>
-            <span class="badge bg-azure text-azure-fg ms-2">{{ mapping.mapped_by }}</span>
-            <form method="post" action="/barcodes/{{ cached.barcode }}/unmap" class="ms-auto">
-                <button type="submit" class="btn btn-sm btn-outline-danger">Remove Mapping</button>
-            </form>
-        </div>
-        {% else %}
-        <p class="text-secondary mb-0">Not mapped to any item.</p>
-        {% endif %}
-    </div>
-</div>
-
-<!-- Assign Item -->
+<!-- Search or Create Item -->
 <div class="card mb-3">
     <div class="card-header">
         <div class="row w-100 align-items-center">
             <div class="col">
-                <h3 class="card-title mb-0">Assign Item</h3>
+                <h3 class="card-title mb-0">Search or Create Item</h3>
             </div>
             <div class="col-md-auto col-sm-12">
                 <div class="input-group input-group-flat w-auto">
                     <span class="input-group-text">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path></svg>
                     </span>
-                    <input type="text" id="food-search" class="form-control" placeholder="Search items…" autocomplete="off">
+                    <input type="text" id="food-search" class="form-control" placeholder="Search existing or type new name…" autocomplete="off">
                 </div>
             </div>
         </div>
@@ -144,20 +160,20 @@
                 {% if candidates %}
                 {% for c in candidates %}
                 <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
-                    <td><a href="/items/{{ c.item_id }}">{{ c.item_name }}</a>{% if c.source == 'manual' %} <span class="badge bg-purple text-purple-fg">manual</span>{% endif %}</td>
+                    <td><a href="/items/{{ c.item_id }}">{{ c.item_name }}</a>{% if c.source == 'manual' %} <span class="badge bg-purple text-purple-fg">custom</span>{% endif %}</td>
                     <td>
                         <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}%</span>
                     </td>
                     <td>
                         <form method="post" action="/barcodes/{{ cached.barcode }}/map" class="d-inline">
                             <input type="hidden" name="food_id" value="{{ c.item_id }}">
-                            <button type="submit" class="btn btn-sm btn-primary">Map</button>
+                            <button type="submit" class="btn btn-sm btn-primary">Link</button>
                         </form>
                     </td>
                 </tr>
                 {% endfor %}
                 {% else %}
-                <tr class="empty-row"><td colspan="3" class="text-center text-secondary">Type to search for items</td></tr>
+                <tr class="empty-row"><td colspan="3" class="text-center text-secondary">Type to search or create a new item</td></tr>
                 {% endif %}
             </tbody>
         </table>

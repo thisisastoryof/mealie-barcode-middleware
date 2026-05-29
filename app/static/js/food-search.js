@@ -45,7 +45,7 @@
         a.textContent = item.name;
         tdName.appendChild(a);
         if (item.source === 'manual') {
-            tdName.insertAdjacentHTML('beforeend', ' <span class="badge bg-purple text-purple-fg">manual</span>');
+            tdName.insertAdjacentHTML('beforeend', ' <span class="badge bg-purple text-purple-fg">custom</span>');
         }
 
         var tdScore = document.createElement('td');
@@ -54,7 +54,7 @@
         var tdAction = document.createElement('td');
         tdAction.innerHTML = '<form method="post" action="/barcodes/' + barcode + '/map" class="d-inline">' +
             '<input type="hidden" name="food_id" value="' + item.id + '">' +
-            '<button type="submit" class="btn btn-sm btn-primary">Map</button></form>';
+            '<button type="submit" class="btn btn-sm btn-primary">Link</button></form>';
 
         tr.appendChild(tdName);
         tr.appendChild(tdScore);
