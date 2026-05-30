@@ -159,15 +159,11 @@
             window._activitiesRefresh = setTimeout(function() { refreshActivities(); }, 1500);
         }
 
-        // Add to notification bell for actionable items
-        if (result === 'added_as_note') {
-            // Item was added but needs proper mapping — show as actionable
-            addNotifItem({barcode: barcode, title: 'Mapping needed', message: (food || barcode) + ' \u2014 assign to a Mealie item', result: 'needs_mapping'});
-        } else if (result !== 'added' && result !== 'queued') {
-            var notifTitle = result === 'unknown' ? 'Unknown barcode' : title;
-            var notifMsg = food ? food + ' (' + barcode + ')' : barcode;
-            addNotifItem({barcode: barcode, title: notifTitle, message: notifMsg, result: result});
-        }
+        // Refresh notification bell from server (debounced)
+        clearTimeout(window._notifRefresh);
+        window._notifRefresh = setTimeout(function() {
+            if (window.refreshNotifications) window.refreshNotifications();
+        }, 2000);
     }
     connectSSE();
 
@@ -386,10 +382,21 @@
     // Expose for SSE handler
     window.addNotifItem = addNotifItem;
 
+    // Reload bell from server (called on SSE events as failsafe)
+    function reloadNotifications() {
+        fetch('/api/notifications').then(function(r) { return r.json(); }).then(function(items) {
+            // Clear existing
+            var existing = list.querySelectorAll('.list-group-item:not(#notif-empty)');
+            existing.forEach(function(el) { el.remove(); });
+            count = 0;
+            // Repopulate
+            items.reverse().forEach(function(n) { addNotifItem(n); });
+        });
+    }
+    window.refreshNotifications = reloadNotifications;
+
     // Load existing unread notifications
-    fetch('/api/notifications').then(function(r) { return r.json(); }).then(function(items) {
-        items.reverse().forEach(function(n) { addNotifItem(n); });
-    });
+    reloadNotifications();
 
     // Mark all as read
     if (markAllBtn) {
