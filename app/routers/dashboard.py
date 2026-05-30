@@ -7,7 +7,7 @@ from starlette.responses import StreamingResponse
 
 from app.database import get_db
 from app.events import scan_events
-from app.models import BarcodeCache, BarcodeMapping, Item, RetryQueue
+from app.models import ApiToken, BarcodeCache, BarcodeMapping, Item, RetryQueue
 from app.services.mealie import check_connectivity
 from app.templating import templates, _localtime
 
@@ -61,6 +61,8 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     last_sync = db.query(Item.synced_at).filter(Item.source == "mealie").order_by(Item.synced_at.desc()).first()
     last_sync_time = last_sync[0] if last_sync else None
 
+    has_tokens = db.query(ApiToken).first() is not None
+
     return templates.TemplateResponse(request, "dashboard.html", {
         "total_barcodes": total_barcodes,
         "mapped_count": mapped_count,
@@ -70,6 +72,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         "recent_items": recent_items,
         "mealie_reachable": mealie_reachable,
         "last_sync_time": last_sync_time,
+        "has_tokens": has_tokens,
     })
 
 

@@ -160,29 +160,91 @@
                 <h3 class="card-title">Getting Started</h3>
             </div>
             <div class="card-body">
-                <div class="steps steps-green steps-counter">
-                    <a href="/settings" class="step-item {{ 'active' if mealie_reachable else '' }}">
-                        <div class="h4 m-0">Connect to Mealie</div>
-                        <div class="text-secondary">
-                            {% if mealie_reachable %}
-                            <i class="ti ti-check text-green"></i> Connected
-                            {% else %}
-                            Verify your Mealie URL and API key in Settings
-                            {% endif %}
+                <p class="text-secondary">Complete these steps to start scanning products into your Mealie shopping list.</p>
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                {% if mealie_reachable %}
+                                <span class="avatar avatar-sm bg-green-lt"><i class="ti ti-check icon"></i></span>
+                                {% else %}
+                                <span class="avatar avatar-sm bg-muted-lt text-secondary">1</span>
+                                {% endif %}
+                            </div>
+                            <div class="col">
+                                <div class="fw-bold">Connect to Mealie</div>
+                                <div class="text-secondary">
+                                    {% if mealie_reachable %}
+                                    Connected and ready.
+                                    {% else %}
+                                    Set <code>MEALIE_URL</code> and <code>MEALIE_API_KEY</code> in your environment, then restart.
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <a href="/settings" class="btn btn-sm {{ 'btn-ghost-green' if mealie_reachable else 'btn-primary' }}">
+                                    {{ 'Verified' if mealie_reachable else 'Settings' }} <i class="ti ti-arrow-right icon icon-sm ms-1"></i>
+                                </a>
+                            </div>
                         </div>
-                    </a>
-                    <span class="step-item">
-                        <div class="h4 m-0">Set up your scanner</div>
-                        <div class="text-secondary">
-                            Flash the ESPHome config to your barcode reader and point it at this server's <code>/scan</code> endpoint
+                    </div>
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                {% if has_tokens %}
+                                <span class="avatar avatar-sm bg-green-lt"><i class="ti ti-check icon"></i></span>
+                                {% else %}
+                                <span class="avatar avatar-sm bg-muted-lt text-secondary">2</span>
+                                {% endif %}
+                            </div>
+                            <div class="col">
+                                <div class="fw-bold">Create a scanner token</div>
+                                <div class="text-secondary">
+                                    {% if has_tokens %}
+                                    Token created — use it in your scanner config.
+                                    {% else %}
+                                    Your barcode scanner needs an API token to authenticate with this server.
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <a href="/settings?tab=tokens" class="btn btn-sm {{ 'btn-ghost-green' if has_tokens else 'btn-primary' }}">
+                                    {{ 'Manage' if has_tokens else 'Create token' }} <i class="ti ti-arrow-right icon icon-sm ms-1"></i>
+                                </a>
+                            </div>
                         </div>
-                    </span>
-                    <span class="step-item">
-                        <div class="h4 m-0">Scan your first barcode</div>
-                        <div class="text-secondary">
-                            Scan any product — it will be looked up automatically and added to your shopping list
+                    </div>
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <span class="avatar avatar-sm bg-muted-lt text-secondary">3</span>
+                            </div>
+                            <div class="col">
+                                <div class="fw-bold">Configure your scanner</div>
+                                <div class="text-secondary">
+                                    Flash the ESPHome config to your reader. Point it at <code>/scan</code> with your token.
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <a href="https://github.com/gunrunner20/mealie-barcode-middleware#esphome-configuration" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                    Docs <i class="ti ti-external-link icon icon-sm ms-1"></i>
+                                </a>
+                            </div>
                         </div>
-                    </span>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <span class="avatar avatar-sm bg-muted-lt text-secondary">4</span>
+                            </div>
+                            <div class="col">
+                                <div class="fw-bold">Scan your first barcode</div>
+                                <div class="text-secondary">
+                                    Point the scanner at any product — it will be looked up and added to your shopping list automatically.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% endif %}
