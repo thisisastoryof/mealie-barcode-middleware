@@ -62,11 +62,13 @@
                         <th>
                             <button class="table-sort d-flex justify-content-between" data-sort="sort-brand">Brand</button>
                         </th>
-                        <th>
-                            <button class="table-sort d-flex justify-content-between" data-sort="sort-source">Source</button>
-                        </th>
+                        {% if current_status not in ('pending', 'unknown') %}
                         <th>
                             <button class="table-sort d-flex justify-content-between" data-sort="sort-mapped">Mapped To</button>
+                        </th>
+                        {% endif %}
+                        <th>
+                            <button class="table-sort d-flex justify-content-between" data-sort="sort-source">Source</button>
                         </th>
                         <th>
                             <button class="table-sort d-flex justify-content-between active desc" data-sort="sort-scanned">Scanned</button>
@@ -90,7 +92,7 @@
                         </td>
                         <td class="sort-title">{{ item.barcode.title or "—" }}</td>
                         <td class="sort-brand">{{ item.barcode.brand or "—" }}</td>
-                        <td class="sort-source">{{ item.barcode.source or "—" }}</td>
+                        {% if current_status not in ('pending', 'unknown') %}
                         <td class="sort-mapped">
                             {% if item.item %}
                             <a href="/items/{{ item.item.id }}">{{ item.item.name }}</a>
@@ -99,11 +101,13 @@
                             <span class="text-secondary">—</span>
                             {% endif %}
                         </td>
+                        {% endif %}
+                        <td class="sort-source">{{ item.barcode.source or "—" }}</td>
                         <td class="sort-scanned">{{ item.barcode.created_at|localtime }}</td>
                     </tr>
                     {% endfor %}
                     {% if not items %}
-                    <tr class="barcodes-empty-row"><td colspan="7" class="text-center text-secondary">No barcodes cached yet</td></tr>
+                    <tr class="barcodes-empty-row"><td colspan="{{ 7 if current_status not in ('pending', 'unknown') else 6 }}" class="text-center text-secondary">No barcodes cached yet</td></tr>
                     {% endif %}
                 </tbody>
             </table>
