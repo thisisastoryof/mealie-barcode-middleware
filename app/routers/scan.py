@@ -14,7 +14,7 @@ from app.models import BarcodeCache, BarcodeMapping, Item, Notification
 from app.services.barcode_lookup import perform_lookup
 from app.services.fuzzy import try_auto_map
 from app.services.mealie import (
-    add_to_shopping_list_by_food,
+    add_to_shopping_list_by_item,
     add_to_shopping_list_by_note,
     enqueue_retry,
 )
@@ -91,9 +91,9 @@ def scan_barcode(
         return resp
 
     # Step 3: Attempt fuzzy auto-mapping
-    food_id = try_auto_map(barcode, cached.title or barcode, cached.brand, db)
-    if food_id:
-        item = db.get(Item, food_id)
+    item_id = try_auto_map(barcode, cached.title or barcode, cached.brand, db)
+    if item_id:
+        item = db.get(Item, item_id)
         item_name = item.name if item else cached.title or barcode
         resp = _add_via_item(item, item_name, barcode, db)
         _emit_scan_event(barcode, resp)
@@ -109,7 +109,7 @@ def scan_barcode(
         _enqueue_note(barcode, note, db)
         resp = ScanResponse(result="queued", food=note, via="note")
     _emit_scan_event(barcode, resp)
-    _save_notification(barcode, "Mapping needed", f"{note} — assign to a Mealie food", "needs_mapping", db)
+    _save_notification(barcode, "Mapping needed", f"{note} — assign to a Mealie item", "needs_mapping", db)
     return resp
 
 
@@ -141,7 +141,7 @@ def _save_notification(barcode: str, title: str, message: str, result: str, db: 
 
 
 def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
-    """Handle GENERIC: prefixed scans — fuzzy search mealie_foods."""
+    """Handle GENERIC: prefixed scans — fuzzy search mealie items."""
     from rapidfuzz import fuzz
 
     if not term:
@@ -194,7 +194,7 @@ def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
 def _add_via_item(item: Item | None, item_name: str, barcode: str, db: Session) -> ScanResponse:
     """Add to shopping list based on item source; queue on failure."""
     if item and item.source == "mealie":
-        success = add_to_shopping_list_by_food(item.id)
+        success = add_to_shopping_list_by_item(item.id)
         if success:
             return ScanResponse(result="added", food=item_name, via="food_id")
         else:

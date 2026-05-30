@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import BarcodeCache, BarcodeMapping, Item
-from app.services.mealie import sync_foods
+from app.services.mealie import sync_items
 from app.templating import templates
 
 logger = logging.getLogger(__name__)
@@ -72,9 +72,9 @@ def remove_item_mapping(item_id: str, barcode: str, db: Session = Depends(get_db
 @router.post("/items/sync")
 def trigger_sync(db: Session = Depends(get_db)):
     try:
-        sync_foods(db)
+        sync_items(db)
     except Exception as e:
-        logger.error(f"Manual food sync failed: {e}")
+        logger.error(f"Manual item sync failed: {e}")
     return RedirectResponse("/items", status_code=303)
 
 

@@ -149,13 +149,13 @@
                     <span class="input-icon-addon">
                         <i class="ti ti-search icon" aria-hidden="true"></i>
                     </span>
-                    <input type="text" id="food-search" class="form-control" placeholder="Find or create…" autocomplete="off">
+                    <input type="text" id="item-search" class="form-control" placeholder="Find or create…" autocomplete="off">
                 </div>
             </div>
         </div>
     </div>
     <div class="table-responsive">
-        <table class="table table-vcenter card-table" id="food-assign-table" data-barcode="{{ cached.barcode }}">
+        <table class="table table-vcenter card-table" id="item-assign-table" data-barcode="{{ cached.barcode }}">
             <thead>
                 <tr>
                     <th>Item</th>
@@ -164,7 +164,7 @@
                     <th class="w-1"></th>
                 </tr>
             </thead>
-            <tbody id="food-assign-tbody">
+            <tbody id="item-assign-tbody">
                 {% if candidates %}
                 {% for c in candidates %}
                 <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
@@ -175,7 +175,7 @@
                     </td>
                     <td>
                         <form method="post" action="/barcodes/{{ cached.barcode }}/map" class="d-inline">
-                            <input type="hidden" name="food_id" value="{{ c.item_id }}">
+                            <input type="hidden" name="item_id" value="{{ c.item_id }}">
                             <button type="submit" class="btn btn-sm btn-primary">Link</button>
                         </form>
                     </td>
@@ -193,5 +193,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/food-search.js"></script>
+<script src="/static/js/item-search.js"></script>
 {% endblock %}

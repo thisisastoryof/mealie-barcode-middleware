@@ -32,14 +32,14 @@ def normalise_title(title: str, brand: str | None = None) -> str:
     return result
 
 
-def _score_pair(product: str, food_term: str) -> int:
+def _score_pair(product: str, item_term: str) -> int:
     """
-    Score a normalised product title against a single food name/alias.
+    Score a normalised product title against a single item name/alias.
     Uses max of token_sort_ratio, token_set_ratio, and partial_ratio
     for best coverage across languages and partial matches.
     """
     p = product.lower()
-    f = food_term.lower()
+    f = item_term.lower()
     return max(
         fuzz.token_sort_ratio(p, f),
         fuzz.token_set_ratio(p, f),
@@ -99,9 +99,9 @@ def try_auto_map(barcode: str, title: str, brand: str | None, db: Session) -> st
     Only maps if:
       1. Top score >= threshold
       2. Gap between #1 and #2 >= ambiguity_gap (avoids false matches when
-         multiple foods match equally, e.g. "Tuna" and "Water" both appearing
+         multiple items match equally, e.g. "Tuna" and "Water" both appearing
          in "Chunk Light Tuna in Water")
-    Returns food_id on success, None otherwise.
+    Returns item_id on success, None otherwise.
     """
     candidates = fuzzy_match(title, brand, db)
     if not candidates:

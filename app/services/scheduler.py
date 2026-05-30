@@ -8,21 +8,20 @@ from app.config import settings
 from app.database import SessionLocal
 from app.events import scan_events
 from app.models import BarcodeMapping, Item, Notification, RetryQueue
-from app.services.mealie import sync_foods
-from app.utils import utcnow
+from app.services.mealie import sync_items
 
 logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
 
 
-def _run_food_sync():
-    """Background job: sync Mealie foods."""
-    logger.info("Running scheduled food sync")
+def _run_item_sync():
+    """Background job: sync Mealie items."""
+    logger.info("Running scheduled item sync")
     db = SessionLocal()
     try:
-        sync_foods(db)
+        sync_items(db)
     except Exception as e:
-        logger.error(f"Scheduled food sync failed: {e}")
+        logger.error(f"Scheduled item sync failed: {e}")
     finally:
         db.close()
 
@@ -97,12 +96,12 @@ def _create_retry_failed_notification(item: RetryQueue, db):
     """Create a notification when a retry queue item permanently fails."""
     try:
         payload = json.loads(item.payload)
-        food_hint = payload.get("note") or payload.get("foodId") or item.barcode
+        item_hint = payload.get("note") or payload.get("foodId") or item.barcode
     except (json.JSONDecodeError, TypeError):
-        food_hint = item.barcode
+        item_hint = item.barcode
 
     title = "Failed to add to shopping list"
-    message = f"{food_hint} — could not reach Mealie after {item.attempts} retries"
+    message = f"{item_hint} — could not reach Mealie after {item.attempts} retries"
 
     db.add(Notification(
         barcode=item.barcode,
@@ -115,7 +114,7 @@ def _create_retry_failed_notification(item: RetryQueue, db):
     scan_events.publish_threadsafe("scan", {
         "barcode": item.barcode,
         "result": "retry_failed",
-        "food": str(food_hint),
+        "food": str(item_hint),
     })
 
 
@@ -139,12 +138,12 @@ def _purge_old_notifications():
 
 
 def start_scheduler():
-    """Start the APScheduler with food sync and retry queue jobs."""
+    """Start the APScheduler with item sync and retry queue jobs."""
     scheduler.add_job(
-        _run_food_sync,
+        _run_item_sync,
         "interval",
         hours=settings.food_sync_interval_hours,
-        id="food_sync",
+        id="item_sync",
         replace_existing=True,
     )
     scheduler.add_job(
@@ -162,7 +161,7 @@ def start_scheduler():
         replace_existing=True,
     )
     scheduler.start()
-    logger.info("Scheduler started (food sync + retry queue + notification purge)")
+    logger.info("Scheduler started (item sync + retry queue + notification purge)")
 
 
 def stop_scheduler():

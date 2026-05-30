@@ -1,14 +1,14 @@
 /**
- * food-search.js — Search items and show results in the assign table.
+ * item-search.js — Search items and show results in the assign table.
  * Fuzzy candidates are shown by default; typing replaces them with search results.
  * Always shows a "Create & Map" row at the bottom when there's text in the search box.
  */
 (function() {
     'use strict';
 
-    var searchInput = document.getElementById('food-search');
-    var tbody = document.getElementById('food-assign-tbody');
-    var table = document.getElementById('food-assign-table');
+    var searchInput = document.getElementById('item-search');
+    var tbody = document.getElementById('item-assign-tbody');
+    var table = document.getElementById('item-assign-table');
     var timeout = null;
 
     if (!searchInput || !tbody || !table) return;
@@ -54,7 +54,7 @@
 
         var tdAction = document.createElement('td');
         tdAction.innerHTML = '<form method="post" action="/barcodes/' + barcode + '/map" class="d-inline">' +
-            '<input type="hidden" name="food_id" value="' + item.id + '">' +
+            '<input type="hidden" name="item_id" value="' + item.id + '">' +
             '<button type="submit" class="btn btn-sm btn-primary">Link</button></form>';
 
         tr.appendChild(tdName);

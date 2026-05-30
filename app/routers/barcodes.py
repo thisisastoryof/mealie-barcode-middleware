@@ -105,15 +105,15 @@ def barcode_detail(
 @router.post("/barcodes/{barcode}/map")
 def barcode_map(
     barcode: str,
-    food_id: str = Form(...),
+    item_id: str = Form(...),
     db: Session = Depends(get_db),
 ):
     existing = db.get(BarcodeMapping, barcode)
     if existing:
-        existing.item_id = food_id
+        existing.item_id = item_id
         existing.mapped_by = "manual"
     else:
-        db.add(BarcodeMapping(barcode=barcode, item_id=food_id, mapped_by="manual"))
+        db.add(BarcodeMapping(barcode=barcode, item_id=item_id, mapped_by="manual"))
 
     # Mark notifications for this barcode as read
     db.query(Notification).filter(

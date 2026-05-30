@@ -33,14 +33,14 @@ def check_connectivity() -> bool:
         return False
 
 
-def sync_foods(db: Session) -> int:
-    """Fetch all foods from Mealie, upsert into items table, detect stale. Returns count."""
+def sync_items(db: Session) -> int:
+    """Fetch all items from Mealie, upsert into items table, detect stale. Returns count."""
     url = f"{settings.mealie_url}/api/foods"
     try:
         resp = httpx.get(url, headers=_headers(), params={"perPage": -1}, timeout=30)
         resp.raise_for_status()
     except httpx.HTTPError as e:
-        logger.error(f"Failed to sync foods from Mealie: {e}")
+        logger.error(f"Failed to sync items from Mealie: {e}")
         raise
 
     data = resp.json()
@@ -49,21 +49,21 @@ def sync_foods(db: Session) -> int:
     count = 0
 
     for food in items:
-        food_id = food.get("id")
-        if not food_id:
+        item_id = food.get("id")
+        if not item_id:
             continue
         name = food.get("name") or food.get("label") or ""
         aliases_raw = food.get("aliases") or []
         aliases_list = [a.get("name", a) if isinstance(a, dict) else a for a in aliases_raw]
         aliases_json = json.dumps(aliases_list)
 
-        existing = db.get(Item, food_id)
+        existing = db.get(Item, item_id)
         if existing:
             existing.name = name
             existing.aliases = aliases_json
             existing.synced_at = now
         else:
-            db.add(Item(id=food_id, name=name, source="mealie", aliases=aliases_json, synced_at=now))
+            db.add(Item(id=item_id, name=name, source="mealie", aliases=aliases_json, synced_at=now))
         count += 1
 
     db.flush()
@@ -90,15 +90,15 @@ def sync_foods(db: Session) -> int:
             logger.warning(f"Stale item '{stale.name}' removed, {len(broken)} mapping(s) broken")
 
     db.commit()
-    logger.info(f"Synced {count} foods from Mealie")
+    logger.info(f"Synced {count} items from Mealie")
     return count
 
 
-def add_to_shopping_list_by_food(food_id: str) -> bool:
+def add_to_shopping_list_by_item(item_id: str) -> bool:
     """Add item to Mealie shopping list via food ID."""
     payload = {
         "shoppingListId": settings.mealie_shopping_list_id,
-        "foodId": food_id,
+        "foodId": item_id,
         "quantity": 1,
     }
     return _post_shopping_item(payload)
