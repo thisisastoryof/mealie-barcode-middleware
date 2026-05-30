@@ -41,7 +41,7 @@ def items_list(request: Request, q: str = Query(""), db: Session = Depends(get_d
 def item_detail(request: Request, item_id: str, db: Session = Depends(get_db)):
     item = db.get(Item, item_id)
     if not item:
-        return HTMLResponse("Item not found", status_code=404)
+        return templates.TemplateResponse("404.html", {"request": request, "message": "Item not found"}, status_code=404)
 
     # Get all barcodes mapped to this item
     mappings = db.query(BarcodeMapping).filter(BarcodeMapping.item_id == item_id).all()
