@@ -39,8 +39,9 @@ def barcodes_list(
 
     barcodes = query.all()
 
-    # Attach mapping info
+    # Attach mapping info and compute status
     mappings = {m.barcode: m for m in db.query(BarcodeMapping).all()}
+    queued_barcodes = set(r.barcode for r in db.query(RetryQueue).all())
     item_ids = [m.item_id for m in mappings.values()]
     items_map = {i.id: i for i in db.query(Item).filter(Item.id.in_(item_ids)).all()} if item_ids else {}
 
@@ -48,10 +49,19 @@ def barcodes_list(
     for bc in barcodes:
         mapping = mappings.get(bc.barcode)
         item = items_map.get(mapping.item_id) if mapping else None
+        if mapping:
+            bc_status = "mapped"
+        elif bc.barcode in queued_barcodes:
+            bc_status = "queued"
+        elif not bc.found:
+            bc_status = "unknown"
+        else:
+            bc_status = "pending"
         items.append({
             "barcode": bc,
             "mapping": mapping,
             "item": item,
+            "status": bc_status,
         })
 
     return templates.TemplateResponse(request, "barcodes.html", {
@@ -223,6 +233,7 @@ def barcodes_api(status: str = "all", db: Session = Depends(get_db)):
     barcodes_list = query.limit(200).all()
 
     mappings = {m.barcode: m for m in db.query(BarcodeMapping).all()}
+    queued_barcodes = set(r.barcode for r in db.query(RetryQueue).all())
     item_ids = [m.item_id for m in mappings.values()]
     items_map = (
         {i.id: i for i in db.query(Item).filter(Item.id.in_(item_ids)).all()}
@@ -233,11 +244,20 @@ def barcodes_api(status: str = "all", db: Session = Depends(get_db)):
     for bc in barcodes_list:
         mapping = mappings.get(bc.barcode)
         item = items_map.get(mapping.item_id) if mapping else None
+        if mapping:
+            bc_status = "mapped"
+        elif bc.barcode in queued_barcodes:
+            bc_status = "queued"
+        elif not bc.found:
+            bc_status = "unknown"
+        else:
+            bc_status = "pending"
         result_items.append({
             "barcode": bc.barcode,
             "title": bc.title or "\u2014",
             "brand": bc.brand or "\u2014",
             "source": bc.source or "\u2014",
+            "status": bc_status,
             "food_name": item.name if item else None,
             "food_id": item.id if item else None,
             "mapped_by": mapping.mapped_by if mapping else None,

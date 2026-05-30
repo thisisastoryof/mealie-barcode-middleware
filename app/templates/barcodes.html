@@ -54,6 +54,9 @@
                             <button class="table-sort d-flex justify-content-between" data-sort="sort-barcode">Barcode</button>
                         </th>
                         <th>
+                            <button class="table-sort d-flex justify-content-between" data-sort="sort-status">Status</button>
+                        </th>
+                        <th>
                             <button class="table-sort d-flex justify-content-between" data-sort="sort-title">Title</button>
                         </th>
                         <th>
@@ -74,6 +77,17 @@
                     {% for item in items %}
                     <tr>
                         <td class="sort-barcode"><a href="/barcodes/{{ item.barcode.barcode }}">{{ item.barcode.barcode }}</a></td>
+                        <td class="sort-status">
+                            {% if item.status == "mapped" %}
+                            <span class="badge bg-green text-green-fg">Mapped</span>
+                            {% elif item.status == "queued" %}
+                            <span class="badge bg-orange text-orange-fg">Queued</span>
+                            {% elif item.status == "unknown" %}
+                            <span class="badge bg-red text-red-fg">Unknown</span>
+                            {% else %}
+                            <span class="badge bg-yellow text-yellow-fg">Pending</span>
+                            {% endif %}
+                        </td>
                         <td class="sort-title">{{ item.barcode.title or "—" }}</td>
                         <td class="sort-brand">{{ item.barcode.brand or "—" }}</td>
                         <td class="sort-source">{{ item.barcode.source or "—" }}</td>
@@ -89,7 +103,7 @@
                     </tr>
                     {% endfor %}
                     {% if not items %}
-                    <tr class="barcodes-empty-row"><td colspan="6" class="text-center text-secondary">No barcodes cached yet</td></tr>
+                    <tr class="barcodes-empty-row"><td colspan="7" class="text-center text-secondary">No barcodes cached yet</td></tr>
                     {% endif %}
                 </tbody>
             </table>

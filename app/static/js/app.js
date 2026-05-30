@@ -225,6 +225,8 @@
     function refreshBarcodes() {
         var params = new URLSearchParams(window.location.search);
         var status = params.get('status') || 'all';
+        var statusBadge = {mapped: 'green', queued: 'orange', unknown: 'red', pending: 'yellow'};
+        var statusLabel = {mapped: 'Mapped', queued: 'Queued', unknown: 'Unknown', pending: 'Pending'};
         fetch('/api/barcodes?status=' + encodeURIComponent(status)).then(function(r) { return r.json(); }).then(function(d) {
             var tbody = document.getElementById('barcodes-tbody');
             if (!tbody || !d.items) return;
@@ -232,8 +234,11 @@
             if (countEl) countEl.textContent = d.items.length + ' barcode' + (d.items.length !== 1 ? 's' : '');
             var rows = '';
             d.items.forEach(function(item) {
+                var sColor = statusBadge[item.status] || 'yellow';
+                var sText = statusLabel[item.status] || 'Pending';
                 rows += '<tr>'
                     + '<td class="sort-barcode"><a href="/barcodes/' + esc(item.barcode) + '">' + esc(item.barcode) + '</a></td>'
+                    + '<td class="sort-status"><span class="badge bg-' + sColor + ' text-' + sColor + '-fg">' + sText + '</span></td>'
                     + '<td class="sort-title">' + esc(item.title) + '</td>'
                     + '<td class="sort-brand">' + esc(item.brand) + '</td>'
                     + '<td class="sort-source">' + esc(item.source) + '</td>'
@@ -246,7 +251,7 @@
                 }
                 rows += '</td><td class="sort-scanned">' + esc(item.created_at) + '</td></tr>';
             });
-            if (!rows) rows = '<tr class="barcodes-empty-row"><td colspan="6" class="text-center text-secondary">No barcodes cached yet</td></tr>';
+            if (!rows) rows = '<tr class="barcodes-empty-row"><td colspan="7" class="text-center text-secondary">No barcodes cached yet</td></tr>';
             tbody.innerHTML = rows;
             if (window._barcodesTable) window._barcodesTable.reload();
         });
