@@ -150,13 +150,28 @@
         // Live-refresh barcodes table
         if (window.location.pathname === '/barcodes') {
             clearTimeout(window._barcodesRefresh);
-            window._barcodesRefresh = setTimeout(function() { refreshBarcodes(); }, 1500);
+            window._barcodesRefresh = setTimeout(function() {
+                // If empty state is showing and no real rows exist, reload
+                var tbody = document.getElementById('barcodes-tbody');
+                if (tbody && tbody.querySelector('.barcodes-empty-row') && !tbody.querySelector('tr:not(.barcodes-empty-row)')) {
+                    window.location.reload();
+                } else {
+                    refreshBarcodes();
+                }
+            }, 1500);
         }
 
         // Live-refresh activities table
         if (window.location.pathname === '/activities') {
             clearTimeout(window._activitiesRefresh);
-            window._activitiesRefresh = setTimeout(function() { refreshActivities(); }, 1500);
+            window._activitiesRefresh = setTimeout(function() {
+                var tbody = document.getElementById('activity-tbody');
+                if (tbody && tbody.querySelector('.activity-empty-row') && !tbody.querySelector('tr:not(.activity-empty-row)')) {
+                    window.location.reload();
+                } else {
+                    refreshActivities();
+                }
+            }, 1500);
         }
 
         // Refresh notification bell from server (debounced)
@@ -193,26 +208,43 @@
                 el.textContent = d.queue_depth;
                 el.className = 'h1 mb-0 text-' + (d.queue_depth === 0 ? 'green' : 'red');
             }
+
+            // If no recent items from API, nothing to do for the table
+            if (!d.recent_items || d.recent_items.length === 0) return;
+
             var tbody = document.getElementById('recent-scans-body');
-            if (tbody && d.recent_items) {
-                var badgeMap = {mapped: 'green', queued: 'orange', unknown: 'red', pending: 'yellow'};
-                var labelMap = {mapped: 'Mapped', queued: 'Queued', unknown: 'Unknown', pending: 'Pending'};
-                var rows = '';
-                d.recent_items.forEach(function(item) {
-                    var bg = badgeMap[item.status] || 'secondary';
-                    var foodCol = item.food_name
-                        ? '<a href="/items/' + esc(item.food_id) + '">' + esc(item.food_name) + '</a>'
-                        : esc(item.title);
-                    rows += '<tr>'
-                        + '<td><a href="/barcodes/' + esc(item.barcode) + '">' + esc(item.barcode) + '</a></td>'
-                        + '<td>' + foodCol + '</td>'
-                        + '<td>' + esc(item.source) + '</td>'
-                        + '<td><span class="badge bg-' + bg + ' text-' + bg + '-fg">' + labelMap[item.status] + '</span></td>'
-                        + '<td>' + esc(item.created_at) + '</td>'
-                        + '</tr>';
-                });
-                if (!rows) rows = '<tr><td colspan="5" class="text-center text-secondary">No scans yet</td></tr>';
+            var badgeMap = {mapped: 'green', queued: 'orange', unknown: 'red', pending: 'yellow'};
+            var labelMap = {mapped: 'Mapped', queued: 'Queued', unknown: 'Unknown', pending: 'Pending'};
+
+            // Build rows HTML
+            var rows = '';
+            d.recent_items.forEach(function(item) {
+                var bg = badgeMap[item.status] || 'secondary';
+                var foodCol = item.food_name
+                    ? '<a href="/items/' + esc(item.food_id) + '">' + esc(item.food_name) + '</a>'
+                    : esc(item.title);
+                rows += '<tr>'
+                    + '<td><a href="/barcodes/' + esc(item.barcode) + '">' + esc(item.barcode) + '</a></td>'
+                    + '<td>' + foodCol + '</td>'
+                    + '<td>' + esc(item.source) + '</td>'
+                    + '<td><span class="badge bg-' + bg + ' text-' + bg + '-fg">' + labelMap[item.status] + '</span></td>'
+                    + '<td>' + esc(item.created_at) + '</td>'
+                    + '</tr>';
+            });
+
+            if (tbody) {
+                // Table already exists — just update rows
                 tbody.innerHTML = rows;
+            } else {
+                // Getting Started card is showing — replace it with the table
+                var card = document.querySelector('.row-deck:last-child .card');
+                if (card) {
+                    card.innerHTML = '<div class="card-header"><h3 class="card-title">Recent Scans</h3></div>'
+                        + '<div class="table-responsive"><table class="table table-vcenter card-table">'
+                        + '<thead><tr><th>Barcode</th><th>Item</th><th>Source</th><th>Status</th><th>Scanned</th></tr></thead>'
+                        + '<tbody id="recent-scans-body">' + rows + '</tbody>'
+                        + '</table></div>';
+                }
             }
         });
     }
