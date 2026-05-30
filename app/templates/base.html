@@ -67,6 +67,7 @@
                                 </div>
                                 <div class="card-body">
                                     <a href="#" class="btn btn-secondary w-100" id="notif-mark-all">Mark all as read</a>
+                                    <a href="/activity" class="btn btn-link w-100 mt-1">View all activity</a>
                                 </div>
                             </div>
                         </div>
@@ -90,6 +91,12 @@
                             <a class="nav-link" href="/items">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-apple icon icon-1"></i></span>
                                 <span class="nav-link-title">Items</span>
+                            </a>
+                        </li>
+                        <li class="nav-item{{ ' active' if request.url.path.startswith('/activity') }}">
+                            <a class="nav-link" href="/activity">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-activity icon icon-1"></i></span>
+                                <span class="nav-link-title">Activity</span>
                             </a>
                         </li>
                         <li class="nav-item d-md-none{{ ' active' if request.url.path.startswith('/settings') }}">

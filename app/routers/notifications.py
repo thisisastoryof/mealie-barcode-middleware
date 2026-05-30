@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Notification
+from app.templating import templates
 
 router = APIRouter()
 
@@ -55,3 +57,36 @@ def mark_read_by_barcode(barcode: str, db: Session = Depends(get_db)):
     ).update({"is_read": True})
     db.commit()
     return {"ok": True}
+
+
+@router.get("/activity", response_class=HTMLResponse)
+def activity_page(
+    request: Request,
+    result: str = Query("all"),
+    db: Session = Depends(get_db),
+):
+    """Activity log page — all notifications with filter tabs."""
+    query = db.query(Notification).order_by(Notification.created_at.desc())
+    if result != "all":
+        query = query.filter(Notification.result == result)
+    notifications = query.limit(200).all()
+    return templates.TemplateResponse(request, "activity.html", {
+        "notifications": notifications,
+        "current_filter": result,
+    })
+
+
+@router.post("/activity/mark-all-read")
+def activity_mark_all_read(db: Session = Depends(get_db)):
+    """HTML form action: mark all read and redirect back to activity."""
+    db.query(Notification).filter(Notification.is_read == False).update({"is_read": True})
+    db.commit()
+    return RedirectResponse("/activity", status_code=303)
+
+
+@router.post("/activity/delete-read")
+def activity_delete_read(db: Session = Depends(get_db)):
+    """HTML form action: delete all read notifications."""
+    db.query(Notification).filter(Notification.is_read == True).delete()
+    db.commit()
+    return RedirectResponse("/activity", status_code=303)

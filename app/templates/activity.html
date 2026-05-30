@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Activity — Barcode Middleware{% endblock %}
+
+{% block content %}
+<div class="page-header d-print-none mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">History</div>
+            <h2 class="page-title">Activity</h2>
+        </div>
+        <div class="col-auto">
+            <form method="post" action="/activity/delete-read" class="d-inline me-2">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="ti ti-trash icon icon-sm me-1"></i>Delete read
+                </button>
+            </form>
+            <form method="post" action="/activity/mark-all-read" class="d-inline">
+                <button type="submit" class="btn btn-secondary btn-sm">
+                    <i class="ti ti-checks icon icon-sm me-1"></i>Mark all read
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Filter tabs -->
+<div class="mb-3">
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_filter == 'all' }}" href="/activity?result=all">All</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_filter == 'needs_mapping' }}" href="/activity?result=needs_mapping">Needs Mapping</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_filter == 'auto_mapped' }}" href="/activity?result=auto_mapped">Auto-mapped</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_filter == 'unknown' }}" href="/activity?result=unknown">Unknown</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_filter == 'broken' }}" href="/activity?result=broken">Broken</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_filter == 'retry_failed' }}" href="/activity?result=retry_failed">Failed</a>
+        </li>
+    </ul>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="row w-100">
+            <div class="col">
+                <h3 class="card-title mb-0">{{ notifications|length }} event{{ 's' if notifications|length != 1 }}</h3>
+            </div>
+            <div class="col-md-auto col-sm-12">
+                <div class="input-group input-group-flat w-auto">
+                    <span class="input-group-text">
+                        <i class="ti ti-search icon icon-1" aria-hidden="true"></i>
+                    </span>
+                    <input id="activity-table-search" type="text" class="form-control" placeholder="Filter…" autocomplete="off">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table" id="activity-table">
+            <thead>
+                <tr>
+                    <th data-sortable>Status</th>
+                    <th data-sortable>Barcode</th>
+                    <th data-sortable>Title</th>
+                    <th>Message</th>
+                    <th data-sortable>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for n in notifications %}
+                <tr class="{{ '' if n.is_read else 'fw-bold' }}">
+                    <td>
+                        {% if n.result == 'retry_failed' or n.result == 'broken' %}
+                        <span class="badge bg-red text-red-fg">{{ n.result | replace('_', ' ') | title }}</span>
+                        {% elif n.result == 'unknown' %}
+                        <span class="badge bg-red text-red-fg">Unknown</span>
+                        {% elif n.result == 'needs_mapping' %}
+                        <span class="badge bg-yellow text-yellow-fg">Needs Mapping</span>
+                        {% elif n.result == 'auto_mapped' %}
+                        <span class="badge bg-azure text-azure-fg">Auto-mapped</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ n.result | replace('_', ' ') | title }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/barcodes/{{ n.barcode }}">{{ n.barcode }}</a>
+                    </td>
+                    <td>{{ n.title }}</td>
+                    <td class="text-secondary text-truncate" style="max-width: 300px;">{{ n.message }}</td>
+                    <td class="text-secondary text-nowrap sort-datetime" data-sort="{{ n.created_at.isoformat() if n.created_at else '' }}">
+                        {{ n.created_at | localtime }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-secondary">No activity yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/table.js"></script>
+<script>
+    initAdvancedTable({
+        tableId: 'activity-table',
+        searchInputId: 'activity-table-search',
+        pageSize: 25
+    });
+</script>
+{% endblock %}
