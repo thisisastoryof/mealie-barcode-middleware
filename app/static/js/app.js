@@ -160,7 +160,10 @@
         }
 
         // Add to notification bell for actionable items
-        if (result !== 'added' && result !== 'added_as_note' && result !== 'queued') {
+        if (result === 'added_as_note') {
+            // Item was added but needs proper mapping — show as actionable
+            addNotifItem({barcode: barcode, title: 'Mapping needed', message: (food || barcode) + ' \u2014 assign to a Mealie item', result: 'needs_mapping'});
+        } else if (result !== 'added' && result !== 'queued') {
             var notifTitle = result === 'unknown' ? 'Unknown barcode' : title;
             var notifMsg = food ? food + ' (' + barcode + ')' : barcode;
             addNotifItem({barcode: barcode, title: notifTitle, message: notifMsg, result: result});

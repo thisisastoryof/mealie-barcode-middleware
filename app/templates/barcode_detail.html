@@ -77,7 +77,7 @@
                 {% else %}
                 <div></div>
                 {% endif %}
-                <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline" onsubmit="return confirm('Delete this barcode and its mapping?')">
+                <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline" data-confirm="Delete this barcode and its mapping?">
                     <button type="submit" class="btn btn-outline-danger">Delete</button>
                 </form>
             </div>

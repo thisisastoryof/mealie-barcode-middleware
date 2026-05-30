@@ -64,7 +64,7 @@
     <p>Copy this token now — it will <strong>not</strong> be shown again:</p>
     <div class="input-group mb-2 w-auto">
         <input type="text" class="form-control font-monospace" value="{{ new_token }}" id="new-token-value" readonly>
-        <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('new-token-value').value)">Copy</button>
+        <button class="btn btn-outline-secondary" type="button" data-copy-target="new-token-value">Copy</button>
     </div>
 </div>
 {% endif %}
@@ -105,7 +105,7 @@
                     <td>{{ token.name }}</td>
                     <td>{{ token.created_at|localtime }}</td>
                     <td>
-                        <form method="post" action="/settings/tokens/{{ token.id }}/delete" onsubmit="return confirm('Delete token \u0022' + this.dataset.name.replace(/[\\<>&'\"]/g, '') + '\u0022?')" data-name="{{ token.name|e }}">
+                        <form method="post" action="/settings/tokens/{{ token.id }}/delete" data-confirm="Delete token &quot;{name}&quot;?" data-name="{{ token.name|e }}">
                             <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                         </form>
                     </td>

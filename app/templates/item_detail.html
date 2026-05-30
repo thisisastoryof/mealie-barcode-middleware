@@ -10,7 +10,7 @@
         </div>
         {% if item.source == 'manual' %}
         <div class="col-auto">
-            <form method="post" action="/items/{{ item.id }}/delete" onsubmit="return confirm('Delete this item and its barcode mappings?')">
+            <form method="post" action="/items/{{ item.id }}/delete" data-confirm="Delete this item and its barcode mappings?">
                 <button type="submit" class="btn btn-outline-danger">Delete Item</button>
             </form>
         </div>
