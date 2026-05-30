@@ -145,7 +145,16 @@ function initAdvancedTable(opts) {
         });
     });
 
+    // Expose reload for external callers (e.g. live-refresh)
+    function reload() {
+        allRows = Array.from(tbody.querySelectorAll('tr:not(.' + emptyRowClass + ')'));
+        filterRows();
+        render();
+    }
+
     // Initial sort + render
     sortRows();
     render();
+
+    return { reload: reload };
 }

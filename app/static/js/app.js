@@ -227,21 +227,22 @@
             var rows = '';
             d.items.forEach(function(item) {
                 rows += '<tr>'
-                    + '<td><a href="/barcodes/' + esc(item.barcode) + '">' + esc(item.barcode) + '</a></td>'
-                    + '<td>' + esc(item.title) + '</td>'
-                    + '<td>' + esc(item.brand) + '</td>'
-                    + '<td>' + esc(item.source) + '</td>'
-                    + '<td>';
+                    + '<td class="sort-barcode"><a href="/barcodes/' + esc(item.barcode) + '">' + esc(item.barcode) + '</a></td>'
+                    + '<td class="sort-title">' + esc(item.title) + '</td>'
+                    + '<td class="sort-brand">' + esc(item.brand) + '</td>'
+                    + '<td class="sort-source">' + esc(item.source) + '</td>'
+                    + '<td class="sort-mapped">';
                 if (item.food_name) {
                     rows += '<a href="/items/' + esc(item.food_id) + '">' + esc(item.food_name) + '</a>'
                         + ' <span class="badge bg-azure text-azure-fg ms-1">' + esc(item.mapped_by) + '</span>';
                 } else {
                     rows += '<span class="text-secondary">\u2014</span>';
                 }
-                rows += '</td><td>' + esc(item.created_at) + '</td></tr>';
+                rows += '</td><td class="sort-scanned">' + esc(item.created_at) + '</td></tr>';
             });
-            if (!rows) rows = '<tr><td colspan="6" class="text-center text-secondary">No barcodes cached yet</td></tr>';
+            if (!rows) rows = '<tr class="barcodes-empty-row"><td colspan="6" class="text-center text-secondary">No barcodes cached yet</td></tr>';
             tbody.innerHTML = rows;
+            if (window._barcodesTable) window._barcodesTable.reload();
         });
     }
 
