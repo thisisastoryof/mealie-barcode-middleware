@@ -160,13 +160,10 @@
         }
 
         // Add to notification bell for actionable items
-        if (result !== 'added' && result !== 'queued') {
-            var notifTitle = result === 'added_as_note' ? 'Mapping needed' :
-                             result === 'unknown' ? 'Unknown barcode' : title;
+        if (result !== 'added' && result !== 'added_as_note' && result !== 'queued') {
+            var notifTitle = result === 'unknown' ? 'Unknown barcode' : title;
             var notifMsg = food ? food + ' (' + barcode + ')' : barcode;
-            var notifResult = result === 'unknown' ? 'unknown' :
-                              result === 'added_as_note' ? 'needs_mapping' : result;
-            addNotifItem({barcode: barcode, title: notifTitle, message: notifMsg, result: notifResult});
+            addNotifItem({barcode: barcode, title: notifTitle, message: notifMsg, result: result});
         }
     }
     connectSSE();
