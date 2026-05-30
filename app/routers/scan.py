@@ -107,7 +107,7 @@ def scan_barcode(
     success = add_to_shopping_list_by_note(note)
     if success:
         resp = ScanResponse(result="added_as_note", food=note, via="note")
-        _save_activity(barcode, "Added as note", note, "added", db)
+        _save_activity(barcode, "Added to list", note + " (via note)", "added", db)
     else:
         _enqueue_note(barcode, note, db)
         resp = ScanResponse(result="queued", food=note, via="note")
