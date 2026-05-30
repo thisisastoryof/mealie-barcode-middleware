@@ -139,6 +139,18 @@ def _purge_old_notifications():
 
 def start_scheduler():
     """Start the APScheduler with item sync and retry queue jobs."""
+    # Run initial sync if no items exist yet (first run)
+    db = SessionLocal()
+    try:
+        if db.query(Item).first() is None:
+            logger.info("No items found — running initial Mealie sync")
+            try:
+                sync_items(db)
+            except Exception as e:
+                logger.warning(f"Initial sync failed (will retry on schedule): {e}")
+    finally:
+        db.close()
+
     scheduler.add_job(
         _run_item_sync,
         "interval",
