@@ -126,7 +126,7 @@
                     </td>
                     <td class="sort-barcode">{{ n.barcode }}</td>
                     <td class="sort-title">{{ n.title }}</td>
-                    <td class="sort-message text-secondary text-truncate" style="max-width: 300px;">{{ n.message }}</td>
+                    <td class="sort-message text-secondary text-truncate col-message">{{ n.message }}</td>
                     <td class="sort-time text-secondary text-nowrap">{{ n.created_at | localtime }}</td>
                 </tr>
                 {% else %}

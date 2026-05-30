@@ -285,7 +285,7 @@
                     + '<td class="sort-status"><span class="badge bg-' + bg + ' text-' + bg + '-fg">' + esc(label) + '</span></td>'
                     + '<td class="sort-barcode">' + esc(item.barcode) + '</td>'
                     + '<td class="sort-title">' + esc(item.title) + '</td>'
-                    + '<td class="sort-message text-secondary text-truncate" style="max-width:300px">' + esc(item.message) + '</td>'
+                    + '<td class="sort-message text-secondary text-truncate col-message">' + esc(item.message) + '</td>'
                     + '<td class="sort-time text-secondary text-nowrap">' + esc(item.created_at) + '</td>'
                     + '</tr>';
             });

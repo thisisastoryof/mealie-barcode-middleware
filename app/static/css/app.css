@@ -3,3 +3,9 @@
     max-height: 20rem;
     overflow-y: auto;
 }
+.toast-above {
+    z-index: 1090;
+}
+.col-message {
+    max-width: 300px;
+}
