@@ -393,4 +393,16 @@
             });
         });
     }
+
+    // Close button — remove "show" from the dropdown
+    var closeBtn = document.getElementById('notif-close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            var menu = closeBtn.closest('.dropdown-menu');
+            if (menu) menu.classList.remove('show');
+            var toggle = document.querySelector('#notif-dropdown [data-bs-toggle="dropdown"]');
+            if (toggle) toggle.classList.remove('show');
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+        });
+    }
 })();

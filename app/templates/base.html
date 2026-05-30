@@ -58,15 +58,22 @@
                         </a>
                         <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card">
                             <div class="card">
-                                <div class="card-header">
+                                <div class="card-header d-flex">
                                     <h3 class="card-title">Notifications</h3>
+                                    <div class="btn-close ms-auto" id="notif-close"></div>
                                 </div>
                                 <div class="list-group list-group-flush list-group-hoverable notif-list" id="notif-list">
                                     <div class="list-group-item text-center text-secondary" id="notif-empty">No new notifications</div>
                                 </div>
-                                <div class="card-footer d-flex">
-                                    <a href="#" class="btn btn-link" id="notif-mark-all">Mark all as read</a>
-                                    <a href="/activities" class="btn btn-link ms-auto">View all activity</a>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col">
+                                            <a href="#" class="btn btn-2 w-100" id="notif-mark-all">Mark all as read</a>
+                                        </div>
+                                        <div class="col">
+                                            <a href="/activities" class="btn btn-2 w-100">View all activity</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
