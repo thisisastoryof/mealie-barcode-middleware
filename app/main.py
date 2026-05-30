@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import init_db
+from app.middleware import CSRFOriginMiddleware, SecurityHeadersMiddleware
 from app.routers import barcodes, dashboard, items, health, notifications, scan, settings as settings_router
 from app.services.scheduler import start_scheduler, stop_scheduler
 
@@ -32,6 +33,10 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Barcode-Mealie Middleware", lifespan=lifespan)
+
+# Security middleware (order matters: outermost runs first)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CSRFOriginMiddleware)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")

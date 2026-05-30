@@ -10,13 +10,7 @@
     <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
     <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
     <link rel="stylesheet" href="/static/css/app.css">
-    <script>
-      // Apply saved theme before render to avoid flash
-      (function() {
-        var t = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-bs-theme', t);
-      })();
-    </script>
+    <script src="/static/js/theme-init.js"></script>
 </head>
 <body>
     <div class="page">
