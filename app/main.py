@@ -223,6 +223,8 @@ async def sse_stream():
 
     async def _generate():
         try:
+            # Send initial comment to confirm connection
+            yield ": connected\n\n"
             while True:
                 msg = await queue.get()
                 yield msg
