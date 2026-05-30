@@ -222,6 +222,8 @@
         fetch('/api/barcodes?status=' + encodeURIComponent(status)).then(function(r) { return r.json(); }).then(function(d) {
             var tbody = document.getElementById('barcodes-tbody');
             if (!tbody || !d.items) return;
+            var countEl = document.getElementById('barcodes-count');
+            if (countEl) countEl.textContent = d.items.length + ' barcode' + (d.items.length !== 1 ? 's' : '');
             var rows = '';
             d.items.forEach(function(item) {
                 rows += '<tr>'
