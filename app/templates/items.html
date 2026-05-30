@@ -92,7 +92,25 @@
                     </tr>
                     {% endfor %}
                     {% if not items %}
-                    <tr class="items-empty-row"><td colspan="4" class="text-center text-secondary">No items yet. Sync from Mealie or add a custom item above.</td></tr>
+                    <tr class="items-empty-row">
+                        <td colspan="4">
+                            <div class="empty py-4">
+                                <div class="empty-icon"><i class="ti ti-apple icon icon-lg"></i></div>
+                                <p class="empty-title">No items yet</p>
+                                <p class="empty-subtitle text-secondary">
+                                    Items are synced from your Mealie shopping lists.<br>
+                                    Trigger a sync or add a custom item above.
+                                </p>
+                                <div class="empty-action">
+                                    <form method="post" action="/items/sync" class="d-inline">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="ti ti-refresh icon icon-sm me-1"></i>Sync from Mealie
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
                     {% endif %}
                 </tbody>
             </table>

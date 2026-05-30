@@ -131,7 +131,15 @@
                 </tr>
                 {% else %}
                 <tr class="activity-empty-row">
-                    <td colspan="5" class="text-center text-secondary">No activity yet</td>
+                    <td colspan="5">
+                        <div class="empty py-4">
+                            <div class="empty-icon"><i class="ti ti-activity icon icon-lg"></i></div>
+                            <p class="empty-title">No activity yet</p>
+                            <p class="empty-subtitle text-secondary">
+                                Scan events and notifications will appear here as you use the scanner.
+                            </p>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
