@@ -3,7 +3,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.auth import require_token
@@ -25,7 +25,7 @@ router = APIRouter()
 
 
 class ScanRequest(BaseModel):
-    barcode: str
+    barcode: str = Field(..., max_length=256)
 
 
 class ScanResponse(BaseModel):

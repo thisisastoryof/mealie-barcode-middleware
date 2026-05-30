@@ -33,7 +33,7 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-vcenter">
+            <table class="table table-vcenter card-table">
                 <thead>
                     <tr>
                         <th>Variable</th>
@@ -105,7 +105,7 @@
                     <td>{{ token.name }}</td>
                     <td>{{ token.created_at|localtime }}</td>
                     <td>
-                        <form method="post" action="/settings/tokens/{{ token.id }}/delete" onsubmit="return confirm('Delete token \'{{ token.name }}\'?')">
+                        <form method="post" action="/settings/tokens/{{ token.id }}/delete" onsubmit="return confirm('Delete token ' + this.dataset.name + '?')" data-name="{{ token.name }}">
                             <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                         </form>
                     </td>
