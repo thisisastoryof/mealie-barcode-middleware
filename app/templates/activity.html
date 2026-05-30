@@ -55,6 +55,23 @@
         <div class="row w-100">
             <div class="col">
                 <h3 class="card-title mb-0">{{ notifications|length }} event{{ 's' if notifications|length != 1 }}</h3>
+                <p class="text-secondary small mb-0 mt-1">
+                    {% if current_filter == 'added' %}
+                    Items successfully added to the shopping list or queued for retry.
+                    {% elif current_filter == 'needs_mapping' %}
+                    Product found but not linked to a Mealie item — requires manual mapping.
+                    {% elif current_filter == 'auto_mapped' %}
+                    Fuzzy matching linked a barcode to an item automatically — review recommended.
+                    {% elif current_filter == 'unknown' %}
+                    Barcode not found in any product database (OpenFoodFacts, UPC Database).
+                    {% elif current_filter == 'broken' %}
+                    A mapped item was deleted in Mealie — the barcode needs to be remapped.
+                    {% elif current_filter == 'retry_failed' %}
+                    Failed to reach Mealie after multiple retries — check connectivity.
+                    {% else %}
+                    All scan events and notifications, newest first.
+                    {% endif %}
+                </p>
             </div>
             <div class="col-md-auto col-sm-12">
                 <div class="input-group input-group-flat w-auto">
@@ -70,17 +87,27 @@
         <table class="table table-vcenter card-table table-hover" id="activity-table">
             <thead>
                 <tr>
-                    <th data-sortable>Status</th>
-                    <th data-sortable>Barcode</th>
-                    <th data-sortable>Title</th>
-                    <th>Message</th>
-                    <th data-sortable>Time</th>
+                    <th>
+                        <button class="table-sort d-flex justify-content-between" data-sort="sort-status">Status</button>
+                    </th>
+                    <th>
+                        <button class="table-sort d-flex justify-content-between" data-sort="sort-barcode">Barcode</button>
+                    </th>
+                    <th>
+                        <button class="table-sort d-flex justify-content-between" data-sort="sort-title">Title</button>
+                    </th>
+                    <th>
+                        <button class="table-sort d-flex justify-content-between" data-sort="sort-message">Message</button>
+                    </th>
+                    <th>
+                        <button class="table-sort d-flex justify-content-between active desc" data-sort="sort-time">Time</button>
+                    </th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="table-tbody" id="activity-tbody">
                 {% for n in notifications %}
                 <tr class="cursor-pointer {{ '' if n.is_read else 'table-active' }}" data-href="/barcodes/{{ n.barcode }}">
-                    <td>
+                    <td class="sort-status">
                         {% if n.result == 'retry_failed' or n.result == 'broken' %}
                         <span class="badge bg-red text-red-fg">{{ n.result | replace('_', ' ') | title }}</span>
                         {% elif n.result == 'unknown' %}
@@ -97,20 +124,32 @@
                         <span class="badge bg-secondary">{{ n.result | replace('_', ' ') | title }}</span>
                         {% endif %}
                     </td>
-                    <td>{{ n.barcode }}</td>
-                    <td>{{ n.title }}</td>
-                    <td class="text-secondary text-truncate" style="max-width: 300px;">{{ n.message }}</td>
-                    <td class="text-secondary text-nowrap sort-datetime" data-sort="{{ n.created_at.isoformat() if n.created_at else '' }}">
-                        {{ n.created_at | localtime }}
-                    </td>
+                    <td class="sort-barcode">{{ n.barcode }}</td>
+                    <td class="sort-title">{{ n.title }}</td>
+                    <td class="sort-message text-secondary text-truncate" style="max-width: 300px;">{{ n.message }}</td>
+                    <td class="sort-time text-secondary text-nowrap">{{ n.created_at | localtime }}</td>
                 </tr>
                 {% else %}
-                <tr>
+                <tr class="activity-empty-row">
                     <td colspan="5" class="text-center text-secondary">No activity yet</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    <div class="card-footer d-flex align-items-center">
+        <div class="dropdown">
+            <a class="btn dropdown-toggle" data-bs-toggle="dropdown">
+                <span id="activity-page-size-label">25</span>&nbsp;records
+            </a>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="#" data-page-size="10">10 records</a>
+                <a class="dropdown-item" href="#" data-page-size="25">25 records</a>
+                <a class="dropdown-item" href="#" data-page-size="50">50 records</a>
+                <a class="dropdown-item" href="#" data-page-size="100">100 records</a>
+            </div>
+        </div>
+        <ul class="pagination m-0 ms-auto" id="activity-pagination"></ul>
     </div>
 </div>
 {% endblock %}
@@ -118,16 +157,21 @@
 {% block scripts %}
 <script src="/static/js/table.js"></script>
 <script>
-    window._activitiesTable = initAdvancedTable({
-        tableId: 'activity-table',
-        searchInputId: 'activity-table-search',
-        pageSize: 25
+window._activitiesTable = initAdvancedTable({
+    tableId: 'activity-table',
+    searchId: 'activity-table-search',
+    paginationId: 'activity-pagination',
+    pageSizeId: 'activity-page-size-label',
+    defaultSort: 'sort-time',
+    defaultAsc: false,
+    numericCols: [],
+    emptyRowClass: 'activity-empty-row'
+});
+// Make rows clickable
+document.querySelectorAll('#activity-table tr[data-href]').forEach(function(row) {
+    row.addEventListener('click', function() {
+        window.location.href = this.dataset.href;
     });
-    // Make rows clickable
-    document.querySelectorAll('#activity-table tr[data-href]').forEach(function(row) {
-        row.addEventListener('click', function() {
-            window.location.href = this.dataset.href;
-        });
-    });
+});
 </script>
 {% endblock %}

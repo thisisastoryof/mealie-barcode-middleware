@@ -257,7 +257,7 @@
         var params = new URLSearchParams(window.location.search);
         var result = params.get('result') || 'all';
         fetch('/api/activities?result=' + encodeURIComponent(result)).then(function(r) { return r.json(); }).then(function(d) {
-            var tbody = document.querySelector('#activity-table tbody');
+            var tbody = document.getElementById('activity-tbody');
             if (!tbody || !d.items) return;
             var badgeMap = {
                 retry_failed: 'red', broken: 'red', unknown: 'red',
@@ -275,14 +275,14 @@
                 var label = labelMap[item.result] || item.result;
                 var rowClass = item.is_read ? '' : ' table-active';
                 rows += '<tr class="cursor-pointer' + rowClass + '" data-href="/barcodes/' + esc(item.barcode) + '">'
-                    + '<td><span class="badge bg-' + bg + ' text-' + bg + '-fg">' + esc(label) + '</span></td>'
-                    + '<td>' + esc(item.barcode) + '</td>'
-                    + '<td>' + esc(item.title) + '</td>'
-                    + '<td class="text-secondary text-truncate" style="max-width:300px">' + esc(item.message) + '</td>'
-                    + '<td class="text-secondary text-nowrap">' + esc(item.created_at) + '</td>'
+                    + '<td class="sort-status"><span class="badge bg-' + bg + ' text-' + bg + '-fg">' + esc(label) + '</span></td>'
+                    + '<td class="sort-barcode">' + esc(item.barcode) + '</td>'
+                    + '<td class="sort-title">' + esc(item.title) + '</td>'
+                    + '<td class="sort-message text-secondary text-truncate" style="max-width:300px">' + esc(item.message) + '</td>'
+                    + '<td class="sort-time text-secondary text-nowrap">' + esc(item.created_at) + '</td>'
                     + '</tr>';
             });
-            if (!rows) rows = '<tr><td colspan="5" class="text-center text-secondary">No activity yet</td></tr>';
+            if (!rows) rows = '<tr class="activity-empty-row"><td colspan="5" class="text-center text-secondary">No activity yet</td></tr>';
             tbody.innerHTML = rows;
             // Re-bind click handlers
             document.querySelectorAll('#activity-table tr[data-href]').forEach(function(row) {
