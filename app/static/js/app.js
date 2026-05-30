@@ -81,9 +81,9 @@
             title = 'Added to shopping list';
             desc = food ? esc(food) + ' (' + esc(barcode) + ')' : esc(barcode);
         } else if (result === 'added_as_note') {
-            color = 'info';
-            title = 'Added as note';
-            desc = food ? esc(food) + ' (' + esc(barcode) + ')' : esc(barcode);
+            color = 'success';
+            title = 'Added to shopping list';
+            desc = (food ? esc(food) + ' (' + esc(barcode) + ')' : esc(barcode)) + ' (via note)';
         } else if (result === 'queued') {
             color = 'warning';
             title = 'Queued for retry';
