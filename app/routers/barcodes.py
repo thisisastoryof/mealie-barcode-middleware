@@ -199,3 +199,49 @@ def barcodes_search(q: str = Query(default=""), db: Session = Depends(get_db)):
     conditions = [Item.name.ilike(f"%{word}%") for word in words]
     items = db.query(Item).filter(or_(*conditions)).limit(20).all()
     return [{"id": i.id, "name": i.name, "source": i.source} for i in items]
+
+
+@router.get("/api/barcodes")
+def barcodes_api(status: str = "all", db: Session = Depends(get_db)):
+    """JSON endpoint for live-refreshing the barcodes table."""
+    from app.templating import _localtime
+
+    query = db.query(BarcodeCache).order_by(BarcodeCache.created_at.desc())
+
+    if status == "mapped":
+        mapped_sub = db.query(BarcodeMapping.barcode).subquery()
+        query = query.filter(BarcodeCache.barcode.in_(mapped_sub))
+    elif status == "pending":
+        mapped_sub = db.query(BarcodeMapping.barcode).subquery()
+        query = query.filter(
+            BarcodeCache.found == True,
+            ~BarcodeCache.barcode.in_(mapped_sub),
+        )
+    elif status == "unknown":
+        query = query.filter(BarcodeCache.found == False)
+
+    barcodes_list = query.limit(200).all()
+
+    mappings = {m.barcode: m for m in db.query(BarcodeMapping).all()}
+    item_ids = [m.item_id for m in mappings.values()]
+    items_map = (
+        {i.id: i for i in db.query(Item).filter(Item.id.in_(item_ids)).all()}
+        if item_ids else {}
+    )
+
+    result_items = []
+    for bc in barcodes_list:
+        mapping = mappings.get(bc.barcode)
+        item = items_map.get(mapping.item_id) if mapping else None
+        result_items.append({
+            "barcode": bc.barcode,
+            "title": bc.title or "\u2014",
+            "brand": bc.brand or "\u2014",
+            "source": bc.source or "\u2014",
+            "food_name": item.name if item else None,
+            "food_id": item.id if item else None,
+            "mapped_by": mapping.mapped_by if mapping else None,
+            "created_at": _localtime(bc.created_at),
+        })
+
+    return {"items": result_items}
