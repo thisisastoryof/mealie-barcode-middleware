@@ -73,11 +73,14 @@ function initAdvancedTable(opts) {
         var totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
         if (currentPage > totalPages) currentPage = totalPages;
 
-        // Hide all, show current page
+        // Hide all, show current page in sorted DOM order
         tbody.querySelectorAll('tr').forEach(function(r) { r.style.display = 'none'; });
         var start = (currentPage - 1) * pageSize;
         var end = start + pageSize;
-        filteredRows.slice(start, end).forEach(function(r) { r.style.display = ''; });
+        filteredRows.slice(start, end).forEach(function(r) {
+            tbody.appendChild(r);
+            r.style.display = '';
+        });
 
         // Render pagination
         if (!pagination) return;
