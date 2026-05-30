@@ -69,14 +69,16 @@
                     </div>
                 </div>
             </div>
-            <div class="card-footer d-flex justify-content-end gap-2">
+            <div class="card-footer d-flex justify-content-between">
                 {% if not cached.found %}
                 <form method="post" action="/barcodes/{{ cached.barcode }}/retry-lookup" class="d-inline">
-                    <button type="submit" class="btn btn-sm btn-warning">Retry Lookup</button>
+                    <button type="submit" class="btn btn-warning">Retry Lookup</button>
                 </form>
+                {% else %}
+                <div></div>
                 {% endif %}
                 <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline" onsubmit="return confirm('Delete this barcode and its mapping?')">
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    <button type="submit" class="btn btn-outline-danger">Delete</button>
                 </form>
             </div>
         </div>
@@ -115,7 +117,7 @@
             </div>
             <div class="card-footer d-flex justify-content-end">
                 <form method="post" action="/barcodes/{{ cached.barcode }}/unmap">
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Unlink</button>
+                    <button type="submit" class="btn btn-outline-danger">Unlink</button>
                 </form>
             </div>
             {% elif mapping %}
@@ -125,7 +127,7 @@
             </div>
             <div class="card-footer d-flex justify-content-end">
                 <form method="post" action="/barcodes/{{ cached.barcode }}/unmap">
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Unlink</button>
+                    <button type="submit" class="btn btn-outline-danger">Unlink</button>
                 </form>
             </div>
             {% else %}
