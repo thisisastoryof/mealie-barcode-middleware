@@ -49,6 +49,12 @@
                                 <i class="ti ti-settings icon icon-1"></i>
                             </a>
                         </div>
+                        <!-- Activity log -->
+                        <div class="nav-item ms-2">
+                            <a href="/activities" class="nav-link px-0" title="Activity">
+                                <i class="ti ti-activity icon icon-1"></i>
+                            </a>
+                        </div>
                     </div>
                     <!-- Notification bell (always visible) -->
                     <div class="nav-item dropdown ms-2" id="notif-dropdown">
@@ -58,16 +64,15 @@
                         </a>
                         <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card">
                             <div class="card">
-                                <div class="card-header d-flex">
+                                <div class="card-header">
                                     <h3 class="card-title">Notifications</h3>
-                                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="dropdown" aria-label="Close"></button>
                                 </div>
                                 <div class="list-group list-group-flush list-group-hoverable notif-list" id="notif-list">
                                     <div class="list-group-item text-center text-secondary" id="notif-empty">No new notifications</div>
                                 </div>
-                                <div class="card-body">
-                                    <a href="#" class="btn btn-secondary w-100" id="notif-mark-all">Mark all as read</a>
-                                    <a href="/activity" class="btn btn-link w-100 mt-1">View all activity</a>
+                                <div class="card-footer d-flex">
+                                    <a href="#" class="btn btn-link" id="notif-mark-all">Mark all as read</a>
+                                    <a href="/activities" class="btn btn-link ms-auto">View all activity</a>
                                 </div>
                             </div>
                         </div>
@@ -93,8 +98,8 @@
                                 <span class="nav-link-title">Items</span>
                             </a>
                         </li>
-                        <li class="nav-item{{ ' active' if request.url.path.startswith('/activity') }}">
-                            <a class="nav-link" href="/activity">
+                        <li class="nav-item{{ ' active' if request.url.path.startswith('/activities') }}">
+                            <a class="nav-link" href="/activities">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-activity icon icon-1"></i></span>
                                 <span class="nav-link-title">Activity</span>
                             </a>

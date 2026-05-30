@@ -59,6 +59,7 @@ def scan_barcode(
         item_name = item.name if item else barcode
         resp = _add_via_item(item, item_name, barcode, db)
         _emit_scan_event(barcode, resp)
+        _save_activity(barcode, "Added to list", item_name, resp.result, db)
         return resp
 
     # Step 2: Check cache / perform lookup
@@ -97,6 +98,7 @@ def scan_barcode(
         item_name = item.name if item else cached.title or barcode
         resp = _add_via_item(item, item_name, barcode, db)
         _emit_scan_event(barcode, resp)
+        _save_activity(barcode, "Added to list", item_name, resp.result, db)
         _save_notification(barcode, "Auto-mapped — confirm?", f"{cached.title or barcode} → {item_name}", "auto_mapped", db)
         return resp
 
@@ -105,9 +107,11 @@ def scan_barcode(
     success = add_to_shopping_list_by_note(note)
     if success:
         resp = ScanResponse(result="added_as_note", food=note, via="note")
+        _save_activity(barcode, "Added as note", note, "added", db)
     else:
         _enqueue_note(barcode, note, db)
         resp = ScanResponse(result="queued", food=note, via="note")
+        _save_activity(barcode, "Queued", note, "queued", db)
     _emit_scan_event(barcode, resp)
     _save_notification(barcode, "Mapping needed", f"{note} — assign to a Mealie item", "needs_mapping", db)
     return resp
@@ -136,6 +140,18 @@ def _save_notification(barcode: str, title: str, message: str, result: str, db: 
         title=title,
         message=message,
         result=result,
+    ))
+    db.commit()
+
+
+def _save_activity(barcode: str, title: str, message: str, result: str, db: Session):
+    """Log a successful scan event (pre-read, doesn't trigger the bell)."""
+    db.add(Notification(
+        barcode=barcode,
+        title=title,
+        message=message,
+        result=result,
+        is_read=True,
     ))
     db.commit()
 

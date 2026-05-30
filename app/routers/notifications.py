@@ -59,7 +59,7 @@ def mark_read_by_barcode(barcode: str, db: Session = Depends(get_db)):
     return {"ok": True}
 
 
-@router.get("/activity", response_class=HTMLResponse)
+@router.get("/activities", response_class=HTMLResponse)
 def activity_page(
     request: Request,
     result: str = Query("all"),
@@ -67,7 +67,9 @@ def activity_page(
 ):
     """Activity log page — all notifications with filter tabs."""
     query = db.query(Notification).order_by(Notification.created_at.desc())
-    if result != "all":
+    if result == "added":
+        query = query.filter(Notification.result.in_(["added", "added_as_note", "queued"]))
+    elif result != "all":
         query = query.filter(Notification.result == result)
     notifications = query.limit(200).all()
     return templates.TemplateResponse(request, "activity.html", {
@@ -76,17 +78,17 @@ def activity_page(
     })
 
 
-@router.post("/activity/mark-all-read")
+@router.post("/activities/mark-all-read")
 def activity_mark_all_read(db: Session = Depends(get_db)):
-    """HTML form action: mark all read and redirect back to activity."""
+    """HTML form action: mark all read and redirect back to activities."""
     db.query(Notification).filter(Notification.is_read == False).update({"is_read": True})
     db.commit()
-    return RedirectResponse("/activity", status_code=303)
+    return RedirectResponse("/activities", status_code=303)
 
 
-@router.post("/activity/delete-read")
+@router.post("/activities/delete-read")
 def activity_delete_read(db: Session = Depends(get_db)):
     """HTML form action: delete all read notifications."""
     db.query(Notification).filter(Notification.is_read == True).delete()
     db.commit()
-    return RedirectResponse("/activity", status_code=303)
+    return RedirectResponse("/activities", status_code=303)
