@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Notification
-from app.templating import templates
+from app.templating import templates, _localtime
 
 router = APIRouter()
 
@@ -76,6 +76,31 @@ def activity_page(
         "notifications": notifications,
         "current_filter": result,
     })
+
+
+@router.get("/api/activities")
+def get_activities(result: str = Query("all"), db: Session = Depends(get_db)):
+    """JSON endpoint for live-refreshing the activities table."""
+    query = db.query(Notification).order_by(Notification.created_at.desc())
+    if result == "added":
+        query = query.filter(Notification.result.in_(["added", "added_as_note", "queued"]))
+    elif result != "all":
+        query = query.filter(Notification.result == result)
+    notifications = query.limit(200).all()
+    return {
+        "items": [
+            {
+                "id": n.id,
+                "barcode": n.barcode,
+                "title": n.title,
+                "message": n.message,
+                "result": n.result,
+                "is_read": n.is_read,
+                "created_at": _localtime(n.created_at),
+            }
+            for n in notifications
+        ]
+    }
 
 
 @router.post("/activities/mark-all-read")

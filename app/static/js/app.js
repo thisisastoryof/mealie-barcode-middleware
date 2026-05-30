@@ -153,6 +153,12 @@
             window._barcodesRefresh = setTimeout(function() { refreshBarcodes(); }, 1500);
         }
 
+        // Live-refresh activities table
+        if (window.location.pathname === '/activities') {
+            clearTimeout(window._activitiesRefresh);
+            window._activitiesRefresh = setTimeout(function() { refreshActivities(); }, 1500);
+        }
+
         // Add to notification bell for actionable items
         if (result !== 'added' && result !== 'queued') {
             var notifTitle = result === 'added_as_note' ? 'Mapping needed' :
@@ -243,6 +249,48 @@
             if (!rows) rows = '<tr class="barcodes-empty-row"><td colspan="6" class="text-center text-secondary">No barcodes cached yet</td></tr>';
             tbody.innerHTML = rows;
             if (window._barcodesTable) window._barcodesTable.reload();
+        });
+    }
+
+    // ─── Activities table live refresh ──────────────────────────────────────────
+    function refreshActivities() {
+        var params = new URLSearchParams(window.location.search);
+        var result = params.get('result') || 'all';
+        fetch('/api/activities?result=' + encodeURIComponent(result)).then(function(r) { return r.json(); }).then(function(d) {
+            var tbody = document.querySelector('#activity-table tbody');
+            if (!tbody || !d.items) return;
+            var badgeMap = {
+                retry_failed: 'red', broken: 'red', unknown: 'red',
+                needs_mapping: 'yellow', auto_mapped: 'azure',
+                added: 'green', added_as_note: 'green', queued: 'purple'
+            };
+            var labelMap = {
+                retry_failed: 'Retry Failed', broken: 'Broken', unknown: 'Unknown',
+                needs_mapping: 'Needs Mapping', auto_mapped: 'Auto-mapped',
+                added: 'Added', added_as_note: 'Added', queued: 'Queued'
+            };
+            var rows = '';
+            d.items.forEach(function(item) {
+                var bg = badgeMap[item.result] || 'secondary';
+                var label = labelMap[item.result] || item.result;
+                var rowClass = item.is_read ? '' : ' table-active';
+                rows += '<tr class="cursor-pointer' + rowClass + '" data-href="/barcodes/' + esc(item.barcode) + '">'
+                    + '<td><span class="badge bg-' + bg + ' text-' + bg + '-fg">' + esc(label) + '</span></td>'
+                    + '<td>' + esc(item.barcode) + '</td>'
+                    + '<td>' + esc(item.title) + '</td>'
+                    + '<td class="text-secondary text-truncate" style="max-width:300px">' + esc(item.message) + '</td>'
+                    + '<td class="text-secondary text-nowrap">' + esc(item.created_at) + '</td>'
+                    + '</tr>';
+            });
+            if (!rows) rows = '<tr><td colspan="5" class="text-center text-secondary">No activity yet</td></tr>';
+            tbody.innerHTML = rows;
+            // Re-bind click handlers
+            document.querySelectorAll('#activity-table tr[data-href]').forEach(function(row) {
+                row.addEventListener('click', function() {
+                    window.location.href = this.dataset.href;
+                });
+            });
+            if (window._activitiesTable) window._activitiesTable.reload();
         });
     }
 
