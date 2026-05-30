@@ -107,7 +107,18 @@
                     </tr>
                     {% endfor %}
                     {% if not items %}
-                    <tr class="barcodes-empty-row"><td colspan="{{ 7 if current_status not in ('pending', 'unknown') else 6 }}" class="text-center text-secondary">No barcodes cached yet</td></tr>
+                    <tr class="barcodes-empty-row">
+                        <td colspan="{{ 7 if current_status not in ('pending', 'unknown') else 6 }}">
+                            <div class="empty py-4">
+                                <div class="empty-icon"><i class="ti ti-barcode-off icon icon-lg"></i></div>
+                                <p class="empty-title">No barcodes scanned yet</p>
+                                <p class="empty-subtitle text-secondary">
+                                    Scan a product barcode and it will appear here automatically.<br>
+                                    Barcodes are looked up via OpenFoodFacts and other databases.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
                     {% endif %}
                 </tbody>
             </table>

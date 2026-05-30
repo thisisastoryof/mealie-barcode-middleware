@@ -111,6 +111,7 @@
 <div class="row row-deck row-cards">
     <div class="col-12">
         <div class="card">
+            {% if recent_items %}
             <div class="card-header">
                 <h3 class="card-title">Recent Scans</h3>
             </div>
@@ -151,12 +152,40 @@
                             <td>{{ item.barcode.created_at|localtime }}</td>
                         </tr>
                         {% endfor %}
-                        {% if not recent_items %}
-                        <tr><td colspan="5" class="text-center text-secondary">No scans yet</td></tr>
-                        {% endif %}
                     </tbody>
                 </table>
             </div>
+            {% else %}
+            <div class="card-header">
+                <h3 class="card-title">Getting Started</h3>
+            </div>
+            <div class="card-body">
+                <div class="steps steps-green steps-counter">
+                    <a href="/settings" class="step-item {{ 'active' if mealie_reachable else '' }}">
+                        <div class="h4 m-0">Connect to Mealie</div>
+                        <div class="text-secondary">
+                            {% if mealie_reachable %}
+                            <i class="ti ti-check text-green"></i> Connected
+                            {% else %}
+                            Verify your Mealie URL and API key in Settings
+                            {% endif %}
+                        </div>
+                    </a>
+                    <span class="step-item">
+                        <div class="h4 m-0">Set up your scanner</div>
+                        <div class="text-secondary">
+                            Flash the ESPHome config to your barcode reader and point it at this server's <code>/scan</code> endpoint
+                        </div>
+                    </span>
+                    <span class="step-item">
+                        <div class="h4 m-0">Scan your first barcode</div>
+                        <div class="text-secondary">
+                            Scan any product — it will be looked up automatically and added to your shopping list
+                        </div>
+                    </span>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

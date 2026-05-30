@@ -75,6 +75,15 @@ function initAdvancedTable(opts) {
 
         // Hide all, show current page in sorted DOM order
         tbody.querySelectorAll('tr').forEach(function(r) { r.style.display = 'none'; });
+
+        // Show empty-state row when no data
+        var emptyRow = tbody.querySelector('.' + emptyRowClass);
+        if (filteredRows.length === 0) {
+            if (emptyRow) emptyRow.style.display = '';
+            if (pagination) pagination.innerHTML = '';
+            return;
+        }
+
         var start = (currentPage - 1) * pageSize;
         var end = start + pageSize;
         filteredRows.slice(start, end).forEach(function(r) {
