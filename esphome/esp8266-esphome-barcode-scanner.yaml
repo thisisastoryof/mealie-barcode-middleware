@@ -15,6 +15,7 @@ esphome:
   on_boot:
     priority: -10
     then:
+      - lambda: "id(oled).turn_on();"
       - text_sensor.template.publish:
           id: screen_mode
           state: "connecting"
@@ -28,6 +29,7 @@ esphome:
             - text_sensor.template.publish:
                 id: screen_mode
                 state: "standby"
+            - lambda: "id(oled).turn_off();"
 
 esp8266:
   board: nodemcuv2
@@ -46,7 +48,8 @@ api:
     - text_sensor.template.publish:
         id: screen_mode
         state: "standby"
-    - script.stop: standby_timer # Stop the timer in case its running
+    - lambda: "id(oled).turn_off();"
+    - script.stop: standby_timer
   on_client_disconnected: # If the connection to HA is lost then set the status to connecting
     - text_sensor.template.publish:
         id: screen_mode
@@ -149,7 +152,10 @@ text_sensor:
     id: barcode_raw
     on_value:
       then:
-        - lambda: "id(scan_count_val) += 1; id(scan_count).publish_state(id(scan_count_val));"
+        - lambda: |-
+            id(scan_count_val) += 1;
+            id(scan_count).publish_state(id(scan_count_val));
+            id(oled).turn_on();
         - text_sensor.template.publish:
             id: last_barcode
             state: !lambda "return x;"
@@ -218,12 +224,12 @@ text_sensor:
                     id(screen_mode).publish_state("error");
                 - script.execute: standby_timer
 
-# Timer to return to standby after showing result
+# Timer to return to standby after showing result (uses configurable timeout)
 script:
   - id: standby_timer
     mode: restart
     then:
-      - delay: 5s
+      - delay: !lambda "return id(display_timeout).state * 1000;"
       - text_sensor.template.publish:
           id: screen_mode
           state: "standby"
@@ -242,8 +248,35 @@ script:
       - text_sensor.template.publish:
           id: pending_action_url
           state: ""
+      - lambda: "id(oled).turn_off();"
 
-# Scan counter — total scans since last reboot
+  - id: wake_display_result
+    mode: restart
+    then:
+      - lambda: "id(oled).turn_on();"
+      - text_sensor.template.publish:
+          id: screen_mode
+          state: "result"
+      - delay: 15s
+      - text_sensor.template.publish:
+          id: screen_mode
+          state: "standby"
+      - lambda: "id(oled).turn_off();"
+
+  - id: wake_display_status
+    mode: restart
+    then:
+      - lambda: "id(oled).turn_on();"
+      - text_sensor.template.publish:
+          id: screen_mode
+          state: "status"
+      - delay: 15s
+      - text_sensor.template.publish:
+          id: screen_mode
+          state: "standby"
+      - lambda: "id(oled).turn_off();"
+
+# Scan counter + diagnostics
 sensor:
   - platform: template
     name: "Scan Count"
@@ -253,11 +286,221 @@ sensor:
     accuracy_decimals: 0
     lambda: "return id(scan_count_val);"
 
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_rssi
+    update_interval: 30s
+    entity_category: DIAGNOSTIC
+
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor
+    update_interval: 60s
+    entity_category: DIAGNOSTIC
+
 globals:
   - id: scan_count_val
     type: int
     restore_value: true
     initial_value: "0"
+
+#######################################################################################################
+# OLED Display (SSD1306 128x64 I2C) + Button + Timeout
+#######################################################################################################
+
+# I2C bus for OLED (SDA=D2/GPIO4, SCL=D1/GPIO5)
+i2c:
+  sda: GPIO4
+  scl: GPIO5
+  scan: false
+
+# Fonts — European character set for product names
+font:
+  - file: "gfonts://Roboto"
+    id: font_body
+    size: 10
+    glyphs: >-
+      !"#$%&'()*+,-./0123456789:;<=>?@
+      ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`
+      abcdefghijklmnopqrstuvwxyz{|}~
+      ÄÖÜäöüß
+      ÉÈÊËéèêë
+      ÀÂàâÇç
+      ÅåØøÆæ
+      °€
+
+  - file: "gfonts://Roboto"
+    id: font_heading
+    size: 14
+    glyphs: >-
+      ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+      0123456789 .-!?:ÄÖÜäöüß
+
+  # MDI icons — only the specific icons we use
+  - file: "materialdesignicons-webfont.ttf"
+    id: font_icons
+    size: 18
+    glyphs:
+      - "\U000F05E0" # mdi:check-circle
+      - "\U000F0026" # mdi:alert
+      - "\U000F0159" # mdi:close-circle
+      - "\U000F05A9" # mdi:wifi
+      - "\U000F092D" # mdi:wifi-off
+      - "\U000F029A" # mdi:barcode-scan
+
+# OLED display — off by default, wakes on scan or button press
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    id: oled
+    address: 0x3C
+    update_interval: 250ms
+    lambda: |-
+      auto mode = id(screen_mode).state;
+
+      if (mode == "standby" || mode.empty()) {
+        it.fill(COLOR_OFF);
+        return;
+      }
+
+      if (mode == "connecting") {
+        it.fill(COLOR_OFF);
+        it.printf(64, 20, id(font_heading), TextAlign::TOP_CENTER, "Barcode Scanner");
+        it.printf(64, 40, id(font_body), TextAlign::TOP_CENTER, "Connecting...");
+        return;
+      }
+
+      if (mode == "scanning") {
+        it.fill(COLOR_OFF);
+        it.printf(64, 20, id(font_heading), TextAlign::TOP_CENTER, "Scanning...");
+        it.printf(64, 40, id(font_body), TextAlign::TOP_CENTER, "%s", id(last_barcode).state.c_str());
+        return;
+      }
+
+      if (mode == "result") {
+        it.fill(COLOR_OFF);
+        // Result type header with icon
+        auto rtype = id(last_result_type).state;
+        if (rtype == "added" || rtype == "added_as_note") {
+          it.printf(0, 0, id(font_icons), "\U000F05E0");  // check-circle
+          it.printf(22, 2, id(font_heading), "Added");
+        } else if (rtype == "queued") {
+          it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
+          it.printf(22, 2, id(font_heading), "Queued");
+        } else if (rtype == "unknown") {
+          it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
+          it.printf(22, 2, id(font_heading), "Needs Mapping");
+        } else {
+          it.printf(0, 0, id(font_icons), "\U000F0159");  // close-circle
+          it.printf(22, 2, id(font_heading), "Error");
+        }
+
+        // Item name
+        it.printf(0, 22, id(font_body), "%s", id(last_result).state.c_str());
+
+        // Brand / quantity line
+        auto brand = id(last_brand).state;
+        auto qty = id(last_quantity).state;
+        std::string detail;
+        if (!brand.empty() && !qty.empty()) detail = brand + " " + qty;
+        else if (!brand.empty()) detail = brand;
+        else if (!qty.empty()) detail = qty;
+        if (!detail.empty()) {
+          it.printf(0, 34, id(font_body), "%s", detail.c_str());
+        }
+
+        // Separator + barcode at bottom
+        it.line(0, 48, 128, 48);
+        it.printf(0, 52, id(font_body), "%s", id(last_barcode).state.c_str());
+        return;
+      }
+
+      if (mode == "error") {
+        it.fill(COLOR_OFF);
+        it.printf(0, 0, id(font_icons), "\U000F0159");  // close-circle
+        it.printf(22, 2, id(font_heading), "Error");
+        it.printf(0, 28, id(font_body), "%s", id(last_result).state.c_str());
+        it.printf(0, 42, id(font_body), "%s", id(last_barcode).state.c_str());
+        return;
+      }
+
+      if (mode == "status") {
+        it.fill(COLOR_OFF);
+        it.printf(0, 0, id(font_heading), "Barcode Scanner");
+
+        // WiFi signal bar
+        int rssi = id(wifi_rssi).state;
+        int bars = 0;
+        if (rssi > -50) bars = 5;
+        else if (rssi > -60) bars = 4;
+        else if (rssi > -70) bars = 3;
+        else if (rssi > -80) bars = 2;
+        else if (rssi > -90) bars = 1;
+        it.printf(0, 18, id(font_body), "WiFi: %d dBm", rssi);
+        for (int i = 0; i < 5; i++) {
+          int h = 2 + i * 2;
+          if (i < bars)
+            it.filled_rectangle(90 + i*4, 28-h, 3, h);
+          else
+            it.rectangle(90 + i*4, 28-h, 3, h);
+        }
+
+        // IP address
+        it.printf(0, 30, id(font_body), "IP: %s", WiFi.localIP().toString().c_str());
+
+        // Scan count
+        it.printf(0, 42, id(font_body), "Scans: %.0f", id(scan_count).state);
+
+        // Uptime
+        int uptime_s = (int)id(uptime_sensor).state;
+        int days = uptime_s / 86400;
+        int hours = (uptime_s % 86400) / 3600;
+        if (days > 0) {
+          it.printf(0, 54, id(font_body), "Uptime: %dd %dh", days, hours);
+        } else {
+          int mins = (uptime_s % 3600) / 60;
+          it.printf(0, 54, id(font_body), "Uptime: %dh %dm", hours, mins);
+        }
+        return;
+      }
+
+# Physical button — short press shows last result, long press shows status
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO13  # D7
+      mode: INPUT_PULLUP
+      inverted: true   # Active-low: button connects GPIO13 to GND
+    name: "Display Button"
+    id: display_button
+    on_click:
+      min_length: 50ms
+      max_length: 1000ms
+      then:
+        - script.execute: wake_display_result
+    on_press:
+      then:
+        - delay: 2s
+        - if:
+            condition:
+              binary_sensor.is_on: display_button
+            then:
+              - script.execute: wake_display_status
+
+# Configurable standby timeout — adjustable from HA
+number:
+  - platform: template
+    name: "Display Timeout"
+    id: display_timeout
+    icon: mdi:timer-outline
+    entity_category: CONFIG
+    unit_of_measurement: "s"
+    min_value: 2
+    max_value: 30
+    step: 1
+    initial_value: 5
+    restore_value: true
+    optimistic: true
 
 #######################################################################################################
 # GM67 Scanner Configuration (via UART commands)

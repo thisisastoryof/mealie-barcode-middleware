@@ -7,6 +7,8 @@
 | MCU board          | **NodeMCU v2** (ESP8266, 4MB flash, AMS1117-3.3 regulator) |
 | Barcode scanner    | **GM67 breakout board** (5V input, onboard 3.3V regulator) |
 | Scanner interface  | 4-wire UART header (VCC, GND, TX, RX)                      |
+| OLED display       | **SSD1306 128×64 I2C** (0.96", address 0x3C)               |
+| Button             | Momentary push button (NO, connects GPIO13/D7 to GND)      |
 | Target form factor | Perf board, soldered, 3D-printed enclosure                 |
 
 ---
@@ -130,13 +132,19 @@ interfere with the bootloader. Two options for the perf board:
 ```
                      NodeMCU v2
                  ┌──────────────────┐
-           USB ──┤ VIN(5V)    3V3   ├
+           USB ──┤ VIN(5V)    3V3   ├──────────────────── OLED VCC (3.3V)
                  │                  │
-                 ┤ GND        GND   ├
-                 │                  │
+                 ┤ GND        GND   ├──┬───────────────── OLED GND
+                 │                  │  └───────────────── Button leg 2
                  ┤ TX (GPIO1) [TX]──├────────────────┐
                  │                  │                │
                  ┤ RX (GPIO3) [RX]──├──────────┐     │
+                 │                  │          │     │
+                 ┤ D1 (GPIO5) [SCL]─├──────────┼─────┼── OLED SCL
+                 │                  │          │     │
+                 ┤ D2 (GPIO4) [SDA]─├──────────┼─────┼── OLED SDA
+                 │                  │          │     │
+                 ┤ D7 (GPIO13)──────├──────────┼─────┼── Button leg 1
                  │                  │          │     │
                  ┤ ...              ├          │     │
                  └──────────────────┘          │     │
@@ -166,12 +174,22 @@ interfere with the bootloader. Two options for the perf board:
 
 ### Wire-by-Wire
 
-| Wire | From                   | To           | Color Suggestion | Notes                         |
-| ---- | ---------------------- | ------------ | ---------------- | ----------------------------- |
-| 1    | NodeMCU **VIN/5V**     | GM67 **VCC** | Red              | 5V power to breakout          |
-| 2    | NodeMCU **GND**        | GM67 **GND** | Black            | Common ground — mandatory     |
-| 3    | NodeMCU **TX** (GPIO1) | GM67 **RX**  | Yellow           | ESP sends commands to scanner |
-| 4    | NodeMCU **RX** (GPIO3) | GM67 **TX**  | Green            | Scanner sends barcodes to ESP |
+| Wire | From                   | To              | Color Suggestion | Notes                                    |
+| ---- | ---------------------- | --------------- | ---------------- | ---------------------------------------- |
+| 1    | NodeMCU **VIN/5V**     | GM67 **VCC**    | Red              | 5V power to breakout                     |
+| 2    | NodeMCU **GND**        | GM67 **GND**    | Black            | Common ground — mandatory                |
+| 3    | NodeMCU **TX** (GPIO1) | GM67 **RX**     | Yellow           | ESP sends commands to scanner            |
+| 4    | NodeMCU **RX** (GPIO3) | GM67 **TX**     | Green            | Scanner sends barcodes to ESP            |
+| 5    | NodeMCU **3V3**        | OLED **VCC**    | Red              | 3.3V power to OLED                       |
+| 6    | NodeMCU **GND**        | OLED **GND**    | Black            | OLED ground                              |
+| 7    | NodeMCU **D1** (GPIO5) | OLED **SCL**    | Blue             | I2C clock                                |
+| 8    | NodeMCU **D2** (GPIO4) | OLED **SDA**    | White            | I2C data                                 |
+| 9    | NodeMCU **D7** (GPIO13)| Button **leg 1**| Orange           | Internal pull-up, active-low             |
+| 10   | NodeMCU **GND**        | Button **leg 2**| Black            | Button completes circuit to GND on press |
+
+> **OLED pull-ups**: No external resistors needed — the SSD1306 breakout has them onboard.
+>
+> **Button**: No external resistor needed — `INPUT_PULLUP` uses the ESP8266's internal pull-up.
 
 > **TX↔RX crossover**: ESP TX goes to GM67 RX and vice versa. This is standard
 > for UART but a common wiring mistake. If you get no data, swap wires 3 & 4.
@@ -187,17 +205,21 @@ interfere with the bootloader. Two options for the perf board:
     │  │  (pin hdrs)  │  wires  │  breakout  │  │
     │  │              ├────────►│            │  │
     │  │              │         │            │  │
-    │  └──────┬───────┘         └─────┬──────┘  │
-    │         │                       │         │
-    │     ┌───┴───┐              ┌────┴────┐    │
-    │     │USB out│              │ C1 + C2 │    │
-    │     └───────┘              └─────────┘    │
-    │                                           │
+    │  │    D1,D2─────┼────┐    └─────┬──────┘  │
+    │  │    D7────────┼──┐ │          │         │
+    │  └──────┬───────┘  │ │     ┌────┴────┐    │
+    │         │          │ │     │ C1 + C2 │    │
+    │     ┌───┴───┐    [BTN]│    └─────────┘    │
+    │     │USB out│      │ │                    │
+    │     └───────┘      │ └──[OLED 0.96"]      │
+    │                    │                      │
     └───────────────────────────────────────────┘
 ```
 
 - Place **C1 and C2 directly adjacent to the GM67 power pins** — short traces/wires minimize inductance
 - Keep UART wires short and away from the USB connector / WiFi antenna area
+- Place **OLED** on the enclosure-facing side for visibility
+- Place **button** accessible from outside the enclosure
 - The NodeMCU's USB port should remain accessible (for power and emergency re-flash)
 - Consider a **2-pin jumper header** on the GM67 TX → GPIO3 line for flash safety
 
