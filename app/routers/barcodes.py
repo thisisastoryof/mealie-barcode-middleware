@@ -257,8 +257,8 @@ def barcodes_api(status: str = "all", db: Session = Depends(get_db)):
             "brand": bc.brand or "\u2014",
             "source": bc.source or "\u2014",
             "status": bc_status,
-            "food_name": item.name if item else None,
-            "food_id": item.id if item else None,
+            "item_name": item.name if item else None,
+            "item_id": item.id if item else None,
             "mapped_by": mapping.mapped_by if mapping else None,
             "created_at": _localtime(bc.created_at),
         })

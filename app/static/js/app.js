@@ -73,25 +73,25 @@
         var data = JSON.parse(e.data);
         var barcode = data.barcode;
         var result = data.result;
-        var food = data.food;
+        var item = data.item;
 
         var color, title, desc;
         if (result === 'added') {
             color = 'success';
             title = 'Added to shopping list';
-            desc = food ? esc(food) + ' (' + esc(barcode) + ')' : esc(barcode);
+            desc = item ? esc(item) + ' (' + esc(barcode) + ')' : esc(barcode);
         } else if (result === 'added_as_note') {
             color = 'success';
             title = 'Added to shopping list';
-            desc = (food ? esc(food) + ' (' + esc(barcode) + ')' : esc(barcode)) + ' (via note)';
+            desc = (item ? esc(item) + ' (' + esc(barcode) + ')' : esc(barcode)) + ' (via note)';
         } else if (result === 'queued') {
             color = 'warning';
             title = 'Queued for retry';
-            desc = esc(food || barcode);
+            desc = esc(item || barcode);
         } else if (result === 'retry_failed') {
             color = 'danger';
             title = 'Retry failed';
-            desc = esc(food || barcode) + ' — could not reach Mealie';
+            desc = esc(item || barcode) + ' — could not reach Mealie';
         } else {
             color = 'danger';
             title = 'Unknown barcode';
@@ -131,7 +131,7 @@
         if (isActionable) {
             ensureNotifPermission();
             if ('Notification' in window && Notification.permission === 'granted') {
-                var body = food ? food + ' (' + barcode + ')' : barcode;
+                var body = item ? item + ' (' + barcode + ')' : barcode;
                 if (swReg) {
                     swReg.showNotification(title, { body: body, tag: barcode, data: { url: link } });
                 } else {
@@ -220,12 +220,12 @@
             var rows = '';
             d.recent_items.forEach(function(item) {
                 var bg = badgeMap[item.status] || 'secondary';
-                var foodCol = item.food_name
-                    ? '<a href="/items/' + esc(item.food_id) + '">' + esc(item.food_name) + '</a>'
+                var itemCol = item.item_name
+                    ? '<a href="/items/' + esc(item.item_id) + '">' + esc(item.item_name) + '</a>'
                     : esc(item.title);
                 rows += '<tr>'
                     + '<td><a href="/barcodes/' + esc(item.barcode) + '">' + esc(item.barcode) + '</a></td>'
-                    + '<td>' + foodCol + '</td>'
+                    + '<td>' + itemCol + '</td>'
                     + '<td>' + esc(item.source) + '</td>'
                     + '<td><span class="badge bg-' + bg + ' text-' + bg + '-fg">' + labelMap[item.status] + '</span></td>'
                     + '<td>' + esc(item.created_at) + '</td>'
@@ -273,8 +273,8 @@
                     + '<td class="sort-brand">' + esc(item.brand) + '</td>';
                 if (showMapped) {
                     rows += '<td class="sort-mapped">';
-                    if (item.food_name) {
-                        rows += '<a href="/items/' + esc(item.food_id) + '">' + esc(item.food_name) + '</a>'
+                    if (item.item_name) {
+                        rows += '<a href="/items/' + esc(item.item_id) + '">' + esc(item.item_name) + '</a>'
                             + ' <span class="badge bg-azure text-azure-fg ms-1">' + esc(item.mapped_by) + '</span>';
                     } else {
                         rows += '<span class="text-secondary">\u2014</span>';

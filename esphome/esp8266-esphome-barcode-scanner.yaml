@@ -1,34 +1,77 @@
 #######################################################################################################
-# ESP32 + GM67 Barcode Scanner — HTTP POST to Middleware
+# ESP8266 and GM67 Barcode Scanner
 #######################################################################################################
-#
-# This ESPHome config sends scanned barcodes directly to the mealie-barcode-middleware
-# via HTTP POST, removing Home Assistant from the critical data path.
-#
-# Replace placeholder values marked with ##### before flashing.
-#
+
+# IMPORTANT! Replace the hashed values with suitable API keys and passwords
+
+substitutions:
+  friendly_name: "Barcode Scanner"
+  gm67_baud: 9600
+  tx_pin: GPIO1
+  rx_pin: GPIO3
 
 esphome:
   name: barcode-scanner
-  friendly_name: Barcode Scanner
+  friendly_name: ${friendly_name}
   on_boot:
+    - text_sensor.template.publish: # On boot set the status to connecting
+        id: screen_mode
+        state: "connecting"
+
+esp8266:
+  board: nodemcuv2
+  framework:
+    version: recommended
+
+# Disable logging
+logger:
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_key
+  actions:
+    # When an identified product is passed back from HA
+    - action: product_identified
+      variables:
+        product: string
+      then:
+        - text_sensor.template.publish: # Set the mode to result
+            id: screen_mode
+            state: "result"
+        - text_sensor.template.publish: # Set the last result to the returned value
+            id: last_result
+            state: !lambda "return product.c_str();"
+        - script.execute: standby_timer # Start the timer to return to standby
+        - logger.log: # Log the returned result
+            level: INFO
+            format: "Returned Product: %s"
+            args: ["product.c_str()"]
+  on_client_connected: # On successful connection to HA then set the status to standby
     - text_sensor.template.publish:
         id: screen_mode
         state: "standby"
+    - script.stop: standby_timer # Stop the timer in case its running
+  on_client_disconnected: # If the connection to HA is lost then set the status to connecting
+    - text_sensor.template.publish:
+        id: screen_mode
+        state: "connecting"
+    - script.stop: standby_timer # Stop the timer in case its running
 
-esp32:
-  board: esp32dev
-  framework:
-    type: arduino
-
-logger:
+ota:
+  - platform: esphome
+    password: !secret ota_pwd
 
 wifi:
-  ssid: "######"
-  password: "######"
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pwd
+  min_auth_mode: WPA2
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Barcode-Scanner-AP"
-    password: "######"
+    ssid: ${friendly_name}
+    password: !secret ap_pwd
 
 captive_portal:
 
@@ -36,38 +79,44 @@ captive_portal:
 http_request:
   useragent: "ESPHome/BarcodeScanner"
   timeout: 10s
+  verify_ssl: false
 
 # JSON parsing support (for reading response body)
 json:
 
-# UART for GM67 barcode scanner module
+#######################################################################################################
+# CONFIG THE DEVICE
+#######################################################################################################
+
+# UART
 uart:
-  id: uart_bus
-  rx_pin: GPIO16
-  tx_pin: GPIO17
-  baud_rate: 9600
-  debug:
-    direction: RX
-    dummy_receiver: true
-    after:
-      delimiter: "\r"
-    sequence:
-      - lambda: |-
-          std::string str(bytes.begin(), bytes.end());
-          str.erase(str.find_last_not_of(" \n\r\t") + 1);
-          if (str.empty()) return;
-          // Ignore binary GM67 config responses — only accept printable ASCII
-          for (char c : str) {
-            if (c < 0x20 || c > 0x7E) return;
-          }
-          id(barcode_raw).publish_state(str);
+  # UART for the GM67 barcode scanner
+  - id: uart_bus
+    baud_rate: ${gm67_baud}
+    tx_pin: ${tx_pin}
+    rx_pin: ${rx_pin}
+    debug:
+      direction: RX
+      dummy_receiver: true
+      after:
+        delimiter: "\r"
+      sequence:
+        - lambda: |-
+            std::string str(bytes.begin(), bytes.end());
+            str.erase(str.find_last_not_of(" \n\r\t") + 1);
+            if (str.empty()) return;
+            // Ignore binary GM67 config responses — only accept printable ASCII
+            for (char c : str) {
+              if (c < 0x20 || c > 0x7E) return;
+            }
+            id(barcode_raw).publish_state(str);
 
 # Template sensors for display state
 text_sensor:
   - platform: template
     name: "Screen Mode"
     id: screen_mode
-    
+
   - platform: template
     name: "Last Result"
     id: last_result
@@ -81,10 +130,10 @@ text_sensor:
             id: screen_mode
             state: "scanning"
         - http_request.post:
-            url: "http://YOUR-MIDDLEWARE-IP:9930/scan"
+            url: !secret middleware_url
             request_headers:
               Content-Type: "application/json"
-              Authorization: "Bearer YOUR-TOKEN-HERE"
+              Authorization: !secret middleware_api_token
             body: !lambda |-
               return "{\"barcode\":\"" + x + "\"}";
             capture_response: true
@@ -129,6 +178,18 @@ script:
       - text_sensor.template.publish:
           id: last_result
           state: ""
+
+# Event
+event:
+  # Provided for diagnostic purposes only. You should use the HA event "esphome.barcode_scan" triggered when a scan is performed
+  - platform: template
+    name: "Last Scan"
+    id: "last_scan"
+    icon: mdi:barcode-scan
+    entity_category: DIAGNOSTIC
+    disabled_by_default: true
+    event_types:
+      - "barcode_scanned"
 
 #######################################################################################################
 # GM67 Scanner Configuration (via UART commands)
@@ -263,21 +324,24 @@ select:
           then:
             - uart.write:
                 id: uart_bus
-                data: [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0x02, 0x00, 0xFE, 0x32]
+                data:
+                  [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0x02, 0x00, 0xFE, 0x32]
       - if:
           condition:
             lambda: 'return x == "Always On";'
           then:
             - uart.write:
                 id: uart_bus
-                data: [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0x02, 0x01, 0xFE, 0x31]
+                data:
+                  [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0x02, 0x01, 0xFE, 0x31]
       - if:
           condition:
             lambda: 'return x == "Always Off";'
           then:
             - uart.write:
                 id: uart_bus
-                data: [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0x02, 0x02, 0xFE, 0x30]
+                data:
+                  [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0x02, 0x02, 0xFE, 0x30]
 
   # Collimation (aiming laser)
   - platform: template
@@ -299,21 +363,24 @@ select:
           then:
             - uart.write:
                 id: uart_bus
-                data: [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0x03, 0x00, 0xFE, 0x31]
+                data:
+                  [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0x03, 0x00, 0xFE, 0x31]
       - if:
           condition:
             lambda: 'return x == "Always On";'
           then:
             - uart.write:
                 id: uart_bus
-                data: [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0x03, 0x01, 0xFE, 0x30]
+                data:
+                  [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0x03, 0x01, 0xFE, 0x30]
       - if:
           condition:
             lambda: 'return x == "Always Off";'
           then:
             - uart.write:
                 id: uart_bus
-                data: [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0x03, 0x02, 0xFE, 0x2F]
+                data:
+                  [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0x03, 0x02, 0xFE, 0x2F]
 
   # Same barcode re-scan delay
   - platform: template
@@ -338,42 +405,48 @@ select:
           then:
             - uart.write:
                 id: uart_bus
-                data: [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF3, 0x03, 0x05, 0xFE, 0x2B]
+                data:
+                  [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF3, 0x03, 0x05, 0xFE, 0x2B]
       - if:
           condition:
             lambda: 'return x == "1s";'
           then:
             - uart.write:
                 id: uart_bus
-                data: [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0xC9, 0x01, 0xFD, 0x6A]
+                data:
+                  [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0xC9, 0x01, 0xFD, 0x6A]
       - if:
           condition:
             lambda: 'return x == "3s";'
           then:
             - uart.write:
                 id: uart_bus
-                data: [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0xC9, 0x03, 0xFD, 0x68]
+                data:
+                  [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0xC9, 0x03, 0xFD, 0x68]
       - if:
           condition:
             lambda: 'return x == "5s";'
           then:
             - uart.write:
                 id: uart_bus
-                data: [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0xC9, 0x05, 0xFD, 0x66]
+                data:
+                  [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0xC9, 0x05, 0xFD, 0x66]
       - if:
           condition:
             lambda: 'return x == "7s";'
           then:
             - uart.write:
                 id: uart_bus
-                data: [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0xC9, 0x07, 0xFD, 0x64]
+                data:
+                  [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0xC9, 0x07, 0xFD, 0x64]
       - if:
           condition:
             lambda: 'return x == "No Repeat";'
           then:
             - uart.write:
                 id: uart_bus
-                data: [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0xC9, 0x09, 0xFD, 0x62]
+                data:
+                  [0x08, 0xC6, 0x04, 0x08, 0x00, 0xF2, 0xC9, 0x09, 0xFD, 0x62]
 
 switch:
   # Collimation flashing

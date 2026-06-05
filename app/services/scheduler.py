@@ -114,7 +114,7 @@ def _create_retry_failed_notification(item: RetryQueue, db):
     scan_events.publish_threadsafe("scan", {
         "barcode": item.barcode,
         "result": "retry_failed",
-        "food": str(item_hint),
+        "item": str(item_hint),
     })
 
 
@@ -154,7 +154,7 @@ def start_scheduler():
     scheduler.add_job(
         _run_item_sync,
         "interval",
-        hours=settings.food_sync_interval_hours,
+        hours=settings.item_sync_interval_hours,
         id="item_sync",
         replace_existing=True,
     )

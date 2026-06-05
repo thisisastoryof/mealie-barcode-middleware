@@ -30,8 +30,8 @@ class ScanRequest(BaseModel):
 
 class ScanResponse(BaseModel):
     result: str  # added | added_as_note | queued | unknown
-    food: str | None = None
-    via: str | None = None  # food_id | note
+    item: str | None = None
+    via: str | None = None  # item_id | note
 
 
 @router.post("/scan", response_model=ScanResponse)
@@ -42,7 +42,7 @@ def scan_barcode(
 ):
     barcode = body.barcode.strip()
     if not barcode:
-        return ScanResponse(result="unknown", food=None, via=None)
+        return ScanResponse(result="unknown", item=None, via=None)
 
     # --- GENERIC QR code handling ---
     if barcode.upper().startswith("GENERIC:"):
@@ -83,10 +83,10 @@ def scan_barcode(
         note = barcode
         success = add_to_shopping_list_by_note(note)
         if success:
-            resp = ScanResponse(result="unknown", food=None, via=None)
+            resp = ScanResponse(result="unknown", item=None, via=None)
         else:
             _enqueue_note(barcode, note, db)
-            resp = ScanResponse(result="unknown", food=None, via=None)
+            resp = ScanResponse(result="unknown", item=None, via=None)
         _emit_scan_event(barcode, resp)
         _save_notification(barcode, "Unknown barcode", f"Not found in any product database", "unknown", db)
         return resp
@@ -106,12 +106,12 @@ def scan_barcode(
     note = cached.title or barcode
     success = add_to_shopping_list_by_note(note)
     if success:
-        resp = ScanResponse(result="added_as_note", food=note, via="note")
+        resp = ScanResponse(result="added_as_note", item=note, via="note")
         _save_activity(barcode, "Added to list", note + " (via note)", "added_as_note", db)
         _save_notification(barcode, "Mapping needed", f"{note} — assign to a Mealie item", "needs_mapping", db)
     else:
         _enqueue_note(barcode, note, db)
-        resp = ScanResponse(result="queued", food=note, via="note")
+        resp = ScanResponse(result="queued", item=note, via="note")
         _save_activity(barcode, "Queued", note, "queued", db)
     _emit_scan_event(barcode, resp)
     return resp
@@ -122,7 +122,7 @@ def _emit_scan_event(barcode: str, resp: ScanResponse):
     scan_events.publish_threadsafe("scan", {
         "barcode": barcode,
         "result": resp.result,
-        "food": resp.food,
+        "item": resp.item,
     })
 
 
@@ -161,7 +161,7 @@ def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
     from rapidfuzz import fuzz
 
     if not term:
-        return ScanResponse(result="unknown", food=None, via=None)
+        return ScanResponse(result="unknown", item=None, via=None)
 
     # Store in cache as generic
     existing = db.get(BarcodeCache, barcode)
@@ -201,10 +201,10 @@ def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
     # Fallback: add as note
     success = add_to_shopping_list_by_note(term)
     if success:
-        return ScanResponse(result="added_as_note", food=term, via="note")
+        return ScanResponse(result="added_as_note", item=term, via="note")
     else:
         _enqueue_note(barcode, term, db)
-        return ScanResponse(result="queued", food=term, via="note")
+        return ScanResponse(result="queued", item=term, via="note")
 
 
 def _add_via_item(item: Item | None, item_name: str, barcode: str, db: Session) -> ScanResponse:
@@ -212,7 +212,7 @@ def _add_via_item(item: Item | None, item_name: str, barcode: str, db: Session) 
     if item and item.source == "mealie":
         success = add_to_shopping_list_by_item(item.id)
         if success:
-            return ScanResponse(result="added", food=item_name, via="food_id")
+            return ScanResponse(result="added", item=item_name, via="item_id")
         else:
             payload = {
                 "shoppingListId": settings.mealie_shopping_list_id,
@@ -220,15 +220,15 @@ def _add_via_item(item: Item | None, item_name: str, barcode: str, db: Session) 
                 "quantity": 1,
             }
             enqueue_retry(barcode, payload, db)
-            return ScanResponse(result="queued", food=item_name, via="food_id")
+            return ScanResponse(result="queued", item=item_name, via="item_id")
     else:
         note = item.name if item else item_name
         success = add_to_shopping_list_by_note(note)
         if success:
-            return ScanResponse(result="added", food=note, via="note")
+            return ScanResponse(result="added", item=note, via="note")
         else:
             _enqueue_note(barcode, note, db)
-            return ScanResponse(result="queued", food=note, via="note")
+            return ScanResponse(result="queued", item=note, via="note")
 
 
 def _enqueue_note(barcode: str, note: str, db: Session) -> None:

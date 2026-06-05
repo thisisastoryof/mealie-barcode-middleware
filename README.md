@@ -110,8 +110,8 @@ All configuration is via environment variables. Create a `.env` file from `.env.
 | `UPCDB_ENABLED`            | No       | `false`                                           | Enable UPCDatabase lookups (also requires `UPCDB_API_KEY`)                     |
 | `UPCDB_URL_BASE`           | No       | `https://api.upcdatabase.org/product/`            | UPCDatabase API base URL                                                       |
 | `UPCDB_API_KEY`            | No       | —                                                 | UPCDatabase API key. Required when `UPCDB_ENABLED=true`                        |
-| `FOOD_SYNC_INTERVAL_HOURS` | No       | `6`                                               | How often (in hours) to re-sync the Mealie food catalog                        |
-| `FUZZY_MATCH_THRESHOLD`    | No       | `85`                                              | Minimum score (0–100) for automatic barcode→food mapping                       |
+| `ITEM_SYNC_INTERVAL_HOURS` | No       | `6`                                               | How often (in hours) to re-sync the Mealie item catalog                        |
+| `FUZZY_MATCH_THRESHOLD`    | No       | `85`                                              | Minimum score (0–100) for automatic barcode→item mapping                       |
 | `FUZZY_AMBIGUITY_GAP`      | No       | `10`                                              | Minimum score gap between #1 and #2 match to auto-map (avoids ambiguity)       |
 | `LOOKUP_TTL_DAYS`          | No       | `30`                                              | How many days to wait before retrying external lookups for unresolved barcodes |
 | `DB_PATH`                  | No       | `/data/barcode.db`                                | Path to the SQLite database file                                               |
@@ -143,16 +143,16 @@ See [`esphome/example-esphome-barcode-scanner.yaml`](esphome/example-esphome-bar
 
 The middleware will:
 
-1. Check if the barcode is already mapped to a Mealie food → add via food ID
+1. Check if the barcode is already mapped to a Mealie item → add via item ID
 2. Look up the barcode via enabled external services (see below)
-3. Attempt fuzzy auto-mapping against your Mealie food catalog
+3. Attempt fuzzy auto-mapping against your Mealie item catalog
 4. Fall back to adding as a plain note on the shopping list
 
 **Lookup order:** OpenFoodFacts is tried first (if enabled). If it returns no result, UPCDatabase is tried (if enabled + API key set). The **first successful** result is stored in the local cache — only one source's data is kept per barcode. If both services are disabled, the barcode is immediately added to the shopping list as a plain-text note.
 
 ### 4. Review & Map
 
-Visit the dashboard to see pending-mapping barcodes and assign them to the correct Mealie food. Auto-mapped entries are flagged and can be corrected at any time.
+Visit the dashboard to see pending-mapping barcodes and assign them to the correct Mealie item. Auto-mapped entries are flagged and can be corrected at any time.
 
 ## API
 
@@ -163,8 +163,8 @@ Visit the dashboard to see pending-mapping barcodes and assign them to the corre
 | `/`                   | GET    | None         | Dashboard (HTML)         |
 | `/barcodes`           | GET    | None         | Barcode list (HTML)      |
 | `/barcodes/{barcode}` | GET    | None         | Barcode detail (HTML)    |
-| `/foods`              | GET    | None         | Food catalog list (HTML) |
-| `/foods/{foodId}`     | GET    | None         | Food detail (HTML)       |
+| `/items`              | GET    | None         | Item catalog list (HTML) |
+| `/items/{itemId}`     | GET    | None         | Item detail (HTML)       |
 | `/settings`           | GET    | None         | Settings (HTML)          |
 | `/settings/tokens`    | GET    | None         | Token management (HTML)  |
 
@@ -179,10 +179,10 @@ Visit the dashboard to see pending-mapping barcodes and assign them to the corre
 **Responses:**
 
 ```json
-{ "result": "added", "food": "Oat Milk", "via": "food_id" }
-{ "result": "added_as_note", "food": "Some Product", "via": "note" }
-{ "result": "queued", "food": "Oat Milk", "via": "food_id" }
-{ "result": "unknown", "food": null, "via": null }
+{ "result": "added", "item": "Oat Milk", "via": "item_id" }
+{ "result": "added_as_note", "item": "Some Product", "via": "note" }
+{ "result": "queued", "item": "Oat Milk", "via": "item_id" }
+{ "result": "unknown", "item": null, "via": null }
 ```
 
 ## Project Structure

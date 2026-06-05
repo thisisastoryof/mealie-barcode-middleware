@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     upcdb_url_base: str = "https://api.upcdatabase.org/product/"
     upcdb_api_key: str | None = None
 
-    food_sync_interval_hours: int = 6
+    item_sync_interval_hours: int = 6
     fuzzy_match_threshold: int = 85
     fuzzy_ambiguity_gap: int = 10
     lookup_ttl_days: int = 30

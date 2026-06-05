@@ -31,7 +31,7 @@ def settings_page(request: Request, tab: str = Query("configuration"), db: Sessi
         ("Matching & Sync", [
             ("FUZZY_MATCH_THRESHOLD", str(settings.fuzzy_match_threshold), "Minimum score (0–100) to accept a fuzzy item match"),
             ("FUZZY_AMBIGUITY_GAP", str(settings.fuzzy_ambiguity_gap), "Min. score gap between top two matches to avoid ambiguity"),
-            ("FOOD_SYNC_INTERVAL_HOURS", str(settings.food_sync_interval_hours), "How often the Mealie item list is re-synced"),
+            ("ITEM_SYNC_INTERVAL_HOURS", str(settings.item_sync_interval_hours), "How often the Mealie item list is re-synced"),
             ("LOOKUP_TTL_DAYS", str(settings.lookup_ttl_days), "Days before a cached barcode lookup expires"),
             ("MAX_RETRY_ATTEMPTS", str(settings.max_retry_attempts), "Max retries before a queued item is marked as failed"),
         ]),

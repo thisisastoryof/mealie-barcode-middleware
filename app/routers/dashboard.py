@@ -113,8 +113,8 @@ def dashboard_api(db: Session = Depends(get_db)):
                 status = "pending"
         recent_items.append({
             "barcode": bc.barcode,
-            "food_name": item.name if item else None,
-            "food_id": item.id if item else None,
+            "item_name": item.name if item else None,
+            "item_id": item.id if item else None,
             "title": bc.title or "\u2014",
             "source": bc.source or "\u2014",
             "status": status,
