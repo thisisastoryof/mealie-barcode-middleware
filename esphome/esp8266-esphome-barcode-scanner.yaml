@@ -113,7 +113,7 @@ uart:
           }
           id(barcode_raw).publish_state(str);
 
-# Template sensors for display state
+# Template sensors for display state and scan data
 text_sensor:
   - platform: template
     name: "Screen Mode"
@@ -124,11 +124,35 @@ text_sensor:
     id: last_result
 
   - platform: template
+    name: "Last Barcode"
+    id: last_barcode
+
+  - platform: template
+    name: "Last Result Type"
+    id: last_result_type
+
+  - platform: template
+    name: "Last Brand"
+    id: last_brand
+
+  - platform: template
+    name: "Last Quantity"
+    id: last_quantity
+
+  - platform: template
+    name: "Pending Action URL"
+    id: pending_action_url
+    internal: true
+
+  - platform: template
     name: "Barcode Raw"
     id: barcode_raw
     on_value:
       then:
         - lambda: "id(scan_count_val) += 1; id(scan_count).publish_state(id(scan_count_val));"
+        - text_sensor.template.publish:
+            id: last_barcode
+            state: !lambda "return x;"
         - text_sensor.template.publish:
             id: screen_mode
             state: "scanning"
@@ -149,23 +173,48 @@ text_sensor:
                     then:
                       - lambda: |-
                           json::parse_json(body, [](JsonObject root) -> bool {
-                            if (root["item"]) {
-                              id(last_result).publish_state(root["item"].as<std::string>());
-                            } else {
-                              id(last_result).publish_state("Added");
-                            }
+                            // Display name
+                            std::string item_name = root["item"] | "";
+                            std::string result = root["result"] | "unknown";
+
+                            if (item_name.empty()) item_name = "Unknown";
+                            id(last_result).publish_state(item_name);
+                            id(last_result_type).publish_state(result);
+
+                            // Display enrichment (brand/quantity for OLED)
+                            std::string brand = root["brand"] | "";
+                            std::string qty = root["quantity"] | "";
+                            id(last_brand).publish_state(brand);
+                            id(last_quantity).publish_state(qty);
+
+                            // Notification relay — store action_url for HA event
+                            bool needs_action = root["needs_action"] | false;
+                            std::string action_url = root["action_url"] | "";
+                            id(pending_action_url).publish_state(needs_action ? action_url : "");
+
                             return true;
                           });
                           id(screen_mode).publish_state("result");
                     else:
                       - lambda: |-
                           id(last_result).publish_state("Error");
+                          id(last_result_type).publish_state("error");
                           id(screen_mode).publish_state("error");
                 - script.execute: standby_timer
+                # Fire HA event on every scan — HA automations filter on needs_action
+                - homeassistant.event:
+                    event: esphome.barcode_scanned
+                    data:
+                      barcode: !lambda "return id(last_barcode).state;"
+                      item: !lambda "return id(last_result).state;"
+                      result_type: !lambda "return id(last_result_type).state;"
+                      needs_action: !lambda 'return id(pending_action_url).state.empty() ? "false" : "true";'
+                      action_url: !lambda "return id(pending_action_url).state;"
             on_error:
               then:
                 - lambda: |-
                     id(last_result).publish_state("Offline");
+                    id(last_result_type).publish_state("error");
                     id(screen_mode).publish_state("error");
                 - script.execute: standby_timer
 
@@ -180,6 +229,18 @@ script:
           state: "standby"
       - text_sensor.template.publish:
           id: last_result
+          state: ""
+      - text_sensor.template.publish:
+          id: last_result_type
+          state: ""
+      - text_sensor.template.publish:
+          id: last_brand
+          state: ""
+      - text_sensor.template.publish:
+          id: last_quantity
+          state: ""
+      - text_sensor.template.publish:
+          id: pending_action_url
           state: ""
 
 # Scan counter — total scans since last reboot
