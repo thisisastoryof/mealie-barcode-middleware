@@ -36,6 +36,7 @@ def settings_page(request: Request, tab: str = Query("configuration"), db: Sessi
             ("MAX_RETRY_ATTEMPTS", str(settings.max_retry_attempts), "Max retries before a queued item is marked as failed"),
         ]),
         ("System", [
+            ("MIDDLEWARE_BASE_URL", settings.middleware_base_url or "(not set)", "Base URL for deep links in HA notifications"),
             ("TIMEZONE", settings.timezone, "Timezone used for timestamps and scheduling"),
             ("DB_PATH", settings.db_path, "Path to the SQLite database file"),
             ("PORT", str(settings.port), "HTTP port the middleware listens on"),

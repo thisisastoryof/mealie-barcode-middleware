@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     lookup_ttl_days: int = 30
     max_retry_attempts: int = 10
 
+    middleware_base_url: str = ""
+
     db_path: str = "/data/barcode.db"
     timezone: str = "Europe/Berlin"
     port: int = 8000

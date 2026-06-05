@@ -117,6 +117,7 @@ All configuration is via environment variables. Create a `.env` file from `.env.
 | `DB_PATH`                  | No       | `/data/barcode.db`                                | Path to the SQLite database file                                               |
 | `PORT`                     | No       | `8000`                                            | HTTP port the server listens on                                                |
 | `LOG_LEVEL`                | No       | `INFO`                                            | Python log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`)                         |
+| `MIDDLEWARE_BASE_URL`      | No       | (empty)                                           | Base URL for deep links in HA notifications (e.g. `http://192.168.20.30:9930`) |
 | `TIMEZONE`                 | No       | `Europe/Berlin`                                   | IANA timezone for displaying timestamps in the UI (e.g. `America/New_York`)    |
 
 ## Usage
@@ -179,10 +180,10 @@ Visit the dashboard to see pending-mapping barcodes and assign them to the corre
 **Responses:**
 
 ```json
-{ "result": "added", "item": "Oat Milk", "via": "item_id" }
-{ "result": "added_as_note", "item": "Some Product", "via": "note" }
-{ "result": "queued", "item": "Oat Milk", "via": "item_id" }
-{ "result": "unknown", "item": null, "via": null }
+{ "result": "added", "item": "Oat Milk", "via": "item_id", "needs_action": false, "brand": "Oatly", "quantity": "1L", "item_source": "mealie" }
+{ "result": "added_as_note", "item": "Some Product", "via": "note", "needs_action": true, "action_url": "/barcodes/4088600550862" }
+{ "result": "queued", "item": "Oat Milk", "via": "item_id", "needs_action": false }
+{ "result": "unknown", "item": null, "via": null, "needs_action": true, "action_url": "/barcodes/4088600550862" }
 ```
 
 ## Project Structure

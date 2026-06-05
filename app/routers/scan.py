@@ -18,10 +18,18 @@ from app.services.mealie import (
     add_to_shopping_list_by_note,
     enqueue_retry,
 )
-from app.utils import utcnow
+from app.utils import utcnow, sanitize_for_display
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+def _build_action_url(barcode: str) -> str:
+    """Build a deep link URL for HA notifications."""
+    base = settings.middleware_base_url.rstrip("/")
+    if base:
+        return f"{base}/barcodes/{barcode}"
+    return f"/barcodes/{barcode}"
 
 
 class ScanRequest(BaseModel):
@@ -32,6 +40,11 @@ class ScanResponse(BaseModel):
     result: str  # added | added_as_note | queued | unknown
     item: str | None = None
     via: str | None = None  # item_id | note
+    needs_action: bool = False
+    action_url: str | None = None
+    brand: str | None = None
+    quantity: str | None = None
+    item_source: str | None = None  # mealie | manual | None
 
 
 @router.post("/scan", response_model=ScanResponse)
@@ -57,7 +70,8 @@ def scan_barcode(
     if mapping:
         item = db.get(Item, mapping.item_id)
         item_name = item.name if item else barcode
-        resp = _add_via_item(item, item_name, barcode, db)
+        cached = db.get(BarcodeCache, barcode)
+        resp = _add_via_item(item, item_name, barcode, db, cached=cached)
         _emit_scan_event(barcode, resp)
         _save_activity(barcode, "Added to list", item_name, resp.result, db)
         return resp
@@ -87,6 +101,8 @@ def scan_barcode(
         else:
             _enqueue_note(barcode, note, db)
             resp = ScanResponse(result="unknown", item=None, via=None)
+        resp.needs_action = True
+        resp.action_url = _build_action_url(barcode)
         _emit_scan_event(barcode, resp)
         _save_notification(barcode, "Unknown barcode", f"Not found in any product database", "unknown", db)
         return resp
@@ -96,7 +112,9 @@ def scan_barcode(
     if item_id:
         item = db.get(Item, item_id)
         item_name = item.name if item else cached.title or barcode
-        resp = _add_via_item(item, item_name, barcode, db)
+        resp = _add_via_item(item, item_name, barcode, db, cached=cached)
+        resp.needs_action = True
+        resp.action_url = _build_action_url(barcode)
         _emit_scan_event(barcode, resp)
         _save_activity(barcode, "Added to list", item_name, resp.result, db)
         _save_notification(barcode, "Auto-mapped — confirm?", f"{cached.title or barcode} → {item_name}", "auto_mapped", db)
@@ -106,12 +124,20 @@ def scan_barcode(
     note = cached.title or barcode
     success = add_to_shopping_list_by_note(note)
     if success:
-        resp = ScanResponse(result="added_as_note", item=note, via="note")
+        resp = ScanResponse(
+            result="added_as_note", item=note, via="note",
+            brand=cached.brand, quantity=cached.quantity,
+            needs_action=True, action_url=_build_action_url(barcode),
+        )
         _save_activity(barcode, "Added to list", note + " (via note)", "added_as_note", db)
         _save_notification(barcode, "Mapping needed", f"{note} — assign to a Mealie item", "needs_mapping", db)
     else:
         _enqueue_note(barcode, note, db)
-        resp = ScanResponse(result="queued", item=note, via="note")
+        resp = ScanResponse(
+            result="queued", item=note, via="note",
+            brand=cached.brand, quantity=cached.quantity,
+            needs_action=True, action_url=_build_action_url(barcode),
+        )
         _save_activity(barcode, "Queued", note, "queued", db)
     _emit_scan_event(barcode, resp)
     return resp
@@ -207,12 +233,22 @@ def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
         return ScanResponse(result="queued", item=term, via="note")
 
 
-def _add_via_item(item: Item | None, item_name: str, barcode: str, db: Session) -> ScanResponse:
+def _add_via_item(
+    item: Item | None, item_name: str, barcode: str, db: Session,
+    cached: BarcodeCache | None = None,
+) -> ScanResponse:
     """Add to shopping list based on item source; queue on failure."""
+    brand = cached.brand if cached else None
+    quantity = cached.quantity if cached else None
+    item_source = item.source if item else None
+
     if item and item.source == "mealie":
         success = add_to_shopping_list_by_item(item.id)
         if success:
-            return ScanResponse(result="added", item=item_name, via="item_id")
+            return ScanResponse(
+                result="added", item=item_name, via="item_id",
+                brand=brand, quantity=quantity, item_source=item_source,
+            )
         else:
             payload = {
                 "shoppingListId": settings.mealie_shopping_list_id,
@@ -220,15 +256,24 @@ def _add_via_item(item: Item | None, item_name: str, barcode: str, db: Session) 
                 "quantity": 1,
             }
             enqueue_retry(barcode, payload, db)
-            return ScanResponse(result="queued", item=item_name, via="item_id")
+            return ScanResponse(
+                result="queued", item=item_name, via="item_id",
+                brand=brand, quantity=quantity, item_source=item_source,
+            )
     else:
         note = item.name if item else item_name
         success = add_to_shopping_list_by_note(note)
         if success:
-            return ScanResponse(result="added", item=note, via="note")
+            return ScanResponse(
+                result="added", item=note, via="note",
+                brand=brand, quantity=quantity, item_source=item_source,
+            )
         else:
             _enqueue_note(barcode, note, db)
-            return ScanResponse(result="queued", item=note, via="note")
+            return ScanResponse(
+                result="queued", item=note, via="note",
+                brand=brand, quantity=quantity, item_source=item_source,
+            )
 
 
 def _enqueue_note(barcode: str, note: str, db: Session) -> None:
