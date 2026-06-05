@@ -1,8 +1,7 @@
 #######################################################################################################
 # ESP8266 and GM67 Barcode Scanner
 #######################################################################################################
-
-# IMPORTANT! Replace the hashed values with suitable API keys and passwords
+# All credentials are stored in secrets.yaml — see §1 in the planning doc.
 
 substitutions:
   friendly_name: "Barcode Scanner"
@@ -14,9 +13,21 @@ esphome:
   name: barcode-scanner
   friendly_name: ${friendly_name}
   on_boot:
-    - text_sensor.template.publish: # On boot set the status to connecting
-        id: screen_mode
-        state: "connecting"
+    priority: -10
+    then:
+      - text_sensor.template.publish:
+          id: screen_mode
+          state: "connecting"
+      - delay: 30s
+      - if:
+          condition:
+            text_sensor.state:
+              id: screen_mode
+              state: "connecting"
+          then:
+            - text_sensor.template.publish:
+                id: screen_mode
+                state: "standby"
 
 esp8266:
   board: nodemcuv2
@@ -31,24 +42,7 @@ logger:
 api:
   encryption:
     key: !secret api_key
-  actions:
-    # When an identified product is passed back from HA
-    - action: product_identified
-      variables:
-        product: string
-      then:
-        - text_sensor.template.publish: # Set the mode to result
-            id: screen_mode
-            state: "result"
-        - text_sensor.template.publish: # Set the last result to the returned value
-            id: last_result
-            state: !lambda "return product.c_str();"
-        - script.execute: standby_timer # Start the timer to return to standby
-        - logger.log: # Log the returned result
-            level: INFO
-            format: "Returned Product: %s"
-            args: ["product.c_str()"]
-  on_client_connected: # On successful connection to HA then set the status to standby
+  on_client_connected:
     - text_sensor.template.publish:
         id: screen_mode
         state: "standby"
@@ -66,7 +60,12 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pwd
-  min_auth_mode: WPA2
+  fast_connect: true
+  manual_ip:
+    static_ip: !secret static_ip
+    gateway: !secret gateway
+    subnet: 255.255.255.0
+    dns1: !secret gateway
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
@@ -84,32 +83,35 @@ http_request:
 # JSON parsing support (for reading response body)
 json:
 
+# Minimal web server for diagnostics (http://<device-ip>/)
+web_server:
+  port: 80
+
 #######################################################################################################
 # CONFIG THE DEVICE
 #######################################################################################################
 
-# UART
+# UART — single bus for the GM67 barcode scanner
 uart:
-  # UART for the GM67 barcode scanner
-  - id: uart_bus
-    baud_rate: ${gm67_baud}
-    tx_pin: ${tx_pin}
-    rx_pin: ${rx_pin}
-    debug:
-      direction: RX
-      dummy_receiver: true
-      after:
-        delimiter: "\r"
-      sequence:
-        - lambda: |-
-            std::string str(bytes.begin(), bytes.end());
-            str.erase(str.find_last_not_of(" \n\r\t") + 1);
-            if (str.empty()) return;
-            // Ignore binary GM67 config responses — only accept printable ASCII
-            for (char c : str) {
-              if (c < 0x20 || c > 0x7E) return;
-            }
-            id(barcode_raw).publish_state(str);
+  id: uart_bus
+  baud_rate: ${gm67_baud}
+  tx_pin: ${tx_pin}
+  rx_pin: ${rx_pin}
+  debug:
+    direction: RX
+    dummy_receiver: true
+    after:
+      delimiter: "\r"
+    sequence:
+      - lambda: |-
+          std::string str(bytes.begin(), bytes.end());
+          str.erase(str.find_last_not_of(" \n\r\t") + 1);
+          if (str.empty()) return;
+          // Ignore binary GM67 config responses — only accept printable ASCII
+          for (char c : str) {
+            if (c < 0x20 || c > 0x7E) return;
+          }
+          id(barcode_raw).publish_state(str);
 
 # Template sensors for display state
 text_sensor:
@@ -126,6 +128,7 @@ text_sensor:
     id: barcode_raw
     on_value:
       then:
+        - lambda: "id(scan_count_val) += 1; id(scan_count).publish_state(id(scan_count_val));"
         - text_sensor.template.publish:
             id: screen_mode
             state: "scanning"
@@ -133,7 +136,7 @@ text_sensor:
             url: !secret middleware_url
             request_headers:
               Content-Type: "application/json"
-              Authorization: !secret middleware_api_token
+              Authorization: !secret middleware_auth_header
             body: !lambda |-
               return "{\"barcode\":\"" + x + "\"}";
             capture_response: true
@@ -179,17 +182,21 @@ script:
           id: last_result
           state: ""
 
-# Event
-event:
-  # Provided for diagnostic purposes only. You should use the HA event "esphome.barcode_scan" triggered when a scan is performed
+# Scan counter — total scans since last reboot
+sensor:
   - platform: template
-    name: "Last Scan"
-    id: "last_scan"
-    icon: mdi:barcode-scan
+    name: "Scan Count"
+    id: scan_count
+    icon: mdi:counter
     entity_category: DIAGNOSTIC
-    disabled_by_default: true
-    event_types:
-      - "barcode_scanned"
+    accuracy_decimals: 0
+    lambda: "return id(scan_count_val);"
+
+globals:
+  - id: scan_count_val
+    type: int
+    restore_value: true
+    initial_value: "0"
 
 #######################################################################################################
 # GM67 Scanner Configuration (via UART commands)
