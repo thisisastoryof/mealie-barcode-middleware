@@ -46,3 +46,7 @@ Thumbs.db
 
 # Project input (planning docs, reference code)
 _project-input/
+
+# ESPHome planning/design docs (local only)
+esphome/schematic.md
+esphome/improvement and extension planning.md
