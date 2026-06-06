@@ -8,9 +8,11 @@
 # Copy this file to your HA config/automations/ directory,
 # or paste the content into the HA Automations UI editor (YAML mode).
 #
-# Replace:
-#   - notify.mobile_app_YOUR_PHONE  → your actual HA Companion App service
-#   - The middleware URL if different from http://192.168.20.30:9930
+# Setup:
+#   1. Replace notify.mobile_app_YOUR_PHONE (line 65) with your
+#      HA Companion App notify service (find it in HA → Developer Tools → Services)
+#   2. The action_url comes from the middleware's MIDDLEWARE_BASE_URL env var —
+#      set that in your docker-compose.yml (see docs/middleware-setup.md)
 
 alias: "Barcode Scanner — Needs Attention"
 description: >-
