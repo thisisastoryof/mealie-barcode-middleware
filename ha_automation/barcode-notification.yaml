@@ -34,6 +34,7 @@ actions:
       barcode: "{{ trigger.event.data.barcode }}"
       item: "{{ trigger.event.data.item }}"
       result_type: "{{ trigger.event.data.result_type }}"
+      needs_action: "{{ trigger.event.data.needs_action }}"
       action_url: "{{ trigger.event.data.action_url }}"
 
   - variables:
@@ -42,6 +43,8 @@ actions:
           Unknown barcode scanned
         {% elif result_type == 'added_as_note' %}
           Needs mapping
+        {% elif result_type == 'added' and needs_action == 'true' %}
+          Auto-mapped — confirm?
         {% else %}
           Barcode scanned
         {% endif %}
@@ -50,6 +53,8 @@ actions:
           {{ barcode }} — not found in any product database
         {% elif result_type == 'added_as_note' %}
           {{ item }} — assign to a Mealie item
+        {% elif result_type == 'added' and needs_action == 'true' %}
+          {{ item }} — auto-linked, tap to verify
         {% else %}
           {{ item }} ({{ barcode }})
         {% endif %}
