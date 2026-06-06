@@ -67,15 +67,7 @@ def scan_barcode(
 
 def _process_scan(barcode: str, db: Session) -> ScanResponse:
 
-    # --- GENERIC QR code handling ---
-    if barcode.upper().startswith("GENERIC:"):
-        term = barcode[len("GENERIC:"):].strip()
-        resp = _handle_generic(term, barcode, db)
-        _emit_scan_event(barcode, resp)
-        return resp
-
-    # --- Standard barcode flow ---
-    # Step 1: Check existing mapping
+    # --- Check existing mapping FIRST (works for both standard and GENERIC barcodes) ---
     mapping = db.get(BarcodeMapping, barcode)
     if mapping:
         item = db.get(Item, mapping.item_id)
@@ -86,7 +78,15 @@ def _process_scan(barcode: str, db: Session) -> ScanResponse:
         _save_activity(barcode, "Added to list", item_name, resp.result, db)
         return resp
 
-    # Step 2: Check cache / perform lookup
+    # --- GENERIC QR code handling ---
+    if barcode.upper().startswith("GENERIC:"):
+        term = barcode[len("GENERIC:"):].strip()
+        resp = _handle_generic(term, barcode, db)
+        _emit_scan_event(barcode, resp)
+        return resp
+
+    # --- Standard barcode flow ---
+    # Step 1: Check cache / perform lookup
     cached = db.get(BarcodeCache, barcode)
     needs_lookup = False
 
