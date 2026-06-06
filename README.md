@@ -132,11 +132,11 @@ Inspired by [HA-Mealie-Barcode-Scanner](https://github.com/MattFryer/HA-Mealie-B
 
 This project replaces the HA/pyscript dependency with a standalone FastAPI middleware, adds a web UI, persistent database, fuzzy auto-mapping, and a retry queue.
 
-## Vibe-Coded
+## Use of AI
 
-This entire project — firmware, middleware, web UI, docs — was built with AI assistance ("vibe coding"). The author is a smart home hobbyist, not a professional developer, and used LLMs to write, review, and iterate on the code. It works well for its intended purpose, but you should know how it came about before relying on it.
+This project was built almost entirely with AI assistance — the code, the firmware, the web UI, and even these docs. The author is a DIY smart home enthusiast who knows what he wants but doesn't have the programming skills to build it from scratch. LLMs did the heavy lifting; the author did the steering, testing, and debugging.
 
-The project is designed to run on your local network, not exposed to the internet. If you spot something that could be improved, PRs and issues are welcome.
+Everything here is designed to run locally on your home network. If you find a bug or see room for improvement, PRs and issues are welcome.
 
 ## License
 
