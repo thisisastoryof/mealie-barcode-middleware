@@ -57,6 +57,16 @@ def scan_barcode(
     if not barcode:
         return ScanResponse(result="unknown", item=None, via=None)
 
+    try:
+        return _process_scan(barcode, db)
+    except Exception:
+        logger.exception("Unhandled error processing scan for barcode %s", barcode)
+        db.rollback()
+        return ScanResponse(result="error", item=barcode, via=None)
+
+
+def _process_scan(barcode: str, db: Session) -> ScanResponse:
+
     # --- GENERIC QR code handling ---
     if barcode.upper().startswith("GENERIC:"):
         term = barcode[len("GENERIC:"):].strip()
@@ -85,7 +95,10 @@ def scan_barcode(
     elif not cached.found:
         # Check TTL
         if cached.lookup_attempted_at:
-            ttl_expiry = cached.lookup_attempted_at + timedelta(days=settings.lookup_ttl_days)
+            attempted = cached.lookup_attempted_at
+            if attempted.tzinfo is None:
+                attempted = attempted.replace(tzinfo=timezone.utc)
+            ttl_expiry = attempted + timedelta(days=settings.lookup_ttl_days)
             if utcnow() > ttl_expiry:
                 needs_lookup = True
 

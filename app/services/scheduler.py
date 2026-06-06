@@ -9,6 +9,7 @@ from app.database import SessionLocal
 from app.events import scan_events
 from app.models import BarcodeMapping, Item, Notification, RetryQueue
 from app.services.mealie import sync_items
+from app.utils import utcnow
 
 logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()

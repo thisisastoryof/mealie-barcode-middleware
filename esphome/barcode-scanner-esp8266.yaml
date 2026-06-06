@@ -387,11 +387,7 @@ display:
 
       if (mode == "scanning") {
         it.fill(COLOR_OFF);
-        // Animated heading — dots cycle every 500ms: .. ... (none) .
-        int dots = (((int)(millis() / 500)) + 2) % 4;
-        std::string heading = "Looking up";
-        for (int i = 0; i < dots; i++) heading += ".";
-        it.printf(64, 16, id(font_heading), TextAlign::TOP_CENTER, "%s", heading.c_str());
+        it.printf(64, 16, id(font_heading), TextAlign::TOP_CENTER, "Looking up...");
         it.printf(64, 36, id(font_body), TextAlign::TOP_CENTER, "%s", id(last_barcode).state.c_str());
         return;
       }

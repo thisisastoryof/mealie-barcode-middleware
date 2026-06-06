@@ -50,6 +50,9 @@ esp32:
     type: esp-idf
     sdkconfig_options:
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "15"
+    advanced:
+      minimum_chip_revision: "3.0"
+      sram1_as_iram: true
 
 # Serial logging available — UART2 used for scanner, USB serial stays free
 logger:
@@ -87,10 +90,6 @@ http_request:
 
 # JSON parsing support (for reading response body)
 json:
-
-# Web server for diagnostics (http://<device-ip>/) — ESP32 has plenty of RAM
-web_server:
-  port: 80
 
 #######################################################################################################
 # CONFIG THE DEVICE
@@ -182,6 +181,8 @@ text_sensor:
                       lambda: return response->status_code == 200;
                     then:
                       - lambda: |-
+                          ESP_LOGI("scan", "HTTP 200 — body length: %d", (int)body.length());
+                          ESP_LOGI("scan", "Body: %s", body.c_str());
                           bool ok = json::parse_json(body, [](JsonObject root) -> bool {
                             // Display name
                             const char* item_raw = root["item"] | (const char*)nullptr;
@@ -391,11 +392,7 @@ display:
 
       if (mode == "scanning") {
         it.fill(COLOR_OFF);
-        // Animated heading — dots cycle every 500ms: .. ... (none) .
-        int dots = (((int)(millis() / 500)) + 2) % 4;
-        std::string heading = "Looking up";
-        for (int i = 0; i < dots; i++) heading += ".";
-        it.printf(64, 16, id(font_heading), TextAlign::TOP_CENTER, "%s", heading.c_str());
+        it.printf(64, 16, id(font_heading), TextAlign::TOP_CENTER, "Looking up...");
         it.printf(64, 36, id(font_body), TextAlign::TOP_CENTER, "%s", id(last_barcode).state.c_str());
         return;
       }
