@@ -97,10 +97,10 @@ def scan_barcode(
         note = barcode
         success = add_to_shopping_list_by_note(note)
         if success:
-            resp = ScanResponse(result="unknown", item=None, via=None)
+            resp = ScanResponse(result="unknown", item=barcode, via="note")
         else:
             _enqueue_note(barcode, note, db)
-            resp = ScanResponse(result="unknown", item=None, via=None)
+            resp = ScanResponse(result="unknown", item=barcode, via="note")
         resp.needs_action = True
         resp.action_url = _build_action_url(barcode)
         _emit_scan_event(barcode, resp)
