@@ -33,10 +33,10 @@
             <a class="nav-link {{ 'active' if current_filter == 'added' }}" href="/activities?result=added">Added</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ 'active' if current_filter == 'needs_mapping' }}" href="/activities?result=needs_mapping">Needs Mapping</a>
+            <a class="nav-link {{ 'active' if current_filter == 'needs_mapping' }}" href="/activities?result=needs_mapping">Not Linked</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ 'active' if current_filter == 'auto_mapped' }}" href="/activities?result=auto_mapped">Auto-mapped</a>
+            <a class="nav-link {{ 'active' if current_filter == 'auto_mapped' }}" href="/activities?result=auto_mapped">Auto-linked</a>
         </li>
         <li class="nav-item">
             <a class="nav-link {{ 'active' if current_filter == 'unknown' }}" href="/activities?result=unknown">Unknown</a>
@@ -59,13 +59,13 @@
                     {% if current_filter == 'added' %}
                     Items successfully added to the shopping list or queued for retry.
                     {% elif current_filter == 'needs_mapping' %}
-                    Product found but not linked to a Mealie item — requires manual mapping.
+                    Product found but not linked to a Mealie item — requires manual linking.
                     {% elif current_filter == 'auto_mapped' %}
                     Fuzzy matching linked a barcode to an item automatically — review recommended.
                     {% elif current_filter == 'unknown' %}
                     Barcode not found in any product database (OpenFoodFacts, UPC Database).
                     {% elif current_filter == 'broken' %}
-                    A mapped item was deleted in Mealie — the barcode needs to be remapped.
+                    A linked item was deleted in Mealie — the barcode needs to be relinked.
                     {% elif current_filter == 'retry_failed' %}
                     Failed to reach Mealie after multiple retries — check connectivity.
                     {% else %}
@@ -113,9 +113,9 @@
                         {% elif n.result == 'unknown' %}
                         <span class="badge bg-red text-red-fg">Unknown</span>
                         {% elif n.result == 'needs_mapping' %}
-                        <span class="badge bg-yellow text-yellow-fg">Needs Mapping</span>
+                        <span class="badge bg-yellow text-yellow-fg">Not Linked</span>
                         {% elif n.result == 'auto_mapped' %}
-                        <span class="badge bg-azure text-azure-fg">Auto-mapped</span>
+                        <span class="badge bg-azure text-azure-fg">Auto-linked</span>
                         {% elif n.result == 'added' or n.result == 'added_as_note' %}
                         <span class="badge bg-green text-green-fg">Added</span>
                         {% elif n.result == 'queued' %}

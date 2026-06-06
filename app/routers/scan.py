@@ -143,7 +143,7 @@ def _process_scan(barcode: str, db: Session) -> ScanResponse:
             needs_action=True, action_url=_build_action_url(barcode),
         )
         _save_activity(barcode, "Added to list", note + " (via note)", "added_as_note", db)
-        _save_notification(barcode, "Mapping needed", f"{note} — assign to a Mealie item", "needs_mapping", db)
+        _save_notification(barcode, "Not linked", f"{note} — tap to link to a Mealie item", "needs_mapping", db)
     else:
         _enqueue_note(barcode, note, db)
         resp = ScanResponse(

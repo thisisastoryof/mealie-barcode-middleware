@@ -79,13 +79,13 @@ Check:
 
 ### Fuzzy Matching Too Aggressive
 
-**Symptom:** Barcodes are auto-mapped to the wrong Mealie items.
+**Symptom:** Barcodes are auto-linked to the wrong Mealie items.
 
 **Fix:** Increase `FUZZY_MATCH_THRESHOLD` (default 85) and/or `FUZZY_AMBIGUITY_GAP` (default 10). Setting the threshold to 90+ and gap to 15+ will make auto-mapping more conservative. You can always manually map from the barcode detail page.
 
 ### Fuzzy Matching Too Conservative
 
-**Symptom:** Products are never auto-mapped even when the correct Mealie item exists.
+**Symptom:** Products are never auto-linked even when the correct Mealie item exists.
 
 **Fix:** Lower `FUZZY_MATCH_THRESHOLD` (try 75) and/or add **aliases** to your Mealie items. The fuzzy matcher checks both the item name and its aliases. For example, if your Mealie item is "Hafermilch" but the external database returns "Oat Milk", add "Oat Milk" as an alias.
 

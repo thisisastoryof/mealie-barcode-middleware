@@ -304,7 +304,7 @@
             };
             var labelMap = {
                 retry_failed: 'Retry Failed', broken: 'Broken', unknown: 'Unknown',
-                needs_mapping: 'Needs Mapping', auto_mapped: 'Auto-mapped',
+                needs_mapping: 'Not Linked', auto_mapped: 'Auto-linked',
                 added: 'Added', added_as_note: 'Added', queued: 'Queued'
             };
             var rows = '';

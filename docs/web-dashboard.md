@@ -35,7 +35,7 @@ Each barcode has a detail page showing:
 
 - **Product info:** Title, brand, quantity, product type, lookup source
 - **Linked item:** The Mealie item this barcode maps to (if any)
-- **Fuzzy match candidates:** Top scoring Mealie items with match scores — useful for manual mapping
+- **Fuzzy match candidates:** Top scoring Mealie items with match scores — useful for manual linking
 - **Item search:** Search Mealie items by name to find the right mapping
 
 **Actions available:**
@@ -102,7 +102,7 @@ Notifications are created for events that may need your attention:
 | -------------- | ---------------------------------------------------------- |
 | Unknown        | Barcode not found in any product database                  |
 | Auto-linked    | Fuzzy matching linked a barcode automatically — review     |
-| Needs mapping  | Product found but no Mealie item matched                   |
+| Not linked     | Product found but no Mealie item matched                   |
 | Retry failed   | Shopping list addition failed after all retries            |
 | Broken mapping | A Mealie item was deleted but barcodes still pointed to it |
 

@@ -37,7 +37,7 @@ When the GM67 scanner reads a barcode, the following steps execute in sequence:
                     ▼
         ┌───────────────────────┐
         │ 5. Add as note        │──► Shopping list gets product title as note
-        │    (needs mapping)    │
+        │    (not linked)       │
         └───────────────────────┘
 ```
 
