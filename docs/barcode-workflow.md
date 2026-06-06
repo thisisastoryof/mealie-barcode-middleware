@@ -50,6 +50,7 @@ Let's walk through each step.
 The middleware first checks if this barcode has been linked to a Mealie item before (in the `barcode_mappings` table).
 
 If a mapping exists:
+
 - The linked item is fetched
 - If the item comes from Mealie (`source=mealie`), it's added to the shopping list using Mealie's `foodId` — this gives proper deduplication (scanning the same item twice doesn't add it twice)
 - If the item is manual (`source=manual`), it's added as a note
@@ -121,6 +122,7 @@ When a product is found in an external database, the middleware attempts to auto
 ### Why the Ambiguity Gap?
 
 Consider a product called "Chunk Light Tuna In Water". It might score:
+
 - **Tuna** → 90 points
 - **Water** → 90 points
 
@@ -193,13 +195,13 @@ The `/scan` endpoint always returns HTTP 200 with a JSON body:
 }
 ```
 
-| Field          | Values                                          | Description                           |
-| -------------- | ----------------------------------------------- | ------------------------------------- |
-| `result`       | `added`, `added_as_note`, `queued`, `unknown`   | What happened                         |
-| `item`         | Product name or barcode string                  | What's shown on the OLED              |
-| `via`          | `item_id` or `note`                             | How it was added to the shopping list |
-| `needs_action` | `true` / `false`                                | Should the user review this?          |
-| `action_url`   | URL or `null`                                   | Deep link to barcode detail page      |
-| `brand`        | Brand name or `null`                            | From external lookup                  |
-| `quantity`     | "1L", "500g", etc. or `null`                    | From external lookup                  |
-| `item_source`  | `mealie`, `manual`, or `null`                   | Where the matched item came from      |
+| Field          | Values                                        | Description                           |
+| -------------- | --------------------------------------------- | ------------------------------------- |
+| `result`       | `added`, `added_as_note`, `queued`, `unknown` | What happened                         |
+| `item`         | Product name or barcode string                | What's shown on the OLED              |
+| `via`          | `item_id` or `note`                           | How it was added to the shopping list |
+| `needs_action` | `true` / `false`                              | Should the user review this?          |
+| `action_url`   | URL or `null`                                 | Deep link to barcode detail page      |
+| `brand`        | Brand name or `null`                          | From external lookup                  |
+| `quantity`     | "1L", "500g", etc. or `null`                  | From external lookup                  |
+| `item_source`  | `mealie`, `manual`, or `null`                 | Where the matched item came from      |

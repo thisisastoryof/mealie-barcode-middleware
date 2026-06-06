@@ -57,32 +57,32 @@ After flashing, the OLED will show "Connecting..." for up to 30 seconds, then "C
 
 ### Display States
 
-| State        | Trigger                        | Shows                                      |
-| ------------ | ------------------------------ | ------------------------------------------ |
-| `standby`    | Timeout after result           | Display off (power save)                   |
-| `connecting` | Boot                           | "Barcode Scanner" / "Connecting..."        |
-| `ready`      | HA API connected               | ✓ "Connected" / "Ready to scan"            |
-| `scanning`   | Barcode received               | "Looking up..." + barcode number           |
-| `result`     | HTTP response received         | Result icon + item name + brand/qty        |
-| `status`     | Long-press button              | WiFi signal, IP, scan count, uptime        |
+| State        | Trigger                | Shows                               |
+| ------------ | ---------------------- | ----------------------------------- |
+| `standby`    | Timeout after result   | Display off (power save)            |
+| `connecting` | Boot                   | "Barcode Scanner" / "Connecting..." |
+| `ready`      | HA API connected       | ✓ "Connected" / "Ready to scan"     |
+| `scanning`   | Barcode received       | "Looking up..." + barcode number    |
+| `result`     | HTTP response received | Result icon + item name + brand/qty |
+| `status`     | Long-press button      | WiFi signal, IP, scan count, uptime |
 
 ### Result Icons
 
-| Result Type    | Icon           | Meaning                                  |
-| -------------- | -------------- | ---------------------------------------- |
-| `added`        | ✓ check-circle | Added to shopping list via Mealie item   |
-| `added_as_note`| ✓ check-circle | Added as plain note (needs mapping)      |
-| `queued`       | ⚠ alert        | Mealie unreachable, queued for retry     |
-| `unknown`      | ⚠ alert        | Not found in any product database        |
-| `timeout`      | ⚠ alert        | HTTP request timed out                   |
-| `error`        | ✕ close-circle | Server error or parse failure            |
+| Result Type     | Icon           | Meaning                                |
+| --------------- | -------------- | -------------------------------------- |
+| `added`         | ✓ check-circle | Added to shopping list via Mealie item |
+| `added_as_note` | ✓ check-circle | Added as plain note (needs mapping)    |
+| `queued`        | ⚠ alert        | Mealie unreachable, queued for retry   |
+| `unknown`       | ⚠ alert        | Not found in any product database      |
+| `timeout`       | ⚠ alert        | HTTP request timed out                 |
+| `error`         | ✕ close-circle | Server error or parse failure          |
 
 ### Button Behavior
 
-| Action                   | Duration    | Effect                                 |
-| ------------------------ | ----------- | -------------------------------------- |
-| Short press              | 50–1000 ms  | Wake display, show last scan result    |
-| Long press               | 1000–5000 ms| Show status screen (WiFi, IP, uptime)  |
+| Action      | Duration     | Effect                                |
+| ----------- | ------------ | ------------------------------------- |
+| Short press | 50–1000 ms   | Wake display, show last scan result   |
+| Long press  | 1000–5000 ms | Show status screen (WiFi, IP, uptime) |
 
 ---
 
@@ -92,23 +92,23 @@ These are all configurable from Home Assistant's entity UI after the device conn
 
 ### Scanner Settings (GM67)
 
-| Setting             | Options                                                              | Default              |
-| ------------------- | -------------------------------------------------------------------- | -------------------- |
-| Trigger Mode        | Button Holding, Button Trigger, Continuous, Automatic Induction, Host| Automatic Induction  |
-| Buzzer Volume       | Off, Low, Medium, High                                               | Medium               |
-| Scanning Light      | On When Reading, Always On, Always Off                               | On When Reading      |
-| Collimation (laser) | On When Reading, Always On, Always Off                               | On When Reading      |
-| Collimation Flashing| On / Off                                                             | On                   |
-| Same Code Delay     | 0.5s, 1s, 3s, 5s, 7s, No Repeat                                     | 3s                   |
-| Scanning Enabled    | On / Off                                                             | On                   |
+| Setting              | Options                                                               | Default             |
+| -------------------- | --------------------------------------------------------------------- | ------------------- |
+| Trigger Mode         | Button Holding, Button Trigger, Continuous, Automatic Induction, Host | Automatic Induction |
+| Buzzer Volume        | Off, Low, Medium, High                                                | Medium              |
+| Scanning Light       | On When Reading, Always On, Always Off                                | On When Reading     |
+| Collimation (laser)  | On When Reading, Always On, Always Off                                | On When Reading     |
+| Collimation Flashing | On / Off                                                              | On                  |
+| Same Code Delay      | 0.5s, 1s, 3s, 5s, 7s, No Repeat                                       | 3s                  |
+| Scanning Enabled     | On / Off                                                              | On                  |
 
 All settings are stored in the ESP32's flash (`restore_value: true`) and re-sent to the GM67 on every boot. The GM67 itself does not persist UART-configured settings across power loss.
 
 ### Display Settings
 
-| Setting          | Range   | Default | Description                        |
-| ---------------- | ------- | ------- | ---------------------------------- |
-| Display Timeout  | 2–30 s  | 8 s     | How long the result screen stays on|
+| Setting         | Range  | Default | Description                         |
+| --------------- | ------ | ------- | ----------------------------------- |
+| Display Timeout | 2–30 s | 8 s     | How long the result screen stays on |
 
 ---
 
@@ -149,26 +149,26 @@ The device registers with Home Assistant via the native ESPHome API. All sensors
 
 ### Entities Created
 
-| Entity                  | Type        | Category   | Description                        |
-| ----------------------- | ----------- | ---------- | ---------------------------------- |
-| Screen Mode             | Text Sensor | —          | Current display state              |
-| Last Result             | Text Sensor | —          | Last scanned product name          |
-| Last Barcode            | Text Sensor | —          | Last scanned barcode number        |
-| Last Result Type        | Text Sensor | —          | Result category (added/unknown/etc)|
-| Last Brand              | Text Sensor | —          | Product brand from lookup          |
-| Last Quantity           | Text Sensor | —          | Product quantity from lookup       |
-| Scan Count              | Sensor      | Diagnostic | Total scans since last reset       |
-| WiFi Signal             | Sensor      | Diagnostic | RSSI in dBm                        |
-| Uptime                  | Sensor      | Diagnostic | Seconds since last boot            |
-| Trigger Mode            | Select      | Config     | Scanner trigger mode               |
-| Buzzer Volume           | Select      | Config     | Scanner buzzer level               |
-| Scanning Light          | Select      | Config     | Illumination LED mode              |
-| Collimation             | Select      | Config     | Aiming laser mode                  |
-| Same Code Delay         | Select      | Config     | Re-scan delay for same barcode     |
-| Collimation Flashing    | Switch      | Config     | Laser blink on/off                 |
-| Scanning Enabled        | Switch      | Config     | Enable/disable scanner             |
-| Display Timeout         | Number      | Config     | Seconds before display standby     |
-| Display Button          | Binary Sensor| —         | Physical button state              |
+| Entity               | Type          | Category   | Description                         |
+| -------------------- | ------------- | ---------- | ----------------------------------- |
+| Screen Mode          | Text Sensor   | —          | Current display state               |
+| Last Result          | Text Sensor   | —          | Last scanned product name           |
+| Last Barcode         | Text Sensor   | —          | Last scanned barcode number         |
+| Last Result Type     | Text Sensor   | —          | Result category (added/unknown/etc) |
+| Last Brand           | Text Sensor   | —          | Product brand from lookup           |
+| Last Quantity        | Text Sensor   | —          | Product quantity from lookup        |
+| Scan Count           | Sensor        | Diagnostic | Total scans since last reset        |
+| WiFi Signal          | Sensor        | Diagnostic | RSSI in dBm                         |
+| Uptime               | Sensor        | Diagnostic | Seconds since last boot             |
+| Trigger Mode         | Select        | Config     | Scanner trigger mode                |
+| Buzzer Volume        | Select        | Config     | Scanner buzzer level                |
+| Scanning Light       | Select        | Config     | Illumination LED mode               |
+| Collimation          | Select        | Config     | Aiming laser mode                   |
+| Same Code Delay      | Select        | Config     | Re-scan delay for same barcode      |
+| Collimation Flashing | Switch        | Config     | Laser blink on/off                  |
+| Scanning Enabled     | Switch        | Config     | Enable/disable scanner              |
+| Display Timeout      | Number        | Config     | Seconds before display standby      |
+| Display Button       | Binary Sensor | —          | Physical button state               |
 
 ### Events
 
@@ -216,6 +216,7 @@ middleware_auth_header: "Bearer NEW-TOKEN"
 ### Multiple Scanners
 
 Each scanner needs:
+
 - A unique `esphome: name:` (e.g., `barcode-scanner-kitchen`, `barcode-scanner-pantry`)
 - Its own API token from the middleware
 - The same `middleware_url` pointing to the shared middleware instance

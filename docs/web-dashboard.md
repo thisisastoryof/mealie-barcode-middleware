@@ -22,12 +22,12 @@ The dashboard auto-refreshes via AJAX. When a barcode is scanned, a **live toast
 
 The barcode list shows all known barcodes with filtering tabs:
 
-| Tab      | Shows                                                   |
-| -------- | ------------------------------------------------------- |
-| All      | Every barcode the system has seen                       |
-| Mapped   | Barcodes linked to a Mealie item                        |
-| Pending  | Barcodes with a product title but no item link          |
-| Unknown  | Barcodes not found in any external product database     |
+| Tab     | Shows                                               |
+| ------- | --------------------------------------------------- |
+| All     | Every barcode the system has seen                   |
+| Mapped  | Barcodes linked to a Mealie item                    |
+| Pending | Barcodes with a product title but no item link      |
+| Unknown | Barcodes not found in any external product database |
 
 ### Barcode Detail (`/barcodes/{barcode}`)
 
@@ -40,13 +40,13 @@ Each barcode has a detail page showing:
 
 **Actions available:**
 
-| Action              | Description                                              |
-| ------------------- | -------------------------------------------------------- |
-| Link to item        | Map this barcode to an existing Mealie item              |
-| Create & link       | Create a new manual item and map it in one step          |
-| Unlink              | Remove the barcode→item mapping                         |
-| Retry lookup        | Re-query OpenFoodFacts/UPCDatabase (useful if TTL expired or API was down) |
-| Delete              | Remove the barcode, its mapping, and any retry queue entries |
+| Action        | Description                                                                |
+| ------------- | -------------------------------------------------------------------------- |
+| Link to item  | Map this barcode to an existing Mealie item                                |
+| Create & link | Create a new manual item and map it in one step                            |
+| Unlink        | Remove the barcode→item mapping                                            |
+| Retry lookup  | Re-query OpenFoodFacts/UPCDatabase (useful if TTL expired or API was down) |
+| Delete        | Remove the barcode, its mapping, and any retry queue entries               |
 
 ---
 
@@ -78,14 +78,15 @@ A chronological log of all scan events and system notifications. Unlike the noti
 
 Filter tabs:
 
-| Tab      | Shows                    |
-| -------- | ------------------------ |
-| All      | Everything               |
-| Added    | Successful additions     |
-| Unknown  | Unrecognized barcodes    |
-| (others) | Filter by result type    |
+| Tab      | Shows                 |
+| -------- | --------------------- |
+| All      | Everything            |
+| Added    | Successful additions  |
+| Unknown  | Unrecognized barcodes |
+| (others) | Filter by result type |
 
 **Actions:**
+
 - Mark all as read
 - Delete all read notifications (cleanup)
 
@@ -97,13 +98,13 @@ The navigation bar has a bell icon showing the count of unread notifications. Cl
 
 Notifications are created for events that may need your attention:
 
-| Type          | When                                                     |
-| ------------- | -------------------------------------------------------- |
-| Unknown       | Barcode not found in any product database                |
-| Auto-mapped   | Fuzzy matching linked a barcode automatically — confirm? |
-| Needs mapping | Product found but no Mealie item matched                 |
-| Retry failed  | Shopping list addition failed after all retries          |
-| Broken mapping| A Mealie item was deleted but barcodes still pointed to it|
+| Type           | When                                                       |
+| -------------- | ---------------------------------------------------------- |
+| Unknown        | Barcode not found in any product database                  |
+| Auto-mapped    | Fuzzy matching linked a barcode automatically — confirm?   |
+| Needs mapping  | Product found but no Mealie item matched                   |
+| Retry failed   | Shopping list addition failed after all retries            |
+| Broken mapping | A Mealie item was deleted but barcodes still pointed to it |
 
 Each notification links to the barcode detail page where you can take action.
 
@@ -116,6 +117,7 @@ Notifications are **deduplicated per barcode** — scanning the same unknown bar
 ### Configuration Tab
 
 Displays all current configuration values (read-only). Grouped into:
+
 - Mealie Connection
 - Barcode Lookup Sources
 - Matching & Sync
@@ -142,6 +144,7 @@ data: {"barcode": "4088600550862", "result": "added", "item": "Oat Milk"}
 ```
 
 This powers:
+
 - **Toast notifications** — "✓ Added: Oat Milk" appears briefly in the corner
 - **Live table refresh** — The dashboard's recent scans table updates automatically
 - **Notification bell update** — The unread count increments in real time
@@ -154,12 +157,12 @@ No polling, no page reloads.
 
 For integration with other tools or custom scripts:
 
-| Endpoint                    | Method | Auth   | Returns            |
-| --------------------------- | ------ | ------ | ------------------ |
-| `POST /scan`                | POST   | Bearer | Scan result (JSON) |
-| `GET /health`               | GET    | None   | Health status      |
-| `GET /api/dashboard`        | GET    | None   | Dashboard stats    |
-| `GET /api/barcodes`         | GET    | None   | Barcode list       |
-| `GET /api/notifications`    | GET    | None   | Unread alerts      |
-| `GET /api/activities`       | GET    | None   | Activity log       |
-| `GET /events`               | GET    | None   | SSE stream         |
+| Endpoint                 | Method | Auth   | Returns            |
+| ------------------------ | ------ | ------ | ------------------ |
+| `POST /scan`             | POST   | Bearer | Scan result (JSON) |
+| `GET /health`            | GET    | None   | Health status      |
+| `GET /api/dashboard`     | GET    | None   | Dashboard stats    |
+| `GET /api/barcodes`      | GET    | None   | Barcode list       |
+| `GET /api/notifications` | GET    | None   | Unread alerts      |
+| `GET /api/activities`    | GET    | None   | Activity log       |
+| `GET /events`            | GET    | None   | SSE stream         |

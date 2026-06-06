@@ -1,0 +1,69 @@
+# Barcode Scanner — HA Notification Automation
+#
+# Sends a phone notification when a scanned barcode needs attention
+# (unknown product, auto-mapped item needing confirmation, etc.).
+# The notification includes an actionable button that opens the
+# middleware's barcode detail page for mapping/review.
+#
+# Copy this file to your HA config/automations/ directory,
+# or paste the content into the HA Automations UI editor (YAML mode).
+#
+# Replace:
+#   - notify.mobile_app_YOUR_PHONE  → your actual HA Companion App service
+#   - The middleware URL if different from http://192.168.20.30:9930
+
+alias: "Barcode Scanner — Needs Attention"
+description: >-
+  Notify when a scanned barcode needs manual action (unknown product,
+  auto-mapped item to confirm, etc.). Taps the notification to open
+  the middleware barcode detail page.
+
+mode: queued
+max: 10
+
+triggers:
+  - trigger: event
+    event_type: esphome.barcode_scanned
+
+conditions:
+  - condition: template
+    value_template: "{{ trigger.event.data.needs_action == 'true' }}"
+
+actions:
+  - variables:
+      barcode: "{{ trigger.event.data.barcode }}"
+      item: "{{ trigger.event.data.item }}"
+      result_type: "{{ trigger.event.data.result_type }}"
+      action_url: "{{ trigger.event.data.action_url }}"
+
+  - variables:
+      title: >-
+        {% if result_type == 'unknown' %}
+          Unknown barcode scanned
+        {% elif result_type == 'added_as_note' %}
+          Needs mapping
+        {% else %}
+          Barcode scanned
+        {% endif %}
+      message: >-
+        {% if result_type == 'unknown' %}
+          {{ barcode }} — not found in any product database
+        {% elif result_type == 'added_as_note' %}
+          {{ item }} — assign to a Mealie item
+        {% else %}
+          {{ item }} ({{ barcode }})
+        {% endif %}
+
+  # ── Phone notification with deep link ──
+  - action: notify.mobile_app_YOUR_PHONE
+    data:
+      title: "{{ title }}"
+      message: "{{ message }}"
+      data:
+        # Android
+        clickAction: "{{ action_url }}"
+        # iOS
+        url: "{{ action_url }}"
+        # Group by barcode to prevent notification spam
+        group: "barcode-scanner"
+        tag: "barcode-{{ barcode }}"

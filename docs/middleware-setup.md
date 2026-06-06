@@ -32,11 +32,13 @@ TIMEZONE=Europe/Berlin
 ```
 
 **Getting the Mealie API key:**
+
 1. Open Mealie → Settings → API Tokens
 2. Create a new token with a descriptive name
 3. Copy the token value
 
 **Getting the Shopping List ID:**
+
 1. Open Mealie → Shopping Lists → select your list
 2. The UUID is in the URL: `https://mealie.example.com/shopping-lists/<THIS-UUID>`
 
@@ -115,35 +117,35 @@ All settings are environment variables. Set them in `.env` or directly in `docke
 
 ### Barcode Lookup Sources
 
-| Variable        | Default                                            | Description                                    |
-| --------------- | -------------------------------------------------- | ---------------------------------------------- |
-| `OFF_ENABLED`   | `true`                                             | Enable OpenFoodFacts lookups                   |
-| `OFF_URL_BASE`  | `https://world.openfoodfacts.org/api/v2/product/`  | OpenFoodFacts API endpoint                     |
-| `UPCDB_ENABLED` | `false`                                            | Enable UPCDatabase lookups                     |
-| `UPCDB_URL_BASE`| `https://api.upcdatabase.org/product/`             | UPCDatabase API endpoint                       |
-| `UPCDB_API_KEY` | —                                                  | Required when `UPCDB_ENABLED=true`             |
+| Variable         | Default                                           | Description                        |
+| ---------------- | ------------------------------------------------- | ---------------------------------- |
+| `OFF_ENABLED`    | `true`                                            | Enable OpenFoodFacts lookups       |
+| `OFF_URL_BASE`   | `https://world.openfoodfacts.org/api/v2/product/` | OpenFoodFacts API endpoint         |
+| `UPCDB_ENABLED`  | `false`                                           | Enable UPCDatabase lookups         |
+| `UPCDB_URL_BASE` | `https://api.upcdatabase.org/product/`            | UPCDatabase API endpoint           |
+| `UPCDB_API_KEY`  | —                                                 | Required when `UPCDB_ENABLED=true` |
 
 > **OpenFoodFacts** is free, no API key needed, and has excellent coverage for European products. **UPCDatabase** has better US product coverage but requires a (free) API key from [upcdatabase.org](https://upcdatabase.org/).
 
 ### Matching & Sync
 
-| Variable                   | Default | Description                                                           |
-| -------------------------- | ------- | --------------------------------------------------------------------- |
-| `FUZZY_MATCH_THRESHOLD`    | `85`    | Minimum score (0–100) to auto-map a barcode to a Mealie item          |
-| `FUZZY_AMBIGUITY_GAP`      | `10`    | Minimum gap between #1 and #2 match scores (prevents ambiguous maps)  |
-| `ITEM_SYNC_INTERVAL_HOURS` | `6`     | How often to re-sync the Mealie food catalog                          |
-| `LOOKUP_TTL_DAYS`          | `30`    | Days before retrying an external lookup for an unresolved barcode     |
-| `MAX_RETRY_ATTEMPTS`       | `10`    | Max retries for failed Mealie shopping list additions                 |
+| Variable                   | Default | Description                                                          |
+| -------------------------- | ------- | -------------------------------------------------------------------- |
+| `FUZZY_MATCH_THRESHOLD`    | `85`    | Minimum score (0–100) to auto-map a barcode to a Mealie item         |
+| `FUZZY_AMBIGUITY_GAP`      | `10`    | Minimum gap between #1 and #2 match scores (prevents ambiguous maps) |
+| `ITEM_SYNC_INTERVAL_HOURS` | `6`     | How often to re-sync the Mealie food catalog                         |
+| `LOOKUP_TTL_DAYS`          | `30`    | Days before retrying an external lookup for an unresolved barcode    |
+| `MAX_RETRY_ATTEMPTS`       | `10`    | Max retries for failed Mealie shopping list additions                |
 
 ### System
 
-| Variable              | Default        | Description                                                        |
-| --------------------- | -------------- | ------------------------------------------------------------------ |
-| `MIDDLEWARE_BASE_URL`  | (empty)        | Full URL for deep links in HA notifications (e.g. `http://ip:9930`)|
-| `TIMEZONE`            | `Europe/Berlin`| IANA timezone for UI timestamps                                    |
-| `DB_PATH`             | `/data/barcode.db` | SQLite database file path                                      |
-| `PORT`                | `8000`         | HTTP listen port (inside container)                                |
-| `LOG_LEVEL`           | `INFO`         | Python log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`)             |
+| Variable              | Default            | Description                                                         |
+| --------------------- | ------------------ | ------------------------------------------------------------------- |
+| `MIDDLEWARE_BASE_URL` | (empty)            | Full URL for deep links in HA notifications (e.g. `http://ip:9930`) |
+| `TIMEZONE`            | `Europe/Berlin`    | IANA timezone for UI timestamps                                     |
+| `DB_PATH`             | `/data/barcode.db` | SQLite database file path                                           |
+| `PORT`                | `8000`             | HTTP listen port (inside container)                                 |
+| `LOG_LEVEL`           | `INFO`             | Python log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`)              |
 
 ---
 
@@ -183,14 +185,14 @@ Status is `"degraded"` if Mealie is unreachable or the database is inaccessible.
 
 The middleware uses a single SQLite file at `/data/barcode.db` (configurable via `DB_PATH`). Tables are created automatically on first start.
 
-| Table             | Purpose                                         |
-| ----------------- | ----------------------------------------------- |
-| `items`           | Mealie food items + manually created items      |
-| `barcode_cache`   | Cached lookup results from external APIs        |
-| `barcode_mappings`| Links between barcodes and items                |
-| `api_tokens`      | Scanner authentication tokens (bcrypt hashed)   |
-| `retry_queue`     | Failed Mealie requests awaiting retry           |
-| `notifications`   | Activity log and actionable alerts              |
+| Table              | Purpose                                       |
+| ------------------ | --------------------------------------------- |
+| `items`            | Mealie food items + manually created items    |
+| `barcode_cache`    | Cached lookup results from external APIs      |
+| `barcode_mappings` | Links between barcodes and items              |
+| `api_tokens`       | Scanner authentication tokens (bcrypt hashed) |
+| `retry_queue`      | Failed Mealie requests awaiting retry         |
+| `notifications`    | Activity log and actionable alerts            |
 
 **Backup:** The database is a single file. Copy `middleware-data/barcode.db` to back up everything.
 
@@ -200,11 +202,11 @@ The middleware uses a single SQLite file at `/data/barcode.db` (configurable via
 
 The middleware runs three background jobs via APScheduler:
 
-| Job               | Interval    | Description                                          |
-| ----------------- | ----------- | ---------------------------------------------------- |
-| Item sync         | Every 6 h   | Re-fetches Mealie food catalog, detects deletions    |
-| Retry queue       | Every 2 min | Retries failed shopping list additions (exp. backoff)|
-| Notification purge| Every 24 h  | Deletes read notifications older than 7 days         |
+| Job                | Interval    | Description                                           |
+| ------------------ | ----------- | ----------------------------------------------------- |
+| Item sync          | Every 6 h   | Re-fetches Mealie food catalog, detects deletions     |
+| Retry queue        | Every 2 min | Retries failed shopping list additions (exp. backoff) |
+| Notification purge | Every 24 h  | Deletes read notifications older than 7 days          |
 
 The item sync also runs on startup if no items exist in the database.
 

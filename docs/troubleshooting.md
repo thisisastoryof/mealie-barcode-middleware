@@ -6,17 +6,17 @@ Common issues and their solutions, organized by component.
 
 ## Hardware / ESP32
 
-| Symptom                            | Likely Cause                     | Fix                                                     |
-| ---------------------------------- | -------------------------------- | ------------------------------------------------------- |
-| ESP reboots when scanner fires     | 5 V rail sag → brownout         | Add/increase the 470 µF bulk cap; use a better USB cable|
-| Random reboots / won't boot        | Weak EN pull-up (knockoff board) | Add 10 kΩ pull-up + 100 nF cap on EN pin                |
-| No barcode data received           | TX/RX wires swapped              | Swap the wires on GPIO16 ↔ GPIO17                       |
-| Garbage characters from scanner    | Baud rate mismatch               | Verify GM67 is set to 9600 baud                         |
-| WiFi keeps disconnecting           | Shared 5 V rail sag              | Bigger bulk cap; better USB power source                |
-| Scanner LED doesn't turn on        | Insufficient USB current         | Use a phone charger (2 A+), not a PC USB port           |
-| Enters download mode randomly      | GPIO0 pulled LOW or EN glitch    | Check EN pin; don't connect anything to GPIO0           |
-| Works on bench, fails in enclosure | Overheating                      | Add ventilation holes to 3D-printed case                |
-| Boot loops after flash             | GPIO12 pulled HIGH at boot       | Don't connect anything to GPIO12                        |
+| Symptom                            | Likely Cause                     | Fix                                                      |
+| ---------------------------------- | -------------------------------- | -------------------------------------------------------- |
+| ESP reboots when scanner fires     | 5 V rail sag → brownout          | Add/increase the 470 µF bulk cap; use a better USB cable |
+| Random reboots / won't boot        | Weak EN pull-up (knockoff board) | Add 10 kΩ pull-up + 100 nF cap on EN pin                 |
+| No barcode data received           | TX/RX wires swapped              | Swap the wires on GPIO16 ↔ GPIO17                        |
+| Garbage characters from scanner    | Baud rate mismatch               | Verify GM67 is set to 9600 baud                          |
+| WiFi keeps disconnecting           | Shared 5 V rail sag              | Bigger bulk cap; better USB power source                 |
+| Scanner LED doesn't turn on        | Insufficient USB current         | Use a phone charger (2 A+), not a PC USB port            |
+| Enters download mode randomly      | GPIO0 pulled LOW or EN glitch    | Check EN pin; don't connect anything to GPIO0            |
+| Works on bench, fails in enclosure | Overheating                      | Add ventilation holes to 3D-printed case                 |
+| Boot loops after flash             | GPIO12 pulled HIGH at boot       | Don't connect anything to GPIO12                         |
 
 ### Watchdog Timer (WDT) Reboot
 
@@ -49,6 +49,7 @@ If you see `Fault - Unknown` in the ESPHome log with a backtrace pointing to `es
 ### Retry Queue Not Working
 
 **Symptom:** Failed Mealie requests are never retried. Docker logs show:
+
 ```
 NameError: name 'utcnow' is not defined
 ```
@@ -62,6 +63,7 @@ NameError: name 'utcnow' is not defined
 **Symptom:** Health check shows `mealie_reachable: false`. Scans result in "queued".
 
 Check:
+
 1. Is `MEALIE_URL` correct? It should be the URL accessible from the Docker container (e.g. `http://192.168.x.x:9925`, not `localhost`)
 2. Is the Mealie API key valid? Test with curl:
    ```bash
@@ -100,6 +102,7 @@ Same as "Can't Reach Mealie" above. The dashboard polls `/health` which checks M
 **Symptom:** Scanning a barcode doesn't show a toast in the browser.
 
 Check:
+
 1. Is the browser tab open? SSE only works with an active connection
 2. Open browser dev tools → Network → filter by "events". You should see an active SSE connection to `/events`
 3. If the connection keeps dropping, check if a reverse proxy is timing out idle connections
@@ -119,6 +122,7 @@ Check:
 **Cause:** Using `build_flags: -D CONFIG_ESP_TASK_WDT_TIMEOUT_S=15` with the Arduino framework. The flag conflicts with `sdkconfig.h`.
 
 **Fix:** The config uses ESP-IDF framework with `sdkconfig_options` instead. Make sure your `esp32:` section has:
+
 ```yaml
 esp32:
   board: esp32dev
@@ -141,11 +145,13 @@ esp32:
 ### Container Won't Start
 
 Check the logs:
+
 ```bash
 docker logs mealie-barcode-middleware 2>&1 | head -30
 ```
 
 Common causes:
+
 - `.env` file missing or has syntax errors
 - Required variables (`MEALIE_URL`, `MEALIE_API_KEY`, `MEALIE_SHOPPING_LIST_ID`) not set
 - Port conflict — another service is already using port 9930
@@ -155,6 +161,7 @@ Common causes:
 **Symptom:** Container starts but crashes with a SQLite permission error.
 
 **Fix:** The container runs as a non-root user. The `/data` volume must be writable:
+
 ```bash
 chmod 777 ./middleware-data  # or chown to UID 1000
 ```
@@ -164,6 +171,7 @@ chmod 777 ./middleware-data  # or chown to UID 1000
 **Symptom:** Docker reports the container as unhealthy.
 
 The health check calls `GET /health` every 30 seconds. If it fails:
+
 1. Check if uvicorn is running: `docker exec <container> ps aux`
 2. Check if the port is correct: the container listens on port 8000 internally, mapped to your chosen external port
 3. Check Docker logs for Python exceptions on startup
