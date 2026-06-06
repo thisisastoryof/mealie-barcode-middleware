@@ -17,9 +17,6 @@ substitutions:
 esphome:
   name: barcode-scanner
   friendly_name: ${friendly_name}
-  platformio_options:
-    build_flags:
-      - -DCONFIG_ESP_TASK_WDT_TIMEOUT_S=15
   on_boot:
     priority: -10
     then:
@@ -50,7 +47,9 @@ esphome:
 esp32:
   board: esp32dev
   framework:
-    type: arduino
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "15"
 
 # Serial logging available — UART2 used for scanner, USB serial stays free
 logger:
@@ -80,10 +79,10 @@ wifi:
 captive_portal:
 
 # HTTP request component for POSTing to the middleware
-# WDT raised to 15s via build flag — safe to use a longer timeout here.
+# WDT raised to 15s via sdkconfig — ESP timeout must stay below that.
 http_request:
   useragent: "ESPHome/BarcodeScanner"
-  timeout: 10s
+  timeout: 14s
   verify_ssl: false
 
 # JSON parsing support (for reading response body)
@@ -208,7 +207,8 @@ text_sensor:
                           id(screen_mode).publish_state("result");
                     else:
                       - lambda: |-
-                          id(last_result).publish_state("Error");
+                          ESP_LOGW("scan", "Middleware returned HTTP %d", response->status_code);
+                          id(last_result).publish_state("Server error");
                           id(last_result_type).publish_state("error");
                           id(screen_mode).publish_state("result");
                 - script.execute: standby_timer
@@ -224,8 +224,9 @@ text_sensor:
             on_error:
               then:
                 - lambda: |-
-                    id(last_result).publish_state("Offline");
-                    id(last_result_type).publish_state("error");
+                    ESP_LOGW("scan", "HTTP request failed (timeout or connection error)");
+                    id(last_result).publish_state("No response");
+                    id(last_result_type).publish_state("timeout");
                     id(screen_mode).publish_state("result");
                 - script.execute: standby_timer
 
@@ -382,8 +383,13 @@ display:
 
       if (mode == "scanning") {
         it.fill(COLOR_OFF);
-        it.printf(64, 20, id(font_heading), TextAlign::TOP_CENTER, "Scanning...");
-        it.printf(64, 40, id(font_body), TextAlign::TOP_CENTER, "%s", id(last_barcode).state.c_str());
+        it.printf(64, 16, id(font_heading), TextAlign::TOP_CENTER, "Looking up...");
+        it.printf(64, 34, id(font_body), TextAlign::TOP_CENTER, "%s", id(last_barcode).state.c_str());
+        // Animated dots — cycle every 750ms
+        int dots = ((int)(millis() / 750)) % 4;
+        std::string progress = "";
+        for (int i = 0; i < dots; i++) progress += ".";
+        it.printf(64, 48, id(font_body), TextAlign::TOP_CENTER, "%s", progress.c_str());
         return;
       }
 
@@ -400,6 +406,9 @@ display:
         } else if (rtype == "unknown") {
           it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
           it.printf(22, 2, id(font_heading), "Needs Mapping");
+        } else if (rtype == "timeout") {
+          it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
+          it.printf(22, 2, id(font_heading), "Timed Out");
         } else {
           it.printf(0, 0, id(font_icons), "\U000F0159");  // close-circle
           it.printf(22, 2, id(font_heading), "Error");
@@ -486,6 +495,9 @@ binary_sensor:
       inverted: true   # Active-low: button connects to GND
     name: "Display Button"
     id: display_button
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
     on_click:
       - min_length: 50ms
         max_length: 1000ms

@@ -5,9 +5,13 @@
 
 substitutions:
   friendly_name: "Barcode Scanner"
-  gm67_baud: 9600
+  gm67_baud: "9600"
   tx_pin: GPIO1
   rx_pin: GPIO3
+  sda_pin: GPIO4     # D2 — I2C data (OLED)
+  scl_pin: GPIO5     # D1 — I2C clock (OLED)
+  button_pin: GPIO13  # D7 — display wake button
+  oled_address: "0x3C"
 
 esphome:
   name: barcode-scanner
@@ -26,10 +30,18 @@ esphome:
               id: screen_mode
               state: "connecting"
           then:
-            - text_sensor.template.publish:
-                id: screen_mode
-                state: "standby"
-            - lambda: "id(oled).turn_off();"
+            - if:
+                condition:
+                  wifi.connected:
+                then:
+                  # WiFi ok but HA didn't connect — device can still scan
+                  - script.execute: show_ready
+                else:
+                  # No WiFi — AP fallback is active
+                  - text_sensor.template.publish:
+                      id: screen_mode
+                      state: "standby"
+                  - lambda: "id(oled).turn_off();"
 
 esp8266:
   board: nodemcuv2
@@ -45,16 +57,9 @@ api:
   encryption:
     key: !secret api_key
   on_client_connected:
-    - text_sensor.template.publish:
-        id: screen_mode
-        state: "standby"
-    - lambda: "id(oled).turn_off();"
     - script.stop: standby_timer
-  on_client_disconnected: # If the connection to HA is lost then set the status to connecting
-    - text_sensor.template.publish:
-        id: screen_mode
-        state: "connecting"
-    - script.stop: standby_timer # Stop the timer in case its running
+    - script.execute: show_ready
+  on_client_disconnected: [] # Scanning works without HA — no visible change needed
 
 ota:
   - platform: esphome
@@ -63,12 +68,7 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pwd
-  fast_connect: true
-  manual_ip:
-    static_ip: !secret static_ip
-    gateway: !secret gateway
-    subnet: 255.255.255.0
-    dns1: !secret gateway
+  min_auth_mode: WPA2
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
@@ -203,9 +203,10 @@ text_sensor:
                           id(screen_mode).publish_state("result");
                     else:
                       - lambda: |-
-                          id(last_result).publish_state("Error");
+                          ESP_LOGW("scan", "Middleware returned HTTP %d", response->status_code);
+                          id(last_result).publish_state("Server error");
                           id(last_result_type).publish_state("error");
-                          id(screen_mode).publish_state("error");
+                          id(screen_mode).publish_state("result");
                 - script.execute: standby_timer
                 # Fire HA event on every scan — HA automations filter on needs_action
                 - homeassistant.event:
@@ -219,12 +220,14 @@ text_sensor:
             on_error:
               then:
                 - lambda: |-
-                    id(last_result).publish_state("Offline");
-                    id(last_result_type).publish_state("error");
-                    id(screen_mode).publish_state("error");
+                    ESP_LOGW("scan", "HTTP request failed (timeout or connection error)");
+                    id(last_result).publish_state("No response");
+                    id(last_result_type).publish_state("timeout");
+                    id(screen_mode).publish_state("result");
                 - script.execute: standby_timer
 
 # Timer to return to standby after showing result (uses configurable timeout)
+# NOTE: Sensor states are NOT cleared — kept so button press can recall last result.
 script:
   - id: standby_timer
     mode: restart
@@ -233,35 +236,39 @@ script:
       - text_sensor.template.publish:
           id: screen_mode
           state: "standby"
+      - lambda: "id(oled).turn_off();"
+
+  - id: show_ready
+    mode: restart
+    then:
+      - lambda: "id(oled).turn_on();"
       - text_sensor.template.publish:
-          id: last_result
-          state: ""
+          id: screen_mode
+          state: "ready"
+      - delay: 5s
       - text_sensor.template.publish:
-          id: last_result_type
-          state: ""
-      - text_sensor.template.publish:
-          id: last_brand
-          state: ""
-      - text_sensor.template.publish:
-          id: last_quantity
-          state: ""
-      - text_sensor.template.publish:
-          id: pending_action_url
-          state: ""
+          id: screen_mode
+          state: "standby"
       - lambda: "id(oled).turn_off();"
 
   - id: wake_display_result
     mode: restart
     then:
       - lambda: "id(oled).turn_on();"
-      - text_sensor.template.publish:
-          id: screen_mode
-          state: "result"
-      - delay: 15s
-      - text_sensor.template.publish:
-          id: screen_mode
-          state: "standby"
-      - lambda: "id(oled).turn_off();"
+      - if:
+          condition:
+            lambda: 'return id(last_barcode).state.empty();'
+          then:
+            - script.execute: wake_display_status
+          else:
+            - text_sensor.template.publish:
+                id: screen_mode
+                state: "result"
+            - delay: !lambda "return id(display_timeout).state * 1000;"
+            - text_sensor.template.publish:
+                id: screen_mode
+                state: "standby"
+            - lambda: "id(oled).turn_off();"
 
   - id: wake_display_status
     mode: restart
@@ -270,7 +277,7 @@ script:
       - text_sensor.template.publish:
           id: screen_mode
           state: "status"
-      - delay: 15s
+      - delay: !lambda "return id(display_timeout).state * 1000;"
       - text_sensor.template.publish:
           id: screen_mode
           state: "standby"
@@ -310,8 +317,8 @@ globals:
 
 # I2C bus for OLED (SDA=D2/GPIO4, SCL=D1/GPIO5)
 i2c:
-  sda: GPIO4
-  scl: GPIO5
+  sda: ${sda_pin}
+  scl: ${scl_pin}
   scan: false
 
 # Fonts — European character set for product names
@@ -319,25 +326,17 @@ font:
   - file: "gfonts://Roboto"
     id: font_body
     size: 10
-    glyphs: >-
-      !"#$%&'()*+,-./0123456789:;<=>?@
-      ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`
-      abcdefghijklmnopqrstuvwxyz{|}~
-      ÄÖÜäöüß
-      ÉÈÊËéèêë
-      ÀÂàâÇç
-      ÅåØøÆæ
-      °€
+    glyphs: ' !"#$%&''()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~ÄÖÜäöüßÉÈÊËéèêëÀÂàâÇçÅåØøÆæ°€'
 
   - file: "gfonts://Roboto"
     id: font_heading
     size: 14
-    glyphs: >-
-      ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
-      0123456789 .-!?:ÄÖÜäöüß
+    glyphs: ' ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-!?:ÄÖÜäöüß'
 
   # MDI icons — only the specific icons we use
-  - file: "materialdesignicons-webfont.ttf"
+  - file:
+      type: web
+      url: "https://github.com/Templarian/MaterialDesign-Webfont/raw/master/fonts/materialdesignicons-webfont.ttf"
     id: font_icons
     size: 18
     glyphs:
@@ -353,7 +352,7 @@ display:
   - platform: ssd1306_i2c
     model: "SSD1306 128x64"
     id: oled
-    address: 0x3C
+    address: ${oled_address}
     update_interval: 250ms
     lambda: |-
       auto mode = id(screen_mode).state;
@@ -370,10 +369,23 @@ display:
         return;
       }
 
+      if (mode == "ready") {
+        it.fill(COLOR_OFF);
+        it.printf(0, 20, id(font_icons), "\U000F05E0");  // check-circle
+        it.printf(22, 22, id(font_heading), "Connected");
+        it.printf(64, 44, id(font_body), TextAlign::TOP_CENTER, "Ready to scan");
+        return;
+      }
+
       if (mode == "scanning") {
         it.fill(COLOR_OFF);
-        it.printf(64, 20, id(font_heading), TextAlign::TOP_CENTER, "Scanning...");
-        it.printf(64, 40, id(font_body), TextAlign::TOP_CENTER, "%s", id(last_barcode).state.c_str());
+        it.printf(64, 16, id(font_heading), TextAlign::TOP_CENTER, "Looking up...");
+        it.printf(64, 34, id(font_body), TextAlign::TOP_CENTER, "%s", id(last_barcode).state.c_str());
+        // Animated dots — cycle every 750ms
+        int dots = ((int)(millis() / 750)) % 4;
+        std::string progress = "";
+        for (int i = 0; i < dots; i++) progress += ".";
+        it.printf(64, 48, id(font_body), TextAlign::TOP_CENTER, "%s", progress.c_str());
         return;
       }
 
@@ -390,6 +402,9 @@ display:
         } else if (rtype == "unknown") {
           it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
           it.printf(22, 2, id(font_heading), "Needs Mapping");
+        } else if (rtype == "timeout") {
+          it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
+          it.printf(22, 2, id(font_heading), "Timed Out");
         } else {
           it.printf(0, 0, id(font_icons), "\U000F0159");  // close-circle
           it.printf(22, 2, id(font_heading), "Error");
@@ -415,28 +430,24 @@ display:
         return;
       }
 
-      if (mode == "error") {
-        it.fill(COLOR_OFF);
-        it.printf(0, 0, id(font_icons), "\U000F0159");  // close-circle
-        it.printf(22, 2, id(font_heading), "Error");
-        it.printf(0, 28, id(font_body), "%s", id(last_result).state.c_str());
-        it.printf(0, 42, id(font_body), "%s", id(last_barcode).state.c_str());
-        return;
-      }
-
       if (mode == "status") {
         it.fill(COLOR_OFF);
         it.printf(0, 0, id(font_heading), "Barcode Scanner");
 
         // WiFi signal bar
-        int rssi = id(wifi_rssi).state;
+        float rssi_f = id(wifi_rssi).state;
         int bars = 0;
-        if (rssi > -50) bars = 5;
-        else if (rssi > -60) bars = 4;
-        else if (rssi > -70) bars = 3;
-        else if (rssi > -80) bars = 2;
-        else if (rssi > -90) bars = 1;
-        it.printf(0, 18, id(font_body), "WiFi: %d dBm", rssi);
+        if (std::isnan(rssi_f)) {
+          it.printf(0, 18, id(font_body), "WiFi: no signal");
+        } else {
+          int rssi = (int)rssi_f;
+          if (rssi > -50) bars = 5;
+          else if (rssi > -60) bars = 4;
+          else if (rssi > -70) bars = 3;
+          else if (rssi > -80) bars = 2;
+          else if (rssi > -90) bars = 1;
+          it.printf(0, 18, id(font_body), "WiFi: %d dBm", rssi);
+        }
         for (int i = 0; i < 5; i++) {
           int h = 2 + i * 2;
           if (i < bars)
@@ -446,7 +457,14 @@ display:
         }
 
         // IP address
-        it.printf(0, 30, id(font_body), "IP: %s", WiFi.localIP().toString().c_str());
+        auto ips = network::get_ip_addresses();
+        if (!ips.empty()) {
+          char ip_buf[network::IP_ADDRESS_BUFFER_SIZE];
+          ips[0].str_to(ip_buf);
+          it.printf(0, 30, id(font_body), "IP: %s", ip_buf);
+        } else {
+          it.printf(0, 30, id(font_body), "IP: none");
+        }
 
         // Scan count
         it.printf(0, 42, id(font_body), "Scans: %.0f", id(scan_count).state);
@@ -468,24 +486,23 @@ display:
 binary_sensor:
   - platform: gpio
     pin:
-      number: GPIO13  # D7
+      number: ${button_pin}
       mode: INPUT_PULLUP
-      inverted: true   # Active-low: button connects GPIO13 to GND
+      inverted: true   # Active-low: button connects to GND
     name: "Display Button"
     id: display_button
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
     on_click:
-      min_length: 50ms
-      max_length: 1000ms
-      then:
-        - script.execute: wake_display_result
-    on_press:
-      then:
-        - delay: 2s
-        - if:
-            condition:
-              binary_sensor.is_on: display_button
-            then:
-              - script.execute: wake_display_status
+      - min_length: 50ms
+        max_length: 1000ms
+        then:
+          - script.execute: wake_display_result
+      - min_length: 1000ms
+        max_length: 5000ms
+        then:
+          - script.execute: wake_display_status
 
 # Configurable standby timeout — adjustable from HA
 number:
@@ -498,7 +515,7 @@ number:
     min_value: 2
     max_value: 30
     step: 1
-    initial_value: 5
+    initial_value: 8
     restore_value: true
     optimistic: true
 
