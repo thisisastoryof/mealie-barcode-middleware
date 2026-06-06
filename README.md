@@ -1,6 +1,6 @@
 # Barcode → Mealie Shopping List
 
-A self-hosted barcode scanner that adds items to your [Mealie](https://mealie.io/) shopping list. Scan a product, it gets looked up, matched to your food catalog, and added — all without Home Assistant in the critical path.
+A self-hosted barcode scanner that adds items to your [Mealie](https://mealie.io/) shopping list. Scan a product, it gets looked up, matched to your food catalog, and added.
 
 ```
 [ESP32 + GM67 Scanner + OLED]
@@ -131,6 +131,12 @@ docs/                        # Detailed documentation
 Inspired by [HA-Mealie-Barcode-Scanner](https://github.com/MattFryer/HA-Mealie-Barcode-Scanner) by **Matt Fryer**, which provided the original concept of connecting a barcode scanner to Mealie via Home Assistant pyscript. The barcode lookup approach (OpenFoodFacts + UPCDatabase) and the ESPHome integration pattern were derived from that project.
 
 This project replaces the HA/pyscript dependency with a standalone FastAPI middleware, adds a web UI, persistent database, fuzzy auto-mapping, and a retry queue.
+
+## Vibe-Coded
+
+This entire project — firmware, middleware, web UI, docs — was built with AI assistance ("vibe coding"). The author is a smart home hobbyist, not a professional developer, and used LLMs to write, review, and iterate on the code. It works well for its intended purpose, but you should know how it came about before relying on it.
+
+The project is designed to run on your local network, not exposed to the internet. If you spot something that could be improved, PRs and issues are welcome.
 
 ## License
 

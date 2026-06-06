@@ -2,7 +2,6 @@
 # ESP32 and GM67 Barcode Scanner
 #######################################################################################################
 # All credentials are stored in secrets.yaml.
-# 1:1 feature parity with the ESP8266 version — only MCU, pins, and framework differ.
 
 substitutions:
   friendly_name: "Barcode Scanner"
