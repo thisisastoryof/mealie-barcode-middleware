@@ -117,7 +117,7 @@ def _post_shopping_item(payload: dict) -> bool:
     """POST to Mealie shopping items endpoint. Returns True on success."""
     url = f"{settings.mealie_url}/api/households/shopping/items"
     try:
-        resp = httpx.post(url, headers=_headers(), json=payload, timeout=10)
+        resp = httpx.post(url, headers=_headers(), json=payload, timeout=3)
         if resp.status_code in (200, 201):
             return True
         logger.warning(f"Mealie shopping POST returned {resp.status_code}: {resp.text}")
