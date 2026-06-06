@@ -130,7 +130,7 @@ Both exceed the threshold, but the gap is 0. Without the ambiguity check, it wou
 
 ### Auto-Map Results
 
-- **Match found:** The barcode is linked to the item with `mapped_by=auto`. The product is added to the shopping list. A notification is created asking you to confirm the mapping.
+- **Match found:** The barcode is linked to the item with `mapped_by=auto`. The product is added to the shopping list. A notification is created so you can review the link.
 - **No match:** The product title is added as a plain note. A notification is created so you can manually link it.
 
 ---

@@ -1,9 +1,9 @@
 # Barcode Scanner — HA Notification Automation
 #
 # Sends a phone notification when a scanned barcode needs attention
-# (unknown product, auto-mapped item needing confirmation, etc.).
+# (unknown product, auto-linked item needing review, etc.).
 # The notification includes an actionable button that opens the
-# middleware's barcode detail page for mapping/review.
+# middleware's barcode detail page for review.
 #
 # Copy this file to your HA config/automations/ directory,
 # or paste the content into the HA Automations UI editor (YAML mode).
@@ -15,7 +15,7 @@
 alias: "Barcode Scanner — Needs Attention"
 description: >-
   Notify when a scanned barcode needs manual action (unknown product,
-  auto-mapped item to confirm, etc.). Taps the notification to open
+  auto-linked item to review, etc.). Taps the notification to open
   the middleware barcode detail page.
 
 mode: queued
@@ -54,7 +54,7 @@ actions:
         {% elif result_type == 'added_as_note' %}
           {{ item }} — tap to link to a Mealie item
         {% elif result_type == 'added' and needs_action == 'true' %}
-          {{ item }} — tap to confirm
+          {{ item }} — tap to review
         {% else %}
           {{ item }}
         {% endif %}

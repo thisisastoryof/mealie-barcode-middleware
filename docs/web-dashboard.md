@@ -101,7 +101,7 @@ Notifications are created for events that may need your attention:
 | Type           | When                                                       |
 | -------------- | ---------------------------------------------------------- |
 | Unknown        | Barcode not found in any product database                  |
-| Auto-mapped    | Fuzzy matching linked a barcode automatically — confirm?   |
+| Auto-linked    | Fuzzy matching linked a barcode automatically — review     |
 | Needs mapping  | Product found but no Mealie item matched                   |
 | Retry failed   | Shopping list addition failed after all retries            |
 | Broken mapping | A Mealie item was deleted but barcodes still pointed to it |

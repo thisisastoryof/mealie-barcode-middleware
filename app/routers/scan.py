@@ -130,7 +130,7 @@ def _process_scan(barcode: str, db: Session) -> ScanResponse:
         resp.action_url = _build_action_url(barcode)
         _emit_scan_event(barcode, resp)
         _save_activity(barcode, "Added to list", item_name, resp.result, db)
-        _save_notification(barcode, "Auto-mapped — confirm?", f"{cached.title or barcode} → {item_name}", "auto_mapped", db)
+        _save_notification(barcode, "Auto-linked — review", f"{cached.title or barcode} → {item_name}", "auto_mapped", db)
         return resp
 
     # No mapping — add as note with product title
