@@ -182,28 +182,36 @@ text_sensor:
                       lambda: return response->status_code == 200;
                     then:
                       - lambda: |-
-                          json::parse_json(body, [](JsonObject root) -> bool {
+                          bool ok = json::parse_json(body, [](JsonObject root) -> bool {
                             // Display name
-                            std::string item_name = root["item"] | "";
-                            std::string result = root["result"] | "unknown";
+                            const char* item_raw = root["item"] | (const char*)nullptr;
+                            const char* result_raw = root["result"] | "unknown";
+                            std::string item_name = item_raw ? item_raw : "";
+                            std::string result = result_raw ? result_raw : "unknown";
 
-                            if (item_name.empty()) item_name = "Unknown";
+                            if (item_name.empty()) item_name = id(last_barcode).state;
                             id(last_result).publish_state(item_name);
                             id(last_result_type).publish_state(result);
 
                             // Display enrichment (brand/quantity for OLED)
-                            std::string brand = root["brand"] | "";
-                            std::string qty = root["quantity"] | "";
-                            id(last_brand).publish_state(brand);
-                            id(last_quantity).publish_state(qty);
+                            const char* brand_raw = root["brand"] | (const char*)nullptr;
+                            const char* qty_raw = root["quantity"] | (const char*)nullptr;
+                            id(last_brand).publish_state(brand_raw ? brand_raw : "");
+                            id(last_quantity).publish_state(qty_raw ? qty_raw : "");
 
                             // Notification relay — store action_url for HA event
                             bool needs_action = root["needs_action"] | false;
-                            std::string action_url = root["action_url"] | "";
+                            const char* action_raw = root["action_url"] | (const char*)nullptr;
+                            std::string action_url = action_raw ? action_raw : "";
                             id(pending_action_url).publish_state(needs_action ? action_url : "");
 
                             return true;
                           });
+                          if (!ok) {
+                            ESP_LOGW("scan", "Failed to parse response body");
+                            id(last_result).publish_state(id(last_barcode).state);
+                            id(last_result_type).publish_state("error");
+                          }
                           id(screen_mode).publish_state("result");
                     else:
                       - lambda: |-
@@ -383,13 +391,12 @@ display:
 
       if (mode == "scanning") {
         it.fill(COLOR_OFF);
-        it.printf(64, 16, id(font_heading), TextAlign::TOP_CENTER, "Looking up...");
-        it.printf(64, 34, id(font_body), TextAlign::TOP_CENTER, "%s", id(last_barcode).state.c_str());
-        // Animated dots — cycle every 750ms
-        int dots = ((int)(millis() / 750)) % 4;
-        std::string progress = "";
-        for (int i = 0; i < dots; i++) progress += ".";
-        it.printf(64, 48, id(font_body), TextAlign::TOP_CENTER, "%s", progress.c_str());
+        // Animated heading — dots cycle every 500ms: .. ... (none) .
+        int dots = (((int)(millis() / 500)) + 2) % 4;
+        std::string heading = "Looking up";
+        for (int i = 0; i < dots; i++) heading += ".";
+        it.printf(64, 16, id(font_heading), TextAlign::TOP_CENTER, "%s", heading.c_str());
+        it.printf(64, 36, id(font_body), TextAlign::TOP_CENTER, "%s", id(last_barcode).state.c_str());
         return;
       }
 
