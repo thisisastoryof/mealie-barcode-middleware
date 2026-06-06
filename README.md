@@ -35,6 +35,8 @@ Wire up an ESP32, GM67 barcode scanner module, SSD1306 OLED, and a push button o
 
 → [**Hardware Build Guide**](docs/hardware-build.md) — parts list, wiring diagram, power design
 
+> **First-time GM67 setup:** The scanner ships in USB mode. Before it will talk to the ESP32, you need to scan a one-time configuration QR code to switch it to UART. See [**Scanner Configuration**](docs/scanner-configuration.md#initial-setup-switching-to-uart-mode).
+
 ### 2. Deploy the Middleware
 
 ```bash
@@ -55,6 +57,7 @@ Open `http://your-ip:9930` → Settings → create an API token for the scanner.
 Copy `esphome/barcode-scanner.yaml` to your ESPHome dashboard, configure `secrets.yaml` with your WiFi and middleware credentials, and flash via USB.
 
 → [**ESPHome Firmware**](docs/esphome-firmware.md) — setup, display states, scanner options, HA integration
+→ [**Scanner Configuration**](docs/scanner-configuration.md) — trigger modes, buzzer, laser, and the UART protocol explained
 
 ### 4. Scan!
 
@@ -66,14 +69,15 @@ Point the scanner at a barcode. The middleware looks it up, matches it to your M
 
 ## Documentation
 
-| Guide | Description |
-| ----- | ----------- |
-| [Hardware Build](docs/hardware-build.md) | Parts, wiring, power design, perf board layout |
-| [ESPHome Firmware](docs/esphome-firmware.md) | Flashing, display states, scanner config, HA entities |
-| [Middleware Setup](docs/middleware-setup.md) | Docker deployment, env vars, tokens, database |
-| [How Scanning Works](docs/barcode-workflow.md) | Scan pipeline, lookup, fuzzy matching, retry queue |
-| [Web Dashboard](docs/web-dashboard.md) | UI walkthrough, barcode management, notifications |
-| [Troubleshooting](docs/troubleshooting.md) | Common issues for hardware, middleware, and Docker |
+| Guide                                                  | Description                                           |
+| ------------------------------------------------------ | ----------------------------------------------------- |
+| [Hardware Build](docs/hardware-build.md)               | Parts, wiring, power design, perf board layout        |
+| [ESPHome Firmware](docs/esphome-firmware.md)           | Flashing, display states, scanner config, HA entities |
+| [Scanner Configuration](docs/scanner-configuration.md) | GM67 initial setup, settings reference, UART protocol |
+| [Middleware Setup](docs/middleware-setup.md)           | Docker deployment, env vars, tokens, database         |
+| [How Scanning Works](docs/barcode-workflow.md)         | Scan pipeline, lookup, fuzzy matching, retry queue    |
+| [Web Dashboard](docs/web-dashboard.md)                 | UI walkthrough, barcode management, notifications     |
+| [Troubleshooting](docs/troubleshooting.md)             | Common issues for hardware, middleware, and Docker    |
 
 ---
 
@@ -81,16 +85,16 @@ Point the scanner at a barcode. The middleware looks it up, matches it to your M
 
 All settings via environment variables. See [Middleware Setup](docs/middleware-setup.md) for the full reference.
 
-| Variable                  | Required | Default        | Description                              |
-| ------------------------- | -------- | -------------- | ---------------------------------------- |
-| `MEALIE_URL`              | **Yes**  | —              | Mealie instance URL                      |
-| `MEALIE_API_KEY`          | **Yes**  | —              | Mealie API token                         |
-| `MEALIE_SHOPPING_LIST_ID` | **Yes**  | —              | Target shopping list UUID                |
-| `OFF_ENABLED`             | No       | `true`         | Enable OpenFoodFacts lookups             |
-| `UPCDB_ENABLED`           | No       | `false`        | Enable UPCDatabase lookups               |
-| `FUZZY_MATCH_THRESHOLD`   | No       | `85`           | Min score for auto-mapping (0–100)       |
-| `MIDDLEWARE_BASE_URL`      | No       | (empty)        | URL for notification deep links          |
-| `TIMEZONE`                | No       | `Europe/Berlin`| Timezone for UI timestamps               |
+| Variable                  | Required | Default         | Description                        |
+| ------------------------- | -------- | --------------- | ---------------------------------- |
+| `MEALIE_URL`              | **Yes**  | —               | Mealie instance URL                |
+| `MEALIE_API_KEY`          | **Yes**  | —               | Mealie API token                   |
+| `MEALIE_SHOPPING_LIST_ID` | **Yes**  | —               | Target shopping list UUID          |
+| `OFF_ENABLED`             | No       | `true`          | Enable OpenFoodFacts lookups       |
+| `UPCDB_ENABLED`           | No       | `false`         | Enable UPCDatabase lookups         |
+| `FUZZY_MATCH_THRESHOLD`   | No       | `85`            | Min score for auto-mapping (0–100) |
+| `MIDDLEWARE_BASE_URL`     | No       | (empty)         | URL for notification deep links    |
+| `TIMEZONE`                | No       | `Europe/Berlin` | Timezone for UI timestamps         |
 
 ## Project Structure
 
