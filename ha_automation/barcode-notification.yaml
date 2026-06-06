@@ -40,23 +40,23 @@ actions:
   - variables:
       title: >-
         {% if result_type == 'unknown' %}
-          Unknown barcode scanned
+          Unknown barcode
         {% elif result_type == 'added_as_note' %}
-          Needs mapping
+          Not linked
         {% elif result_type == 'added' and needs_action == 'true' %}
-          Auto-mapped — confirm?
+          Auto-linked
         {% else %}
           Barcode scanned
         {% endif %}
       message: >-
         {% if result_type == 'unknown' %}
-          {{ barcode }} — not found in any product database
+          {{ barcode }} — tap to identify
         {% elif result_type == 'added_as_note' %}
-          {{ item }} — assign to a Mealie item
+          {{ item }} — tap to link to a Mealie item
         {% elif result_type == 'added' and needs_action == 'true' %}
-          {{ item }} — auto-linked, tap to verify
+          {{ item }} — tap to confirm
         {% else %}
-          {{ item }} ({{ barcode }})
+          {{ item }}
         {% endif %}
 
   # ── Phone notification with deep link ──
