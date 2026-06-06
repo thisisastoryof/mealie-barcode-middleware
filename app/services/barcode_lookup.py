@@ -18,7 +18,7 @@ def lookup_openfoodfacts(barcode: str) -> dict | None:
         return None
     url = f"{settings.off_url_base}{barcode}.json"
     try:
-        resp = httpx.get(url, timeout=10)
+        resp = httpx.get(url, timeout=5)
         logger.info(f"OpenFoodFacts {barcode}: HTTP {resp.status_code}")
         if resp.status_code == 404:
             return None
@@ -51,7 +51,7 @@ def lookup_upcdatabase(barcode: str) -> dict | None:
         return None
     url = f"{settings.upcdb_url_base}{barcode}"
     try:
-        resp = httpx.get(url, params={"apikey": settings.upcdb_api_key}, timeout=10)
+        resp = httpx.get(url, params={"apikey": settings.upcdb_api_key}, timeout=5)
         logger.info(f"UPCDatabase {barcode}: HTTP {resp.status_code}")
         if resp.status_code != 200:
             return None
