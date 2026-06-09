@@ -44,7 +44,15 @@ def sync_items(db: Session) -> int:
         raise
 
     data = resp.json()
-    items = data.get("items", data) if isinstance(data, dict) else data
+    if isinstance(data, dict):
+        items = data.get("items")
+        if items is None:
+            logger.error(f"Unexpected Mealie response structure: {list(data.keys())}")
+            raise ValueError("Mealie API returned unexpected response (no 'items' key)")
+    elif isinstance(data, list):
+        items = data
+    else:
+        raise ValueError(f"Mealie API returned unexpected type: {type(data).__name__}")
     sync_started = utcnow()
     count = 0
 

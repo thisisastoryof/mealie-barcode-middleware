@@ -33,9 +33,16 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     # Recent scans
     recent = db.query(BarcodeCache).order_by(BarcodeCache.created_at.desc()).limit(10).all()
 
-    # Build recent items with status
-    mappings = {m.barcode: m for m in db.query(BarcodeMapping).all()}
-    queued_barcodes = set(r.barcode for r in db.query(RetryQueue).all())
+    # Build recent items with status — only load mappings/queue for recent barcodes
+    recent_barcodes = [bc.barcode for bc in recent]
+    mappings = {
+        m.barcode: m for m in
+        db.query(BarcodeMapping).filter(BarcodeMapping.barcode.in_(recent_barcodes)).all()
+    } if recent_barcodes else {}
+    queued_barcodes = set(
+        r.barcode for r in
+        db.query(RetryQueue.barcode).filter(RetryQueue.barcode.in_(recent_barcodes)).all()
+    ) if recent_barcodes else set()
     item_ids = [m.item_id for m in mappings.values()]
     items_map = {i.id: i for i in db.query(Item).filter(Item.id.in_(item_ids)).all()} if item_ids else {}
 
@@ -92,8 +99,15 @@ def dashboard_api(db: Session = Depends(get_db)):
     queue_depth = db.query(RetryQueue).count()
 
     recent = db.query(BarcodeCache).order_by(BarcodeCache.created_at.desc()).limit(10).all()
-    mappings = {m.barcode: m for m in db.query(BarcodeMapping).all()}
-    queued_barcodes = set(r.barcode for r in db.query(RetryQueue).all())
+    recent_barcodes = [bc.barcode for bc in recent]
+    mappings = {
+        m.barcode: m for m in
+        db.query(BarcodeMapping).filter(BarcodeMapping.barcode.in_(recent_barcodes)).all()
+    } if recent_barcodes else {}
+    queued_barcodes = set(
+        r.barcode for r in
+        db.query(RetryQueue.barcode).filter(RetryQueue.barcode.in_(recent_barcodes)).all()
+    ) if recent_barcodes else set()
     item_ids = [m.item_id for m in mappings.values()]
     items_map = {i.id: i for i in db.query(Item).filter(Item.id.in_(item_ids)).all()} if item_ids else {}
 
