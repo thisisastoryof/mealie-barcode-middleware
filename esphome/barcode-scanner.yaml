@@ -394,15 +394,17 @@ display:
 
       if (mode == "connecting") {
         it.fill(COLOR_OFF);
-        it.printf(64, 20, id(font_heading), TextAlign::TOP_CENTER, "Barcode Scanner");
-        it.printf(64, 40, id(font_body), TextAlign::TOP_CENTER, "Connecting...");
+        it.printf(24, 16, id(font_icons), "\U000F029A");  // barcode-scan
+        it.printf(46, 10, id(font_heading), "Barcode");
+        it.printf(46, 26, id(font_heading), "Scanner");
+        it.printf(64, 48, id(font_body), TextAlign::TOP_CENTER, "Connecting...");
         return;
       }
 
       if (mode == "ready") {
         it.fill(COLOR_OFF);
-        it.printf(0, 20, id(font_icons), "\U000F05E0");  // check-circle
-        it.printf(22, 22, id(font_heading), "Connected");
+        it.printf(18, 20, id(font_icons), "\U000F05E0");  // check-circle
+        it.printf(40, 22, id(font_heading), "Connected");
         it.printf(64, 44, id(font_body), TextAlign::TOP_CENTER, "Ready to scan");
         return;
       }
