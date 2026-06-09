@@ -28,11 +28,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self'; "
+            "style-src 'self'; "
             "connect-src 'self'; "
             "font-src 'self'; "
-            "img-src 'self' data:"
+            "img-src 'self' data:; "
+            "worker-src 'self'"
         )
 
         return response
