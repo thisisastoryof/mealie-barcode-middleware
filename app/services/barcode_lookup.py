@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from datetime import datetime, timezone
 
 import httpx
@@ -57,11 +58,16 @@ def lookup_upcdatabase(barcode: str) -> dict | None:
             return None
         # UPCDatabase sometimes prepends stray HTML before the JSON
         text = resp.text
-        json_start = text.find("{")
-        if json_start == -1:
+        match = re.search(r'\{\s*"', text)
+        if not match:
+            logger.warning(f"UPCDatabase {barcode}: no JSON object found in response")
             return None
-        clean = text[json_start:]
-        data = json.loads(clean)
+        clean = text[match.start():]
+        try:
+            data = json.loads(clean)
+        except json.JSONDecodeError:
+            logger.warning(f"UPCDatabase {barcode}: failed to parse extracted JSON")
+            return None
         if not data.get("success"):
             return None
         title = data.get("title") or data.get("alias") or data.get("description") or ""
@@ -75,7 +81,7 @@ def lookup_upcdatabase(barcode: str) -> dict | None:
             "quantity": (metadata.get("quantity") or "").split(",")[0].strip() or None,
             "source": "upcdatabase",
         }
-    except (httpx.HTTPError, json.JSONDecodeError) as e:
+    except httpx.HTTPError as e:
         logger.error(f"UPCDatabase error for {barcode}: {e}")
         return None
 
