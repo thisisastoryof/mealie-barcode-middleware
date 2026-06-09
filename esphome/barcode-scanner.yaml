@@ -19,7 +19,9 @@ esphome:
   on_boot:
     priority: -10
     then:
-      - lambda: "id(oled).turn_on();"
+      - lambda: |-
+          id(oled).turn_on();
+          id(scan_count).publish_state(id(scan_count_val));
       - text_sensor.template.publish:
           id: screen_mode
           state: "connecting"
@@ -150,6 +152,7 @@ text_sensor:
   - platform: template
     name: "Barcode Raw"
     id: barcode_raw
+    internal: true
     on_value:
       then:
         # Cancel any running display scripts so the scan owns the screen
@@ -175,7 +178,13 @@ text_sensor:
               Content-Type: "application/json"
               Authorization: !secret middleware_auth_header
             body: !lambda |-
-              return "{\"barcode\":\"" + x + "\"}";
+              std::string escaped;
+              escaped.reserve(x.size());
+              for (char c : x) {
+                if (c == '"' || c == '\\') escaped += '\\';
+                escaped += c;
+              }
+              return "{\"barcode\":\"" + escaped + "\"}";
             capture_response: true
             max_response_buffer_size: 1024
             on_response:
@@ -308,7 +317,6 @@ sensor:
     icon: mdi:counter
     entity_category: DIAGNOSTIC
     accuracy_decimals: 0
-    lambda: "return id(scan_count_val);"
 
   - platform: wifi_signal
     name: "WiFi Signal"
@@ -373,6 +381,11 @@ display:
     update_interval: 250ms
     lambda: |-
       auto mode = id(screen_mode).state;
+      // Truncate for 128px width at font_body (~21 chars max)
+      auto trunc = [](const std::string& s, size_t n) -> std::string {
+        if (s.length() <= n) return s;
+        return s.substr(0, n - 2) + "..";
+      };
 
       if (mode == "standby" || mode.empty()) {
         it.fill(COLOR_OFF);
@@ -397,7 +410,7 @@ display:
       if (mode == "scanning") {
         it.fill(COLOR_OFF);
         it.printf(64, 16, id(font_heading), TextAlign::TOP_CENTER, "Looking up...");
-        it.printf(64, 36, id(font_body), TextAlign::TOP_CENTER, "%s", id(last_barcode).state.c_str());
+        it.printf(64, 36, id(font_body), TextAlign::TOP_CENTER, "%s", trunc(id(last_barcode).state, 21).c_str());
         return;
       }
 
@@ -423,7 +436,7 @@ display:
         }
 
         // Item name
-        it.printf(0, 22, id(font_body), "%s", id(last_result).state.c_str());
+        it.printf(0, 22, id(font_body), "%s", trunc(id(last_result).state, 21).c_str());
 
         // Brand / quantity line
         auto brand = id(last_brand).state;
@@ -433,12 +446,12 @@ display:
         else if (!brand.empty()) detail = brand;
         else if (!qty.empty()) detail = qty;
         if (!detail.empty()) {
-          it.printf(0, 34, id(font_body), "%s", detail.c_str());
+          it.printf(0, 34, id(font_body), "%s", trunc(detail, 21).c_str());
         }
 
         // Separator + barcode at bottom
         it.line(0, 48, 128, 48);
-        it.printf(0, 52, id(font_body), "%s", id(last_barcode).state.c_str());
+        it.printf(0, 52, id(font_body), "%s", trunc(id(last_barcode).state, 21).c_str());
         return;
       }
 
