@@ -58,7 +58,7 @@ def settings_page(request: Request, tab: str = Query("configuration"), db: Sessi
 def create_token(request: Request, name: str = Form(...), db: Session = Depends(get_db)):
     raw = generate_token()
     hashed = hash_token(raw)
-    token = ApiToken(name=name, token_hash=hashed)
+    token = ApiToken(name=name, token_hash=hashed, token_prefix=raw[:8])
     db.add(token)
     db.commit()
     db.refresh(token)

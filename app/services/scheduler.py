@@ -68,7 +68,7 @@ def _process_retry_queue():
                             f"{item.attempts} attempts (HTTP {resp.status_code})"
                         )
                     else:
-                        backoff = min(2**item.attempts, 60)
+                        backoff = min(2**item.attempts, 480)
                         item.next_retry_at = now + timedelta(minutes=backoff)
                         logger.warning(
                             f"Retry failed for {item.barcode}: HTTP {resp.status_code}, "
@@ -84,7 +84,7 @@ def _process_retry_queue():
                         f"{item.attempts} attempts: {e}"
                     )
                 else:
-                    backoff = min(2**item.attempts, 60)
+                    backoff = min(2**item.attempts, 480)
                     item.next_retry_at = now + timedelta(minutes=backoff)
                     logger.warning(f"Retry error for {item.barcode}: {e}, next in {backoff}m")
 

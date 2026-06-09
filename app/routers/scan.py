@@ -2,7 +2,7 @@ import json
 import logging
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -55,7 +55,7 @@ def scan_barcode(
 ):
     barcode = body.barcode.strip()
     if not barcode:
-        return ScanResponse(result="unknown", item=None, via=None)
+        raise HTTPException(status_code=422, detail="Barcode cannot be empty")
 
     try:
         return _process_scan(barcode, db)

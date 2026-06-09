@@ -28,10 +28,23 @@ def require_token(request: Request, db: Session = Depends(get_db)) -> ApiToken:
             detail="Missing or invalid Authorization header",
         )
     raw_token = auth_header.removeprefix("Bearer ").strip()
-    tokens = db.query(ApiToken).all()
-    for t in tokens:
+    prefix = raw_token[:8]
+
+    # Fast path: query by prefix (covers tokens created with prefix column)
+    candidates = db.query(ApiToken).filter(ApiToken.token_prefix == prefix).all()
+    for t in candidates:
         if verify_token(raw_token, t.token_hash):
             return t
+
+    # Fallback: check tokens without prefix (legacy, pre-migration)
+    legacy = db.query(ApiToken).filter(ApiToken.token_prefix.is_(None)).all()
+    for t in legacy:
+        if verify_token(raw_token, t.token_hash):
+            # Backfill prefix for future lookups
+            t.token_prefix = prefix
+            db.commit()
+            return t
+
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid token",

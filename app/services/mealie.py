@@ -45,7 +45,7 @@ def sync_items(db: Session) -> int:
 
     data = resp.json()
     items = data.get("items", data) if isinstance(data, dict) else data
-    now = utcnow()
+    sync_started = utcnow()
     count = 0
 
     for food in items:
@@ -61,9 +61,9 @@ def sync_items(db: Session) -> int:
         if existing:
             existing.name = name
             existing.aliases = aliases_json
-            existing.synced_at = now
+            existing.synced_at = sync_started
         else:
-            db.add(Item(id=item_id, name=name, source="mealie", aliases=aliases_json, synced_at=now))
+            db.add(Item(id=item_id, name=name, source="mealie", aliases=aliases_json, synced_at=sync_started))
         count += 1
 
     db.flush()
@@ -71,7 +71,7 @@ def sync_items(db: Session) -> int:
     # Detect stale items (deleted in Mealie since last sync)
     stale_items = (
         db.query(Item)
-        .filter(Item.source == "mealie", Item.synced_at < now)
+        .filter(Item.source == "mealie", Item.synced_at < sync_started)
         .all()
     )
     for stale in stale_items:
@@ -128,7 +128,11 @@ def _post_shopping_item(payload: dict) -> bool:
 
 
 def enqueue_retry(barcode: str, payload: dict, db: Session) -> None:
-    """Add a failed Mealie request to the retry queue."""
+    """Add a failed Mealie request to the retry queue (skip if already pending)."""
+    existing = db.query(RetryQueue).filter(RetryQueue.barcode == barcode).first()
+    if existing:
+        logger.info(f"Retry entry already pending for barcode={barcode}, skipping duplicate")
+        return
     db.add(RetryQueue(
         barcode=barcode,
         payload=json.dumps(payload),
