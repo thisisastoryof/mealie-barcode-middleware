@@ -10,7 +10,7 @@ substitutions:
   rx_pin: GPIO16     # UART2 RX — no boot conflict
   sda_pin: GPIO21    # Default I2C SDA (OLED)
   scl_pin: GPIO22    # Default I2C SCL (OLED)
-  button_pin: GPIO25  # Commonly exposed on 28-pin boards, no boot strapping
+  button_pin: GPIO25  # Commonly exposed on 30-pin boards, no boot strapping
   oled_address: "0x3C"
 
 esphome:

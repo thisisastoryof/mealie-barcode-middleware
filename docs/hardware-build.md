@@ -4,54 +4,54 @@ This guide covers the complete hardware build for the barcode scanner unit. The 
 
 ## Parts List
 
-| #  | Component                          | Qty | Notes                                                |
-| -- | ---------------------------------- | --- | ---------------------------------------------------- |
-| 1  | ESP-WROOM-32 (28-pin devkit)       | 1   | Dx-labeled pins; with pin headers                    |
-| 2  | GM67 barcode scanner breakout      | 1   | 5V input, 4-wire UART header                         |
-| 3  | SSD1306 OLED 128×64 I2C            | 1   | 0.96", I2C address 0x3C                              |
-| 4  | Momentary push button (NO)         | 1   | For display wake / status                            |
-| 5  | Ceramic capacitor 100 nF           | 2   | One for GM67 decoupling, one for EN pin              |
-| 6  | Electrolytic capacitor 470 µF 10V  | 1   | Low ESR preferred, through-hole                      |
-| 7  | Resistor 10 kΩ                     | 1   | Pull-up for EN pin (if not already on your board)    |
-| 8  | Perf board / prototype board       | 1   | ~5×7 cm or sized to your enclosure                   |
-| 9  | Pin headers (male + female)        | 1   | For socketing the ESP32 (removable)                  |
-| 10 | Hook-up wire (24–26 AWG)           | —   | Short runs between components                        |
-| 11 | USB cable (good quality, short)    | 1   | 24 AWG power lines minimum — cheap cables cause sag  |
+| #   | Component                         | Qty | Notes                                               |
+| --- | --------------------------------- | --- | --------------------------------------------------- |
+| 1   | ESP-WROOM-32 (30-pin devkit)      | 1   | Dx-labeled pins; with pin headers                   |
+| 2   | GM67 barcode scanner breakout     | 1   | 5V input, 4-wire UART header                        |
+| 3   | SSD1306 OLED 128×64 I2C           | 1   | 0.96", I2C address 0x3C                             |
+| 4   | Momentary push button (NO)        | 1   | For display wake / status                           |
+| 5   | Ceramic capacitor 100 nF          | 2   | One for GM67 decoupling, one for EN pin             |
+| 6   | Electrolytic capacitor 470 µF 10V | 1   | Low ESR preferred, through-hole                     |
+| 7   | Resistor 10 kΩ                    | 1   | Pull-up for EN pin (if not already on your board)   |
+| 8   | Perf board / prototype board      | 1   | 40×60 mm or sized to your enclosure                 |
+| 9   | Pin headers (male + female)       | 1   | For socketing the ESP32 (removable)                 |
+| 10  | Hook-up wire (24–26 AWG)          | —   | Short runs between components                       |
+| 11  | USB cable (good quality, short)   | 1   | 24 AWG power lines minimum — cheap cables cause sag |
 
-> **Total cost:** ~$15–20 from AliExpress/Amazon, depending on what you already have.
+> **Total cost:** ~$35 from AliExpress/Amazon (GM67 ~$20, ESP32 <$10, OLED <$5, plus small parts), depending on what you already have.
 
 ---
 
 ## Pin Mapping
 
-| Device     | ESP32 Pin       | Board Label | Function               |
-| ---------- | --------------- | ----------- | ---------------------- |
-| GM67 TX    | GPIO16          | D16         | UART2 RX (from scanner)|
-| GM67 RX    | GPIO17          | D17         | UART2 TX (to scanner)  |
-| OLED SDA   | GPIO21          | D21         | I2C data               |
-| OLED SCL   | GPIO22          | D22         | I2C clock              |
-| Button     | GPIO25          | D25         | Active-low, pull-up    |
+| Device   | ESP32 Pin | Board Label | Function                |
+| -------- | --------- | ----------- | ----------------------- |
+| GM67 TX  | GPIO16    | D16         | UART2 RX (from scanner) |
+| GM67 RX  | GPIO17    | D17         | UART2 TX (to scanner)   |
+| OLED SDA | GPIO21    | D21         | I2C data                |
+| OLED SCL | GPIO22    | D22         | I2C clock               |
+| Button   | GPIO25    | D25         | Active-low, pull-up     |
 
 All five GPIOs are free from ESP32 strapping pin conflicts — they won't interfere with boot mode.
 
 ### Strapping Pins to Avoid
 
-| Pin    | Why                              |
-| ------ | -------------------------------- |
-| GPIO0  | Boot mode select — don't use     |
-| GPIO2  | Must be LOW/floating at boot     |
-| GPIO5  | VSPI CS — must be HIGH at boot   |
-| GPIO12 | Voltage select — HIGH can brick  |
-| GPIO15 | Must be HIGH at boot             |
+| Pin    | Why                             |
+| ------ | ------------------------------- |
+| GPIO0  | Boot mode select — don't use    |
+| GPIO2  | Must be LOW/floating at boot    |
+| GPIO5  | VSPI CS — must be HIGH at boot  |
+| GPIO12 | Voltage select — HIGH can brick |
+| GPIO15 | Must be HIGH at boot            |
 
 ---
 
 ## Logic Levels — No Level Shifter Needed
 
-| Device               | Supply | UART Logic | Notes                              |
-| -------------------- | ------ | ---------- | ---------------------------------- |
-| ESP32 (ESP-WROOM-32) | 3.3 V  | 3.3 V TTL  | GPIOs are **not** 5 V tolerant     |
-| GM67 breakout        | 5 V in | 3.3 V TTL  | Internal engine runs at 3.3 V      |
+| Device               | Supply | UART Logic | Notes                          |
+| -------------------- | ------ | ---------- | ------------------------------ |
+| ESP32 (ESP-WROOM-32) | 3.3 V  | 3.3 V TTL  | GPIOs are **not** 5 V tolerant |
+| GM67 breakout        | 5 V in | 3.3 V TTL  | Internal engine runs at 3.3 V  |
 
 The GM67's TX/RX signals are 3.3 V regardless of whether the breakout board is powered from 5 V or 3.3 V. **Direct connection to the ESP32 is safe.** No level shifter, no voltage divider.
 
@@ -79,9 +79,9 @@ The GM67 draws up to 350 mA when the illumination LED and aiming laser fire simu
 
 Place these **as close to the GM67 VCC/GND pins as possible**:
 
-| Capacitor    | Value       | Purpose                                    |
-| ------------ | ----------- | ------------------------------------------ |
-| C1 (ceramic) | 100 nF      | High-frequency switching noise suppression |
+| Capacitor    | Value       | Purpose                                       |
+| ------------ | ----------- | --------------------------------------------- |
+| C1 (ceramic) | 100 nF      | High-frequency switching noise suppression    |
 | C2 (bulk)    | 470 µF 10 V | Absorbs the ~350 mA inrush when scanner fires |
 
 The 470 µF bulk cap is the single most important passive component. Without it, the GM67's current spike can pull the USB 5 V rail low enough to brownout the ESP32 — even with separate regulators, because they share the same 5 V input.
@@ -90,11 +90,11 @@ The 470 µF bulk cap is the single most important passive component. Without it,
 
 ### Power Budget
 
-| Consumer                      | Typical | Peak     |
-| ----------------------------- | ------- | -------- |
-| ESP32 (WiFi active)           | ~120 mA | ~500 mA  |
-| GM67 (idle / IR sensing)      | ~55 mA  | ~60 mA   |
-| GM67 (active scan: LED+laser) | ~200 mA | ~350 mA  |
+| Consumer                      | Typical | Peak        |
+| ----------------------------- | ------- | ----------- |
+| ESP32 (WiFi active)           | ~120 mA | ~500 mA     |
+| GM67 (idle / IR sensing)      | ~55 mA  | ~60 mA      |
+| GM67 (active scan: LED+laser) | ~200 mA | ~350 mA     |
 | **Combined worst case**       |         | **~850 mA** |
 
 Use a USB power source rated for at least 1 A. A phone charger (2 A+) works well. Avoid unpowered USB hubs and PC USB 2.0 ports (500 mA limit).
@@ -103,7 +103,7 @@ Use a USB power source rated for at least 1 A. A phone charger (2 A+) works well
 
 ## EN Pin Stability
 
-Many cheap ESP32 devkit boards (especially the 28-pin Dx-labeled ones from AliExpress) have a **weak or missing pull-up on the EN (enable) pin**. Symptoms:
+Many cheap ESP32 devkit boards (especially the 30-pin Dx-labeled ones from AliExpress) have a **weak or missing pull-up on the EN (enable) pin**. Symptoms:
 
 - Random resets during operation
 - Won't boot after power cycle
@@ -111,10 +111,10 @@ Many cheap ESP32 devkit boards (especially the 28-pin Dx-labeled ones from AliEx
 
 **Fix:** Solder a 10 kΩ resistor from EN → 3.3 V and a 100 nF capacitor from EN → GND, as close to the EN pin as possible.
 
-| Component    | Value  | Connection    | Purpose                  |
-| ------------ | ------ | ------------- | ------------------------ |
-| R_EN         | 10 kΩ  | EN → 3V3      | Holds EN high            |
-| C_EN         | 100 nF | EN → GND      | Filters noise glitches   |
+| Component | Value  | Connection | Purpose                |
+| --------- | ------ | ---------- | ---------------------- |
+| R_EN      | 10 kΩ  | EN → 3V3   | Holds EN high          |
+| C_EN      | 100 nF | EN → GND   | Filters noise glitches |
 
 > If your board boots reliably without these, skip them. But if you see random resets, this is almost always the fix.
 
@@ -123,7 +123,7 @@ Many cheap ESP32 devkit boards (especially the 28-pin Dx-labeled ones from AliEx
 ## Wiring Diagram
 
 ```
-               ESP-WROOM-32 (28-pin, Dx labels)
+               ESP-WROOM-32 (30-pin, Dx labels)
                  ┌──────────────────┐
            USB ──┤ VIN(5V)    3V3   ├──────────────────── OLED VCC (3.3V)
                  │                  │
@@ -170,18 +170,18 @@ Many cheap ESP32 devkit boards (especially the 28-pin Dx-labeled ones from AliEx
 
 ### Wire-by-Wire Checklist
 
-| # | From                       | To               | Color  | Notes                                    |
-| - | -------------------------- | ---------------- | ------ | ---------------------------------------- |
-| 1 | ESP32 **VIN/5V**           | GM67 **VCC**     | Red    | 5V power to breakout                     |
-| 2 | ESP32 **GND**              | GM67 **GND**     | Black  | Common ground — mandatory                |
-| 3 | ESP32 **D17/GPIO17** (TX2) | GM67 **RX**      | Yellow | ESP sends commands to scanner            |
-| 4 | ESP32 **D16/GPIO16** (RX2) | GM67 **TX**      | Green  | Scanner sends barcodes to ESP            |
-| 5 | ESP32 **3V3**              | OLED **VCC**     | Red    | 3.3V power to OLED                       |
-| 6 | ESP32 **GND**              | OLED **GND**     | Black  | OLED ground                              |
-| 7 | ESP32 **D22/GPIO22**       | OLED **SCL**     | Blue   | I2C clock                                |
-| 8 | ESP32 **D21/GPIO21**       | OLED **SDA**     | White  | I2C data                                 |
-| 9 | ESP32 **D25/GPIO25**       | Button **leg 1** | Orange | Internal pull-up, active-low             |
-| 10| ESP32 **GND**              | Button **leg 2** | Black  | Button connects GPIO25 to GND on press   |
+| #   | From                       | To               | Color  | Notes                                  |
+| --- | -------------------------- | ---------------- | ------ | -------------------------------------- |
+| 1   | ESP32 **VIN/5V**           | GM67 **VCC**     | Red    | 5V power to breakout                   |
+| 2   | ESP32 **GND**              | GM67 **GND**     | Black  | Common ground — mandatory              |
+| 3   | ESP32 **D17/GPIO17** (TX2) | GM67 **RX**      | Yellow | ESP sends commands to scanner          |
+| 4   | ESP32 **D16/GPIO16** (RX2) | GM67 **TX**      | Green  | Scanner sends barcodes to ESP          |
+| 5   | ESP32 **3V3**              | OLED **VCC**     | Red    | 3.3V power to OLED                     |
+| 6   | ESP32 **GND**              | OLED **GND**     | Black  | OLED ground                            |
+| 7   | ESP32 **D22/GPIO22**       | OLED **SCL**     | Blue   | I2C clock                              |
+| 8   | ESP32 **D21/GPIO21**       | OLED **SDA**     | White  | I2C data                               |
+| 9   | ESP32 **D25/GPIO25**       | Button **leg 1** | Orange | Internal pull-up, active-low           |
+| 10  | ESP32 **GND**              | Button **leg 2** | Black  | Button connects GPIO25 to GND on press |
 
 > **No external pull-ups needed** — the SSD1306 breakout has I2C pull-ups onboard, and the button uses the ESP32's internal pull-up (~45 kΩ).
 
@@ -195,7 +195,7 @@ Many cheap ESP32 devkit boards (especially the 28-pin Dx-labeled ones from AliEx
     ┌───────────────────────────────────────────┐
     │  ┌──────────────┐         ┌────────────┐  │
     │  │ ESP-WROOM-32 │         │   GM67     │  │
-    │  │  (28-pin)    │  wires  │  breakout  │  │
+    │  │  (30-pin)    │  wires  │  breakout  │  │
     │  │              ├────────►│            │  │
     │  │              │         │            │  │
     │  │  D22,D21─────┼────┐    └─────┬──────┘  │
@@ -212,6 +212,7 @@ Many cheap ESP32 devkit boards (especially the 28-pin Dx-labeled ones from AliEx
 ```
 
 **Tips:**
+
 - Place **C1 and C2** directly adjacent to the GM67 VCC/GND pins — short traces minimize inductance
 - Place **R_EN + C_EN** as close to the EN pin as possible
 - Keep UART wires short and away from the USB connector and WiFi antenna
