@@ -152,6 +152,11 @@ text_sensor:
     id: barcode_raw
     on_value:
       then:
+        # Cancel any running display scripts so the scan owns the screen
+        - script.stop: standby_timer
+        - script.stop: show_ready
+        - script.stop: wake_display_result
+        - script.stop: wake_display_status
         - lambda: |-
             id(scan_count_val) += 1;
             id(scan_count).publish_state(id(scan_count_val));
@@ -253,47 +258,47 @@ script:
   - id: show_ready
     mode: restart
     then:
+      - script.stop: standby_timer
       - lambda: "id(oled).turn_on();"
       - text_sensor.template.publish:
           id: screen_mode
           state: "ready"
-      - delay: 5s
-      - text_sensor.template.publish:
-          id: screen_mode
-          state: "standby"
-      - lambda: "id(oled).turn_off();"
+      - script.execute: standby_timer
 
   - id: wake_display_result
     mode: restart
     then:
-      - lambda: "id(oled).turn_on();"
+      - script.stop: standby_timer
+      - script.stop: show_ready
+      - script.stop: wake_display_status
       - if:
           condition:
-            lambda: 'return id(last_barcode).state.empty();'
-          then:
-            - script.execute: wake_display_status
+            lambda: 'return id(screen_mode).state == "scanning";'
+          then: []   # don't interrupt an active scan
           else:
-            - text_sensor.template.publish:
-                id: screen_mode
-                state: "result"
-            - delay: !lambda "return id(display_timeout).state * 1000;"
-            - text_sensor.template.publish:
-                id: screen_mode
-                state: "standby"
-            - lambda: "id(oled).turn_off();"
+            - lambda: "id(oled).turn_on();"
+            - if:
+                condition:
+                  lambda: 'return id(last_barcode).state.empty();'
+                then:
+                  - script.execute: wake_display_status
+                else:
+                  - text_sensor.template.publish:
+                      id: screen_mode
+                      state: "result"
+                  - script.execute: standby_timer
 
   - id: wake_display_status
     mode: restart
     then:
+      - script.stop: standby_timer
+      - script.stop: show_ready
+      - script.stop: wake_display_result
       - lambda: "id(oled).turn_on();"
       - text_sensor.template.publish:
           id: screen_mode
           state: "status"
-      - delay: !lambda "return id(display_timeout).state * 1000;"
-      - text_sensor.template.publish:
-          id: screen_mode
-          state: "standby"
-      - lambda: "id(oled).turn_off();"
+      - script.execute: standby_timer
 
 # Scan counter + diagnostics
 sensor:
