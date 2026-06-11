@@ -14,6 +14,7 @@ substitutions:
   oled_address: "0x3C"
 
 esphome:
+  compile_process_limit: 1
   name: barcode-scanner
   friendly_name: ${friendly_name}
   on_boot:
@@ -309,6 +310,14 @@ script:
           state: "status"
       - script.execute: standby_timer
 
+  # Long-press detection: fires at 1s threshold while button is still held
+  - id: long_press_timer
+    mode: restart
+    then:
+      - delay: 1s
+      - lambda: "id(long_press_fired) = true;"
+      - script.execute: wake_display_status
+
 # Scan counter + diagnostics
 sensor:
   - platform: template
@@ -336,6 +345,11 @@ globals:
     restore_value: true
     initial_value: "0"
 
+  - id: long_press_fired
+    type: bool
+    restore_value: false
+    initial_value: "false"
+
 #######################################################################################################
 # OLED Display (SSD1306 128x64 I2C) + Button + Timeout
 #######################################################################################################
@@ -359,18 +373,28 @@ font:
     glyphs: ' ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-!?:ÄÖÜäöüß'
 
   # MDI icons — only the specific icons we use
+  # Source: official Pictogrammers repo (linked from ESPHome font docs)
   - file:
       type: web
-      url: "https://github.com/Templarian/MaterialDesign-Webfont/raw/master/fonts/materialdesignicons-webfont.ttf"
+      url: "https://github.com/Pictogrammers/pictogrammers.github.io/raw/main/%40mdi/font/7.4.47/fonts/materialdesignicons-webfont.ttf"
     id: font_icons
     size: 18
+    glyphsets: []
     glyphs:
       - "\U000F05E0" # mdi:check-circle
       - "\U000F0026" # mdi:alert
       - "\U000F0159" # mdi:close-circle
-      - "\U000F05A9" # mdi:wifi
-      - "\U000F092D" # mdi:wifi-off
-      - "\U000F029A" # mdi:barcode-scan
+      - "\U000F0072" # mdi:barcode-scan
+
+  # Large MDI icon for splash/connecting screen
+  - file:
+      type: web
+      url: "https://github.com/Pictogrammers/pictogrammers.github.io/raw/main/%40mdi/font/7.4.47/fonts/materialdesignicons-webfont.ttf"
+    id: font_icons_large
+    size: 32
+    glyphsets: []
+    glyphs:
+      - "\U000F0072" # mdi:barcode-scan
 
 # OLED display — off by default, wakes on scan or button press
 display:
@@ -394,9 +418,10 @@ display:
 
       if (mode == "connecting") {
         it.fill(COLOR_OFF);
-        it.printf(24, 16, id(font_icons), "\U000F029A");  // barcode-scan
-        it.printf(46, 10, id(font_heading), "Barcode");
-        it.printf(46, 26, id(font_heading), "Scanner");
+        // Icon (32px) + 8px gap + text (~52px) = ~92px → left margin 18px
+        it.printf(18, 6, id(font_icons_large), "\U000F0072");  // barcode-scan (32px)
+        it.printf(58, 7, id(font_heading), "Barcode");
+        it.printf(58, 23, id(font_heading), "Scanner");
         it.printf(64, 48, id(font_body), TextAlign::TOP_CENTER, "Connecting...");
         return;
       }
@@ -510,6 +535,8 @@ display:
       }
 
 # Physical button — short press shows last result, long press shows status
+# Uses on_press/on_release for instant feedback: status screen appears the
+# moment the 1s threshold is reached (no need to guess and release).
 binary_sensor:
   - platform: gpio
     pin:
@@ -521,15 +548,18 @@ binary_sensor:
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms
-    on_click:
-      - min_length: 50ms
-        max_length: 1000ms
-        then:
-          - script.execute: wake_display_result
-      - min_length: 1000ms
-        max_length: 5000ms
-        then:
-          - script.execute: wake_display_status
+    on_press:
+      then:
+        - lambda: "id(long_press_fired) = false;"
+        - script.execute: long_press_timer
+    on_release:
+      then:
+        - script.stop: long_press_timer
+        - if:
+            condition:
+              lambda: "return !id(long_press_fired);"
+            then:
+              - script.execute: wake_display_result
 
 # Configurable standby timeout — adjustable from HA
 number:
