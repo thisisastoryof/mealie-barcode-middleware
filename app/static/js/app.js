@@ -13,6 +13,36 @@
         return d.innerHTML;
     }
 
+    // ─── Flash Toasts (URL-param driven) ───────────────────────────────────────
+    // Show a toast when the page loads with ?saved=1 (or similar flags).
+    // Cleans the URL param afterwards so refresh doesn't re-trigger.
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        if (!params.has('saved')) return;
+        var container = document.getElementById('scan-toasts');
+        if (!container) return;
+
+        var toast = document.createElement('div');
+        toast.className = 'toast show';
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        toast.innerHTML = '<div class="toast-header">'
+            + '<span class="avatar avatar-xs me-2 bg-success">'
+            + '<i class="ti ti-check icon-sm text-white"></i></span>'
+            + '<strong class="me-auto">Settings saved</strong>'
+            + '<button type="button" class="ms-2 btn-close" data-bs-dismiss="toast" aria-label="Close"></button>'
+            + '</div>'
+            + '<div class="toast-body">Changes take effect immediately — no restart needed.</div>';
+        container.prepend(toast);
+        setTimeout(function() { if (toast.parentNode) toast.remove(); }, 6000);
+
+        // Clean URL so refresh won't re-show
+        params.delete('saved');
+        var clean = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+        window.history.replaceState(null, '', clean);
+    })();
+
     // ─── Theme Toggle ────────────────────────────────────────────────────────────
     var toggleDark = document.getElementById('theme-toggle-dark');
     var toggleLight = document.getElementById('theme-toggle-light');

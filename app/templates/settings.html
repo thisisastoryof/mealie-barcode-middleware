@@ -14,15 +14,6 @@
 <!-- END PAGE HEADER -->
 
 <!-- BEGIN PAGE BODY -->
-{% if saved %}
-<div class="alert alert-success alert-dismissible mt-3 mb-0">
-    <div class="d-flex">
-        <div><i class="ti ti-check icon alert-icon"></i></div>
-        <div>Settings saved. Changes take effect immediately — no restart needed.</div>
-    </div>
-    <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
-</div>
-{% endif %}
 
 <div class="card">
     <div class="row g-0">
@@ -126,7 +117,7 @@
                     </div>
                     {% endif %}
                 </div>
-                {% if config_groups %}
+                {% if has_editable %}
                 <div class="card-footer bg-transparent mt-auto">
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">

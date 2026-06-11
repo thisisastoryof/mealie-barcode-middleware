@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="/static/vendor/inter/inter.css">
     <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
     <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
-    <link rel="stylesheet" href="/static/css/app.css">
-    <script src="/static/js/theme-init.js"></script>
+    <link rel="stylesheet" href="/static/css/app.css?v={{ v }}">
+    <script src="/static/js/theme-init.js?v={{ v }}"></script>
 </head>
 <body>
     <div class="page">
@@ -131,8 +131,8 @@
         </div>
     </div>
     <script src="/static/vendor/tabler/js/tabler.min.js"></script>
-    <script src="/static/js/app.js"></script>
-    <script src="/static/js/confirm-actions.js"></script>
+    <script src="/static/js/app.js?v={{ v }}"></script>
+    <script src="/static/js/confirm-actions.js?v={{ v }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

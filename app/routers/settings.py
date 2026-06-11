@@ -92,6 +92,7 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
     # Filter groups for the active tab
     active_groups = _TAB_GROUPS.get(tab, [])
     tab_groups = [(name, items) for name, items in all_groups if name in active_groups]
+    has_editable = any(item["editable"] for _, items in tab_groups for item in items)
     tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all() if tab == "tokens" else []
     saved = request.query_params.get("saved")
 
@@ -103,6 +104,7 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
         "current_tab": tab,
         "current_tab_label": tab_label,
         "config_groups": tab_groups,
+        "has_editable": has_editable,
         "tokens": tokens,
         "new_token": None,
         "saved": saved,
