@@ -484,7 +484,7 @@ display:
 
       if (mode == "status") {
         it.fill(COLOR_OFF);
-        it.printf(0, 0, id(font_heading), "Barcode Scanner");
+        it.printf(0, 0, id(font_heading), "Device Status");
 
         // WiFi signal bar
         float rssi_f = id(wifi_rssi).state;
