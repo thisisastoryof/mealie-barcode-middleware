@@ -56,56 +56,55 @@
             <form method="post" action="/settings/configuration">
                 <input type="hidden" name="_tab" value="{{ current_tab }}">
                 <div class="card-body">
-                    <h2 class="mb-4">{{ current_tab_label }}</h2>
+                    <h2 class="mb-1">{{ current_tab_label }}</h2>
+                    {% if tab_description %}
+                    <p class="card-subtitle">{{ tab_description }}</p>
+                    {% endif %}
 
-                    {% for group_name, items in config_groups %}
-                    <h3 class="card-title{% if not loop.first %} mt-4{% endif %}"
-                        >{{ group_name }}</h3>
+                    {% for group_name, sections in config_groups %}
+                    {% for section_name, items in sections %}
+
+                    {# ── Section heading ── #}
+                    {% if section_name %}
+                    <h3 class="card-title mt-4">{{ section_name }}</h3>
+                    {% if section_name in section_descriptions %}
+                    <p class="card-subtitle">{{ section_descriptions[section_name] }}</p>
+                    {% endif %}
+                    {% endif %}
 
                     {% set editable_items = items|selectattr('editable')|list %}
                     {% set readonly_items = items|rejectattr('editable')|list %}
 
-                    {# ── Readonly fields: compact row ── #}
-                    {% if readonly_items %}
-                    <div class="row g-3 mb-3">
-                        {% for item in readonly_items %}
-                        <div class="col-md">
-                            <div class="form-label" data-bs-toggle="tooltip" data-bs-placement="top"
-                                title="{{ item.key }}">{{ item.description }}</div>
-                            <div class="form-control-plaintext text-secondary">
-                                <i class="ti ti-lock icon-sm text-muted me-1"></i>{{ item.value }}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
                     {# ── Editable fields ── #}
                     {% if editable_items %}
-                    <div class="row g-3">
+                    <div class="row g-3 {% if not section_name %}mt-3{% endif %}">
                         {% for item in editable_items %}
+
                         {% if item.type == 'bool' %}
+                        {# ── Toggle switch ── #}
                         <div class="col-12">
-                            <label class="form-check form-switch" data-bs-toggle="tooltip" data-bs-placement="top"
-                                title="{{ item.key }}">
-                                <input class="form-check-input" type="checkbox"
-                                    name="setting_{{ item.field }}" id="setting_{{ item.field }}"
-                                    value="true" data-default="{{ item.env_default }}"
-                                    {% if item.value == 'True' %}checked{% endif %}>
-                                <span class="form-check-label">{{ item.description }}</span>
-                                <button type="button" class="btn btn-sm btn-ghost-secondary ms-1 btn-reset"
+                            <div class="d-flex align-items-center">
+                                <label class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox"
+                                        name="setting_{{ item.field }}" id="setting_{{ item.field }}"
+                                        value="true" data-default="{{ item.env_default }}"
+                                        {% if item.value == 'True' %}checked{% endif %}>
+                                    <span class="form-check-label">{{ item.description }}</span>
+                                </label>
+                                <button type="button" class="btn btn-sm btn-ghost-secondary ms-2 btn-reset"
                                     title="Reset to default" disabled>
                                     <i class="ti ti-restore icon-sm"></i>
                                 </button>
-                            </label>
+                            </div>
                             {% if item.hint %}
                             <small class="form-hint">{{ item.hint }}</small>
                             {% endif %}
                         </div>
+
                         {% elif item.type == 'choice' %}
-                        <div class="col-md">
-                            <div class="form-label" data-bs-toggle="tooltip" data-bs-placement="top"
-                                title="{{ item.key }}">{{ item.description }}</div>
+                        {# ── Dropdown select ── #}
+                        <div class="col-md-6">
+                            <label class="form-label" for="setting_{{ item.field }}">{{ item.description }}</label>
                             <div class="input-group">
                                 <select class="form-select" name="setting_{{ item.field }}" id="setting_{{ item.field }}"
                                     data-default="{{ item.env_default }}">
@@ -122,10 +121,11 @@
                             <small class="form-hint">{{ item.hint }}</small>
                             {% endif %}
                         </div>
+
                         {% elif item.type == 'int' %}
-                        <div class="col-md">
-                            <div class="form-label" data-bs-toggle="tooltip" data-bs-placement="top"
-                                title="{{ item.key }}">{{ item.description }}</div>
+                        {# ── Number input ── #}
+                        <div class="col-md-6">
+                            <label class="form-label" for="setting_{{ item.field }}">{{ item.description }}</label>
                             <div class="input-group">
                                 <input type="number" class="form-control"
                                     name="setting_{{ item.field }}" id="setting_{{ item.field }}"
@@ -141,10 +141,11 @@
                             <small class="form-hint">{{ item.hint }}</small>
                             {% endif %}
                         </div>
+
                         {% else %}
-                        <div class="col-md">
-                            <div class="form-label" data-bs-toggle="tooltip" data-bs-placement="top"
-                                title="{{ item.key }}">{{ item.description }}</div>
+                        {# ── Text input ── #}
+                        <div class="col-md-6">
+                            <label class="form-label" for="setting_{{ item.field }}">{{ item.description }}</label>
                             <div class="input-group">
                                 <input type="text" class="form-control"
                                     name="setting_{{ item.field }}" id="setting_{{ item.field }}"
@@ -160,15 +161,31 @@
                             {% endif %}
                         </div>
                         {% endif %}
+
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {# ── Readonly fields ── #}
+                    {% if readonly_items %}
+                    <div class="row g-3 {% if editable_items %}mt-2{% elif not section_name %}mt-3{% endif %}">
+                        {% for item in readonly_items %}
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary mb-1">
+                                <i class="ti ti-lock icon-sm text-muted me-1"></i>{{ item.description }}
+                            </label>
+                            <div class="form-control-plaintext pt-0">{{ item.value }}</div>
+                        </div>
                         {% endfor %}
                     </div>
                     {% endif %}
 
                     {% endfor %}
+                    {% endfor %}
 
                     {% if not config_groups %}
                     <div class="empty">
-                        <p class="empty-title">No editable settings on this tab</p>
+                        <p class="empty-title">No settings on this tab</p>
                         <p class="empty-subtitle text-secondary">These settings are configured via environment variables in <code>.env</code>.</p>
                     </div>
                     {% endif %}
@@ -189,13 +206,16 @@
             {% else %}
 
             <div class="card-body">
-                <h2 class="mb-4">API Tokens</h2>
+                <h2 class="mb-1">API Tokens</h2>
+                {% if tab_description %}
+                <p class="card-subtitle">{{ tab_description }}</p>
+                {% endif %}
 
                 {% if new_token %}
-                <div class="alert alert-success alert-dismissible">
+                <div class="alert alert-success alert-dismissible mt-3 mb-0">
                     <h4 class="alert-title">Token created: {{ new_token_name }}</h4>
                     <p>Copy this token now — it will <strong>not</strong> be shown again:</p>
-                    <div class="input-group mb-2" style="max-width: 500px;">
+                    <div class="input-group" style="max-width: 500px;">
                         <input type="text" class="form-control font-monospace" value="{{ new_token }}" id="new-token-value" readonly>
                         <button class="btn btn-outline-secondary" type="button" data-copy-target="new-token-value">
                             <i class="ti ti-copy icon-sm"></i> Copy
@@ -204,11 +224,11 @@
                 </div>
                 {% endif %}
 
-                <h3 class="card-title">Create New Token</h3>
+                <h3 class="card-title mt-4">Create Token</h3>
                 <form method="post" action="/settings/tokens/create">
-                    <div class="row g-2 align-items-end mb-4">
+                    <div class="row g-2 align-items-end">
                         <div class="col-auto">
-                            <label class="form-label" for="token-name">Token Name</label>
+                            <label class="form-label" for="token-name">Token name</label>
                             <input type="text" name="name" id="token-name" class="form-control" placeholder="e.g. Kitchen scanner" required>
                         </div>
                         <div class="col-auto">

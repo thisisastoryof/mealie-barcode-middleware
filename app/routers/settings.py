@@ -21,38 +21,40 @@ _GROUP_ORDER = [
     "System",
 ]
 
+# Tab-level descriptions shown below the heading
+_TAB_DESCRIPTIONS = {
+    "mealie": "Connection details for your Mealie instance. Set via environment variables.",
+    "lookup": "Configure which product databases to query and how they interact.",
+    "matching": "Control how scanned products are matched and synced with Mealie.",
+    "system": "General system configuration.",
+    "tokens": "Bearer tokens for authenticating scanner devices.",
+}
+
+# Section-level descriptions shown below section headings
+_SECTION_DESCRIPTIONS = {
+    "Data Sources": "Enable the product databases used for barcode lookups.",
+    "Strategy": "Control how multiple data sources work together.",
+    "Fuzzy Matching": "How product names are compared against your Mealie food catalog.",
+    "Scheduling & Retry": "How often data is refreshed and how failures are handled.",
+    "Infrastructure": "Configured via environment variables.",
+}
+
 
 def _build_config_groups():
-    """Build the config groups with editable/readonly metadata for the template."""
-    groups: dict[str, list] = {g: [] for g in _GROUP_ORDER}
+    """Build config groups with section sub-grouping for the template.
 
-    # Readonly settings first (within each group)
-    for key, meta in READONLY_SETTINGS.items():
-        group = meta["group"]
-        if meta.get("secret"):
-            val = "***" if getattr(settings, key) else "(not set)"
-        else:
-            val = getattr(settings, key)
-            if val is None or val == "":
-                val = "(not set)"
-            else:
-                val = str(val)
-        groups.setdefault(group, []).append({
-            "key": meta["label"],
-            "field": key,
-            "value": val,
-            "description": meta["description"],
-            "hint": meta.get("hint"),
-            "editable": False,
-        })
+    Returns [(group_name, [(section_name, [items])])].
+    Within each section, editable items appear before readonly items.
+    """
+    group_items: dict[str, list] = {g: [] for g in _GROUP_ORDER}
 
-    # Editable settings
+    # Process editable first so they appear before readonly within sections
     for key, meta in EDITABLE_SETTINGS.items():
         group = meta["group"]
         val = settings.get_display_value(key)
         overridden = settings.is_overridden(key)
         env_default = str(settings.get_env_default(key))
-        groups.setdefault(group, []).append({
+        group_items.setdefault(group, []).append({
             "key": meta["label"],
             "field": key,
             "value": val,
@@ -65,9 +67,48 @@ def _build_config_groups():
             "choices": meta.get("choices"),
             "min": meta.get("min"),
             "max": meta.get("max"),
+            "section": meta.get("section", ""),
         })
 
-    return [(g, groups[g]) for g in _GROUP_ORDER if groups.get(g)]
+    # Then readonly
+    for key, meta in READONLY_SETTINGS.items():
+        group = meta["group"]
+        if meta.get("secret"):
+            val = "***" if getattr(settings, key) else "(not set)"
+        else:
+            val = getattr(settings, key)
+            if val is None or val == "":
+                val = "(not set)"
+            else:
+                val = str(val)
+        group_items.setdefault(group, []).append({
+            "key": meta["label"],
+            "field": key,
+            "value": val,
+            "description": meta["description"],
+            "hint": meta.get("hint"),
+            "editable": False,
+            "section": meta.get("section", ""),
+        })
+
+    # Sub-group items by section within each group, preserving insertion order
+    result = []
+    for g in _GROUP_ORDER:
+        items = group_items.get(g)
+        if not items:
+            continue
+        section_map: dict[str, list] = {}
+        section_order: list[str] = []
+        for item in items:
+            sec = item["section"]
+            if sec not in section_map:
+                section_map[sec] = []
+                section_order.append(sec)
+            section_map[sec].append(item)
+        sections = [(s, section_map[s]) for s in section_order]
+        result.append((g, sections))
+
+    return result
 
 
 # Tab definitions: id → (label, icon, group heading)
@@ -93,10 +134,14 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
     all_groups = _build_config_groups()
     # Filter groups for the active tab
     active_groups = _TAB_GROUPS.get(tab, [])
-    tab_groups = [(name, items) for name, items in all_groups if name in active_groups]
-    has_editable = any(item["editable"] for _, items in tab_groups for item in items)
+    tab_groups = [(name, sections) for name, sections in all_groups if name in active_groups]
+    has_editable = any(
+        item["editable"]
+        for _, sections in tab_groups
+        for _, items in sections
+        for item in items
+    )
     tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all() if tab == "tokens" else []
-    saved = request.query_params.get("saved")
 
     # Resolve the current tab label for the content heading
     tab_label = next((label for tid, label, _ in _TABS if tid == tab), tab.title())
@@ -105,11 +150,12 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
         "tabs": _TABS,
         "current_tab": tab,
         "current_tab_label": tab_label,
+        "tab_description": _TAB_DESCRIPTIONS.get(tab, ""),
+        "section_descriptions": _SECTION_DESCRIPTIONS,
         "config_groups": tab_groups,
         "has_editable": has_editable,
         "tokens": tokens,
         "new_token": None,
-        "saved": saved,
     })
 
 
@@ -186,9 +232,10 @@ def create_token(request: Request, name: str = Form(...), db: Session = Depends(
         "tokens": tokens,
         "current_tab": "tokens",
         "current_tab_label": "API Tokens",
+        "tab_description": _TAB_DESCRIPTIONS.get("tokens", ""),
+        "section_descriptions": _SECTION_DESCRIPTIONS,
         "new_token": raw,
         "new_token_name": name,
-        "saved": None,
     })
 
 

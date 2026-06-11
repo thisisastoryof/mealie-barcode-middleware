@@ -49,6 +49,7 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "description": "Open Food Facts",
         "hint": "Community-maintained product database. Best coverage for EU grocery items.",
         "group": "Barcode Lookup Sources",
+        "section": "Data Sources",
     },
     "upcdb_enabled": {
         "type": "bool",
@@ -56,14 +57,16 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "description": "UPC Database",
         "hint": "Commercial API (requires API key). Better coverage for US products.",
         "group": "Barcode Lookup Sources",
+        "section": "Data Sources",
     },
     "lookup_strategy": {
         "type": "choice",
         "label": "LOOKUP_STRATEGY",
         "description": "Lookup strategy",
-        "hint": "Failover: secondary only when primary returns nothing. Complement: fill missing fields from secondary.",
+        "hint": "Failover: try secondary only when primary returns nothing. Complement: fill missing fields from the secondary source.",
         "choices": ["failover", "complement"],
         "group": "Barcode Lookup Sources",
+        "section": "Strategy",
     },
     "lookup_primary": {
         "type": "choice",
@@ -72,6 +75,7 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "hint": "Which API is queried first. The other becomes the fallback or complement source.",
         "choices": ["off", "upcdb"],
         "group": "Barcode Lookup Sources",
+        "section": "Strategy",
     },
     "lookup_enrich_in_background": {
         "type": "bool",
@@ -79,6 +83,7 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "description": "Background enrichment",
         "hint": "In complement mode, run the secondary lookup after responding to the scanner for faster scans.",
         "group": "Barcode Lookup Sources",
+        "section": "Strategy",
     },
     # Matching & Sync
     "fuzzy_match_threshold": {
@@ -89,6 +94,7 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "min": 0,
         "max": 100,
         "group": "Matching & Sync",
+        "section": "Fuzzy Matching",
     },
     "fuzzy_ambiguity_gap": {
         "type": "int",
@@ -98,24 +104,27 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "min": 0,
         "max": 50,
         "group": "Matching & Sync",
+        "section": "Fuzzy Matching",
     },
     "item_sync_interval_hours": {
         "type": "int",
         "label": "ITEM_SYNC_INTERVAL_HOURS",
-        "description": "Item sync interval",
+        "description": "Sync interval",
         "hint": "How often the Mealie item list is re-synced (in hours). Lower values increase API calls.",
         "min": 1,
         "max": 168,
         "group": "Matching & Sync",
+        "section": "Scheduling & Retry",
     },
     "lookup_ttl_days": {
         "type": "int",
         "label": "LOOKUP_TTL_DAYS",
-        "description": "Lookup cache TTL",
+        "description": "Cache TTL",
         "hint": "Days before a cached barcode lookup expires and is re-fetched from the API.",
         "min": 1,
         "max": 365,
         "group": "Matching & Sync",
+        "section": "Scheduling & Retry",
     },
     "max_retry_attempts": {
         "type": "int",
@@ -125,6 +134,7 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "min": 1,
         "max": 100,
         "group": "Matching & Sync",
+        "section": "Scheduling & Retry",
     },
     # System
     "timezone": {
@@ -133,13 +143,7 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "description": "Timezone",
         "hint": "IANA timezone for timestamps and scheduling (e.g. Europe/Berlin, America/New_York).",
         "group": "System",
-    },
-    "middleware_base_url": {
-        "type": "str",
-        "label": "MIDDLEWARE_BASE_URL",
-        "description": "Middleware URL",
-        "hint": "Base URL used for deep links in Home Assistant notifications. Leave empty if not using HA.",
-        "group": "System",
+        "section": "General",
     },
     "log_level": {
         "type": "choice",
@@ -148,6 +152,15 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "hint": "Application log verbosity. Use DEBUG for troubleshooting, INFO for normal operation.",
         "choices": ["DEBUG", "INFO", "WARNING", "ERROR"],
         "group": "System",
+        "section": "General",
+    },
+    "middleware_base_url": {
+        "type": "str",
+        "label": "MIDDLEWARE_BASE_URL",
+        "description": "Middleware URL",
+        "hint": "Base URL used for deep links in Home Assistant notifications. Leave empty if not using HA.",
+        "group": "System",
+        "section": "Home Assistant",
     },
 }
 
@@ -156,52 +169,52 @@ READONLY_SETTINGS: dict[str, dict[str, Any]] = {
     "mealie_url": {
         "label": "MEALIE_URL",
         "description": "Mealie URL",
-        "hint": "Base URL of your Mealie instance. Set via environment variable.",
         "group": "Mealie Connection",
+        "section": "",
     },
     "mealie_shopping_list_id": {
         "label": "MEALIE_SHOPPING_LIST_ID",
         "description": "Shopping list ID",
-        "hint": "The Mealie shopping list where scanned items are added.",
         "group": "Mealie Connection",
+        "section": "",
     },
     "mealie_api_key": {
         "label": "MEALIE_API_KEY",
         "description": "API key",
-        "hint": "Mealie API token for authentication. Set via environment variable.",
         "group": "Mealie Connection",
+        "section": "",
         "secret": True,
     },
     "off_url_base": {
         "label": "OFF_URL_BASE",
         "description": "OFF API endpoint",
-        "hint": "Open Food Facts API base URL.",
         "group": "Barcode Lookup Sources",
+        "section": "Data Sources",
     },
     "upcdb_url_base": {
         "label": "UPCDB_URL_BASE",
         "description": "UPCDB API endpoint",
-        "hint": "UPC Database API base URL.",
         "group": "Barcode Lookup Sources",
+        "section": "Data Sources",
     },
     "upcdb_api_key": {
         "label": "UPCDB_API_KEY",
         "description": "UPCDB API key",
-        "hint": "API key for UPC Database lookups. Set via environment variable.",
         "group": "Barcode Lookup Sources",
+        "section": "Data Sources",
         "secret": True,
     },
     "db_path": {
         "label": "DB_PATH",
         "description": "Database path",
-        "hint": "Path to the SQLite database file.",
         "group": "System",
+        "section": "Infrastructure",
     },
     "port": {
         "label": "PORT",
         "description": "HTTP port",
-        "hint": "Port the middleware listens on.",
         "group": "System",
+        "section": "Infrastructure",
     },
 }
 
