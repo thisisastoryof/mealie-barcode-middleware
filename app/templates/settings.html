@@ -75,8 +75,7 @@
                     {% set editable_items = items|selectattr('editable')|list %}
                     {% set readonly_items = items|rejectattr('editable')|list %}
 
-                    {# ── Editable fields ── #}
-                    {% if editable_items %}
+                    {% if editable_items or readonly_items %}
                     <div class="row g-3">
                         {% for item in editable_items %}
 
@@ -163,12 +162,8 @@
                         {% endif %}
 
                         {% endfor %}
-                    </div>
-                    {% endif %}
 
-                    {# ── Readonly fields ── #}
-                    {% if readonly_items %}
-                    <div class="row g-3{% if editable_items %} mt-3{% endif %}">
+                        {# ── Readonly fields ── #}
                         {% for item in readonly_items %}
                         <div class="col-12">
                             <label class="form-label text-secondary mb-1">
