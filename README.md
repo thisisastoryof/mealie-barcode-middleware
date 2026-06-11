@@ -16,7 +16,7 @@ A self-hosted barcode scanner that adds items to your [Mealie](https://mealie.io
 
 ## Features
 
-- **Barcode lookup** — OpenFoodFacts + UPCDatabase with local caching and configurable TTL
+- **Barcode lookup** — OpenFoodFacts + UPCDatabase with configurable strategy (failover or complement), local caching, and configurable TTL
 - **Fuzzy auto-mapping** — Automatically links scanned products to your Mealie food catalog using `rapidfuzz`
 - **Shopping list integration** — Adds via Mealie food ID (with deduplication) or falls back to plain note
 - **Retry queue** — Failed Mealie requests are persisted and retried with exponential backoff
@@ -85,16 +85,18 @@ Point the scanner at a barcode. The middleware looks it up, matches it to your M
 
 All settings via environment variables. See [Middleware Setup](docs/middleware-setup.md) for the full reference.
 
-| Variable                  | Required | Default         | Description                        |
-| ------------------------- | -------- | --------------- | ---------------------------------- |
-| `MEALIE_URL`              | **Yes**  | —               | Mealie instance URL                |
-| `MEALIE_API_KEY`          | **Yes**  | —               | Mealie API token                   |
-| `MEALIE_SHOPPING_LIST_ID` | **Yes**  | —               | Target shopping list UUID          |
-| `OFF_ENABLED`             | No       | `true`          | Enable OpenFoodFacts lookups       |
-| `UPCDB_ENABLED`           | No       | `false`         | Enable UPCDatabase lookups         |
-| `FUZZY_MATCH_THRESHOLD`   | No       | `85`            | Min score for auto-mapping (0–100) |
-| `MIDDLEWARE_BASE_URL`     | No       | (empty)         | URL for notification deep links    |
-| `TIMEZONE`                | No       | `Europe/Berlin` | Timezone for UI timestamps         |
+| Variable                  | Required | Default         | Description                                               |
+| ------------------------- | -------- | --------------- | --------------------------------------------------------- |
+| `MEALIE_URL`              | **Yes**  | —               | Mealie instance URL                                       |
+| `MEALIE_API_KEY`          | **Yes**  | —               | Mealie API token                                          |
+| `MEALIE_SHOPPING_LIST_ID` | **Yes**  | —               | Target shopping list UUID                                 |
+| `OFF_ENABLED`             | No       | `true`          | Enable OpenFoodFacts lookups                              |
+| `UPCDB_ENABLED`           | No       | `false`         | Enable UPCDatabase lookups                                |
+| `LOOKUP_STRATEGY`         | No       | `failover`      | `failover` or `complement` (fill gaps from secondary API) |
+| `LOOKUP_PRIMARY`          | No       | `off`           | Which API is tried first (`off` or `upcdb`)               |
+| `FUZZY_MATCH_THRESHOLD`   | No       | `85`            | Min score for auto-mapping (0–100)                        |
+| `MIDDLEWARE_BASE_URL`     | No       | (empty)         | URL for notification deep links                           |
+| `TIMEZONE`                | No       | `Europe/Berlin` | Timezone for UI timestamps                                |
 
 ## Project Structure
 

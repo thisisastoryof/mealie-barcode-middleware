@@ -26,7 +26,7 @@ When the GM67 scanner reads a barcode, the following steps execute in sequence:
                     ▼
         ┌───────────────────────┐
         │ 3. External lookup    │
-        │    OFF → UPCDatabase  │──not found──► Add barcode as note ──► Done
+        │    (strategy-based)   │──not found──► Add barcode as note ──► Done
         └───────────┬───────────┘
                     │ found
                     ▼
@@ -89,7 +89,17 @@ The middleware queries up to two external product databases:
 - URL: `https://api.upcdatabase.org/product/{barcode}?apikey=KEY`
 - Timeout: 5 seconds
 
-**Lookup order:** OpenFoodFacts is tried first. If it returns no result, UPCDatabase is tried. The first successful result wins — only one source's data is stored per barcode.
+### Lookup Strategies
+
+The order and combination of API calls is controlled by `LOOKUP_STRATEGY` and `LOOKUP_PRIMARY`:
+
+**`failover`** (default) — The primary API (`LOOKUP_PRIMARY`, default `off`) is tried first. If it returns no result at all, the secondary API is tried. The first successful result wins.
+
+**`complement`** — The primary API is tried first. If it finds the product but some fields are empty (e.g. brand or quantity missing), the secondary API is called to fill the gaps. Both sources' data is merged and the `source` field records both (e.g. `openfoodfacts+upcdatabase`).
+
+By default, the secondary call in complement mode runs in the background (`LOOKUP_ENRICH_IN_BACKGROUND=true`), meaning the ESP32 gets its response immediately from the primary API, and the cache is enriched asynchronously. The enriched data appears on the dashboard and is used for future scans of the same barcode.
+
+> **Note:** If only one API is enabled, the strategy has no effect.
 
 ### If Nothing Is Found
 

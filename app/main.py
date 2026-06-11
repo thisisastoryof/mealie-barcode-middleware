@@ -26,6 +26,32 @@ async def lifespan(app: FastAPI):
     # Startup
     init_db()
     logger.info("Database initialized")
+
+    # --- Lookup config validation ---
+    upcdb_usable = settings.upcdb_enabled and bool(settings.upcdb_api_key)
+    if settings.upcdb_enabled and not settings.upcdb_api_key:
+        logger.warning(
+            "UPCDB_ENABLED=True but UPCDB_API_KEY is not set — UPC Database will be skipped"
+        )
+    sources = []
+    if settings.off_enabled:
+        sources.append("OpenFoodFacts")
+    if upcdb_usable:
+        sources.append("UPCDatabase")
+    if sources:
+        primary = "OpenFoodFacts" if settings.lookup_primary == "off" else "UPCDatabase"
+        if primary not in sources:
+            primary = sources[0]
+        logger.info(
+            "Lookup: strategy=%s  primary=%s  sources=%s  background_enrich=%s",
+            settings.lookup_strategy,
+            primary,
+            "+".join(sources),
+            settings.lookup_enrich_in_background,
+        )
+    else:
+        logger.warning("No barcode lookup sources enabled — scans will always be 'not_found'")
+
     if not settings.middleware_base_url:
         logger.info(
             "MIDDLEWARE_BASE_URL not set \u2014 notification action_url will use relative paths. "

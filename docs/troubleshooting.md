@@ -23,7 +23,7 @@ Common issues and their solutions, organized by component.
 If the ESPHome log shows a WDT reset, the HTTP request to the middleware took too long. Check:
 
 1. **Is the middleware running?** Open `http://middleware-ip:9930/health` in a browser
-2. **Are the external APIs slow?** The middleware has 5 s timeouts for OpenFoodFacts and UPCDatabase. If both are slow and Mealie is also slow, total time can approach 13 s. The ESP's HTTP timeout is 14 s, and the WDT is 15 s.
+2. **Are the external APIs slow?** The middleware has 5 s timeouts for OpenFoodFacts and UPCDatabase. In `failover` mode (default), at most two sequential API calls are made if the primary returns nothing — total up to 10 s plus Mealie time. In `complement` mode with `LOOKUP_ENRICH_IN_BACKGROUND=true` (default), only one API call blocks the response — the secondary call runs after the response is sent. If you set `LOOKUP_ENRICH_IN_BACKGROUND=false`, both calls are sequential and total time can approach 13 s. The ESP's HTTP timeout is 14 s, and the WDT is 15 s.
 3. **Is WiFi reception weak?** Check the RSSI value on the status screen (long-press button). Below -80 dBm is unreliable.
 
 ### "Fault — Unknown" Crash

@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     upcdb_url_base: str = "https://api.upcdatabase.org/product/"
     upcdb_api_key: str | None = None
 
+    lookup_strategy: str = "failover"   # failover | complement
+    lookup_primary: str = "off"          # off | upcdb
+    lookup_enrich_in_background: bool = True  # complement: secondary call after response
+
     item_sync_interval_hours: int = 6
     fuzzy_match_threshold: int = 85
     fuzzy_ambiguity_gap: int = 10

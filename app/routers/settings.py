@@ -27,6 +27,9 @@ def settings_page(request: Request, tab: str = Query("configuration"), db: Sessi
             ("UPCDB_ENABLED", str(settings.upcdb_enabled), "Use UPC Database as fallback lookup source"),
             ("UPCDB_URL_BASE", settings.upcdb_url_base, "UPC Database API endpoint"),
             ("UPCDB_API_KEY", "***" if settings.upcdb_api_key else "(not set)", "API key for UPC Database"),
+            ("LOOKUP_STRATEGY", settings.lookup_strategy, "failover = secondary only when primary returns nothing; complement = fill gaps from secondary"),
+            ("LOOKUP_PRIMARY", settings.lookup_primary, "Which API is tried first (off or upcdb)"),
+            ("LOOKUP_ENRICH_IN_BACKGROUND", str(settings.lookup_enrich_in_background), "complement mode: secondary call runs after ESP32 response (faster scans)"),
         ]),
         ("Matching & Sync", [
             ("FUZZY_MATCH_THRESHOLD", str(settings.fuzzy_match_threshold), "Minimum score (0–100) to accept a fuzzy item match"),

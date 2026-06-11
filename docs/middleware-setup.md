@@ -117,15 +117,28 @@ All settings are environment variables. Set them in `.env` or directly in `docke
 
 ### Barcode Lookup Sources
 
-| Variable         | Default                                           | Description                        |
-| ---------------- | ------------------------------------------------- | ---------------------------------- |
-| `OFF_ENABLED`    | `true`                                            | Enable OpenFoodFacts lookups       |
-| `OFF_URL_BASE`   | `https://world.openfoodfacts.org/api/v2/product/` | OpenFoodFacts API endpoint         |
-| `UPCDB_ENABLED`  | `false`                                           | Enable UPCDatabase lookups         |
-| `UPCDB_URL_BASE` | `https://api.upcdatabase.org/product/`            | UPCDatabase API endpoint           |
-| `UPCDB_API_KEY`  | —                                                 | Required when `UPCDB_ENABLED=true` |
+| Variable                      | Default                                           | Description                                                                                       |
+| ----------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `OFF_ENABLED`                 | `true`                                            | Enable OpenFoodFacts lookups                                                                      |
+| `OFF_URL_BASE`                | `https://world.openfoodfacts.org/api/v2/product/` | OpenFoodFacts API endpoint                                                                        |
+| `UPCDB_ENABLED`               | `false`                                           | Enable UPCDatabase lookups                                                                        |
+| `UPCDB_URL_BASE`              | `https://api.upcdatabase.org/product/`            | UPCDatabase API endpoint                                                                          |
+| `UPCDB_API_KEY`               | —                                                 | Required when `UPCDB_ENABLED=true`                                                                |
+| `LOOKUP_STRATEGY`             | `failover`                                        | `failover` = secondary only when primary returns nothing; `complement` = fill gaps from secondary |
+| `LOOKUP_PRIMARY`              | `off`                                             | Which API is tried first (`off` or `upcdb`)                                                       |
+| `LOOKUP_ENRICH_IN_BACKGROUND` | `true`                                            | In complement mode, run secondary call after the ESP32 response (faster scans)                    |
 
 > **OpenFoodFacts** is free, no API key needed, and has excellent coverage for European products. **UPCDatabase** has better US product coverage but requires a (free) API key from [upcdatabase.org](https://upcdatabase.org/).
+
+#### Lookup Strategies Explained
+
+**`failover`** (default) — The primary API is called first. Only if it returns _nothing_ (no product found at all) is the secondary API called. This is the simplest and fastest strategy — each scan makes at most one API call when the primary has data.
+
+**`complement`** — The primary API is called first and its result is returned to the scanner immediately. If the result has empty enrichment fields (brand, quantity, or product type), the secondary API is called to fill the gaps. By default (`LOOKUP_ENRICH_IN_BACKGROUND=true`), this secondary call runs _after_ the HTTP response is sent to the ESP32, so it adds zero latency to scans. The enriched data is written to the cache and visible on the dashboard and in future scans of the same barcode.
+
+If `LOOKUP_ENRICH_IN_BACKGROUND=false`, the secondary call is made synchronously before responding — this gives the ESP32 the richest possible data on the first scan, but adds up to 5 seconds of latency.
+
+> **Guard rails:** If `UPCDB_API_KEY` is not set, UPCDatabase is silently disabled regardless of `UPCDB_ENABLED`. If only one source is enabled, the strategy setting has no effect. If the chosen `LOOKUP_PRIMARY` is unavailable (disabled or missing key), the other source is used automatically.
 
 ### Matching & Sync
 

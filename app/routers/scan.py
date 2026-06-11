@@ -2,7 +2,7 @@ import json
 import logging
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -11,7 +11,7 @@ from app.config import settings
 from app.database import get_db
 from app.events import scan_events
 from app.models import BarcodeCache, BarcodeMapping, Item, Notification
-from app.services.barcode_lookup import perform_lookup
+from app.services.barcode_lookup import perform_lookup, needs_background_enrich, enrich_barcode_background
 from app.services.fuzzy import try_auto_map
 from app.services.mealie import (
     add_to_shopping_list_by_item,
@@ -50,6 +50,7 @@ class ScanResponse(BaseModel):
 @router.post("/scan", response_model=ScanResponse)
 def scan_barcode(
     body: ScanRequest,
+    background_tasks: BackgroundTasks,
     _token=Depends(require_token),
     db: Session = Depends(get_db),
 ):
@@ -58,14 +59,14 @@ def scan_barcode(
         raise HTTPException(status_code=422, detail="Barcode cannot be empty")
 
     try:
-        return _process_scan(barcode, db)
+        return _process_scan(barcode, db, background_tasks)
     except Exception:
         logger.exception("Unhandled error processing scan for barcode %s", barcode)
         db.rollback()
         return ScanResponse(result="error", item=barcode, via=None)
 
 
-def _process_scan(barcode: str, db: Session) -> ScanResponse:
+def _process_scan(barcode: str, db: Session, background_tasks: BackgroundTasks) -> ScanResponse:
 
     # --- Check existing mapping FIRST (works for both standard and GENERIC barcodes) ---
     mapping = db.get(BarcodeMapping, barcode)
@@ -104,6 +105,10 @@ def _process_scan(barcode: str, db: Session) -> ScanResponse:
 
     if needs_lookup:
         cached = perform_lookup(barcode, db)
+
+    # Schedule background enrichment if complement mode has gaps to fill
+    if needs_lookup and needs_background_enrich(cached):
+        background_tasks.add_task(enrich_barcode_background, barcode)
 
     if not cached.found:
         # Not found anywhere — add as note with barcode string

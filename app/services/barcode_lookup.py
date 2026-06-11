@@ -86,13 +86,89 @@ def lookup_upcdatabase(barcode: str) -> dict | None:
         return None
 
 
-def perform_lookup(barcode: str, db: Session) -> BarcodeCache:
-    """Lookup barcode in external APIs and upsert into barcode_cache. Returns the cache row."""
-    # Try OpenFoodFacts first
-    result = lookup_openfoodfacts(barcode)
-    if not result:
-        result = lookup_upcdatabase(barcode)
+def _get_lookup_functions() -> tuple:
+    """Return (primary_fn, secondary_fn) based on LOOKUP_PRIMARY config.
 
+    Each function is the raw lookup callable.  If a source is disabled or
+    missing its API key the corresponding slot is ``None``.
+    """
+    off_fn = lookup_openfoodfacts if settings.off_enabled else None
+    upcdb_fn = (
+        lookup_upcdatabase
+        if settings.upcdb_enabled and settings.upcdb_api_key
+        else None
+    )
+
+    if settings.lookup_primary == "upcdb":
+        primary, secondary = upcdb_fn, off_fn
+    else:
+        primary, secondary = off_fn, upcdb_fn
+
+    # If the chosen primary is unavailable, swap.
+    if primary is None:
+        primary, secondary = secondary, None
+
+    return primary, secondary
+
+
+def _result_has_gaps(result: dict) -> bool:
+    """True when any enrichment field is empty."""
+    return not all(result.get(f) for f in ("brand", "quantity", "product_type"))
+
+
+def _merge_gaps(base: dict, supplement: dict) -> bool:
+    """Fill empty enrichment fields in *base* from *supplement*.
+
+    Returns True if any field was actually filled.
+    """
+    changed = False
+    for field in ("brand", "quantity", "product_type"):
+        if not base.get(field) and supplement.get(field):
+            base[field] = supplement[field]
+            changed = True
+    if changed:
+        base["source"] = f"{base['source']}+{supplement['source']}"
+    return changed
+
+
+def perform_lookup(barcode: str, db: Session) -> BarcodeCache:
+    """Lookup barcode in external APIs and upsert into barcode_cache.
+
+    Strategy (``LOOKUP_STRATEGY``):
+    * ``failover`` — try primary, use secondary only if primary returns
+      nothing.  (Default, current behaviour.)
+    * ``complement`` — try primary, respond with whatever it gives, then
+      (optionally in background) fill gaps from the secondary.
+      When ``LOOKUP_ENRICH_IN_BACKGROUND`` is *False* the secondary call
+      is made synchronously before returning.
+
+    Returns the cache row.  When complement+background mode is active the
+    caller is expected to schedule ``enrich_barcode_background()`` *after*
+    sending the HTTP response.
+    """
+    primary_fn, secondary_fn = _get_lookup_functions()
+
+    result = None
+    if primary_fn:
+        result = primary_fn(barcode)
+
+    if not result:
+        # Primary returned nothing — always try secondary as full fallback
+        # regardless of strategy (we need *something*).
+        if secondary_fn:
+            result = secondary_fn(barcode)
+    elif (
+        settings.lookup_strategy == "complement"
+        and not settings.lookup_enrich_in_background
+        and secondary_fn
+        and _result_has_gaps(result)
+    ):
+        # Complement mode, synchronous: fill gaps right now.
+        supplement = secondary_fn(barcode)
+        if supplement:
+            _merge_gaps(result, supplement)
+
+    # --- upsert cache ---
     existing = db.get(BarcodeCache, barcode)
     now = utcnow()
 
@@ -136,3 +212,55 @@ def perform_lookup(barcode: str, db: Session) -> BarcodeCache:
     db.commit()
     db.refresh(existing)
     return existing
+
+
+def needs_background_enrich(cached: BarcodeCache) -> bool:
+    """Return True if a background enrichment call should be scheduled."""
+    if settings.lookup_strategy != "complement":
+        return False
+    if not settings.lookup_enrich_in_background:
+        return False  # already done synchronously
+    if not cached.found:
+        return False
+    _, secondary_fn = _get_lookup_functions()
+    if secondary_fn is None:
+        return False
+    return not all([cached.brand, cached.quantity, cached.product_type])
+
+
+def enrich_barcode_background(barcode: str) -> None:
+    """Background task: call secondary API and fill gaps in cache.
+
+    Runs outside the request lifecycle — creates its own DB session.
+    """
+    from app.database import SessionLocal
+
+    _, secondary_fn = _get_lookup_functions()
+    if secondary_fn is None:
+        return
+
+    supplement = secondary_fn(barcode)
+    if not supplement:
+        logger.info("Background enrich %s: secondary returned nothing", barcode)
+        return
+
+    db = SessionLocal()
+    try:
+        cached = db.get(BarcodeCache, barcode)
+        if not cached or not cached.found:
+            return
+
+        changed = False
+        for field in ("brand", "quantity", "product_type"):
+            if not getattr(cached, field) and supplement.get(field):
+                setattr(cached, field, supplement[field])
+                changed = True
+
+        if changed:
+            cached.source = f"{cached.source}+{supplement['source']}"
+            db.commit()
+            logger.info("Background enrich %s: filled gaps → %s", barcode, cached.source)
+        else:
+            logger.debug("Background enrich %s: no new data from secondary", barcode)
+    finally:
+        db.close()
