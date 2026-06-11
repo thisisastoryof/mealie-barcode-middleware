@@ -115,9 +115,16 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
 async def save_settings(request: Request, db: Session = Depends(get_db)):
     """Save editable settings from the form."""
     form_data = await request.form()
+    tab = form_data.get("_tab", "mealie")
+
+    # Only process settings that belong to the current tab to avoid
+    # absent checkboxes on other tabs being misread as "false".
+    tab_group_names = _TAB_GROUPS.get(tab, [])
 
     changed = []
     for key, meta in EDITABLE_SETTINGS.items():
+        if meta["group"] not in tab_group_names:
+            continue
         form_key = f"setting_{key}"
         if meta["type"] == "bool":
             # Checkboxes: present = True, absent = False
@@ -139,8 +146,6 @@ async def save_settings(request: Request, db: Session = Depends(get_db)):
     if changed:
         logger.info("Settings updated via UI: %s", ", ".join(changed))
 
-    # Redirect back to the originating tab
-    tab = form_data.get("_tab", "mealie")
     return RedirectResponse(f"/settings?tab={tab}&saved=1", status_code=303)
 
 

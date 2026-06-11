@@ -76,36 +76,56 @@
                                     <small class="text-muted ms-2"><code>{{ item.key }}</code></small>
                                 </div>
                             {% elif item.type == 'bool' %}
-                                <label class="form-check form-switch mt-1">
-                                    <input class="form-check-input" type="checkbox" name="setting_{{ item.field }}" id="setting_{{ item.field }}" value="true"
-                                        {% if item.value == 'True' %}checked{% endif %}>
-                                </label>
+                                <div class="d-flex align-items-center">
+                                    <label class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox"
+                                            name="setting_{{ item.field }}" id="setting_{{ item.field }}"
+                                            value="true" data-default="{{ item.env_default }}"
+                                            {% if item.value == 'True' %}checked{% endif %}>
+                                    </label>
+                                    <button type="button" class="btn btn-sm btn-ghost-secondary ms-2 btn-reset"
+                                        title="Reset to default ({{ item.env_default }})" disabled>
+                                        <i class="ti ti-restore icon-sm"></i>
+                                    </button>
+                                </div>
                             {% elif item.type == 'choice' %}
-                                <select class="form-select" name="setting_{{ item.field }}" id="setting_{{ item.field }}">
-                                    {% for opt in item.choices %}
-                                    <option value="{{ opt }}" {% if item.value == opt %}selected{% endif %}>{{ opt }}</option>
-                                    {% endfor %}
-                                </select>
+                                <div class="input-group">
+                                    <select class="form-select" name="setting_{{ item.field }}" id="setting_{{ item.field }}"
+                                        data-default="{{ item.env_default }}">
+                                        {% for opt in item.choices %}
+                                        <option value="{{ opt }}" {% if item.value == opt %}selected{% endif %}>{{ opt }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="button" class="btn btn-outline-secondary btn-reset"
+                                        title="Reset to default ({{ item.env_default }})" disabled>
+                                        <i class="ti ti-restore icon-sm"></i>
+                                    </button>
+                                </div>
                             {% elif item.type == 'int' %}
-                                <input type="number" class="form-control" name="setting_{{ item.field }}" id="setting_{{ item.field }}"
-                                    value="{{ item.value }}"
-                                    {% if item.min is not none %}min="{{ item.min }}"{% endif %}
-                                    {% if item.max is not none %}max="{{ item.max }}"{% endif %}>
+                                <div class="input-group">
+                                    <input type="number" class="form-control"
+                                        name="setting_{{ item.field }}" id="setting_{{ item.field }}"
+                                        value="{{ item.value }}" data-default="{{ item.env_default }}"
+                                        {% if item.min is not none %}min="{{ item.min }}"{% endif %}
+                                        {% if item.max is not none %}max="{{ item.max }}"{% endif %}>
+                                    <button type="button" class="btn btn-outline-secondary btn-reset"
+                                        title="Reset to default ({{ item.env_default }})" disabled>
+                                        <i class="ti ti-restore icon-sm"></i>
+                                    </button>
+                                </div>
                             {% else %}
-                                <input type="text" class="form-control" name="setting_{{ item.field }}" id="setting_{{ item.field }}"
-                                    value="{{ item.value }}" placeholder="{{ item.env_default or '' }}">
+                                <div class="input-group">
+                                    <input type="text" class="form-control"
+                                        name="setting_{{ item.field }}" id="setting_{{ item.field }}"
+                                        value="{{ item.value }}" data-default="{{ item.env_default }}"
+                                        placeholder="{{ item.env_default or '' }}">
+                                    <button type="button" class="btn btn-outline-secondary btn-reset"
+                                        title="Reset to default ({{ item.env_default }})" disabled>
+                                        <i class="ti ti-restore icon-sm"></i>
+                                    </button>
+                                </div>
                             {% endif %}
                         </div>
-                        {% if item.editable and item.overridden %}
-                        <div class="col-auto d-flex align-items-center">
-                            <button type="button" class="btn btn-sm btn-ghost-secondary"
-                                title="Reset to env default ({{ item.env_default }})"
-                                data-confirm-post="/settings/configuration/{{ item.field }}/reset"
-                                data-confirm-msg="Reset &quot;{{ item.description }}&quot; to env default ({{ item.env_default }})?">
-                                <i class="ti ti-restore icon-sm"></i>
-                            </button>
-                        </div>
-                        {% endif %}
                     </div>
                     {% endfor %}
                     {% endfor %}
@@ -205,4 +225,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/settings-page.js?v={{ v }}"></script>
 {% endblock %}
