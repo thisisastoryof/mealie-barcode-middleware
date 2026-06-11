@@ -168,7 +168,7 @@
 
                     {# ── Readonly fields ── #}
                     {% if readonly_items %}
-                    <div class="row g-3">
+                    <div class="row g-3{% if editable_items %} mt-3{% endif %}">
                         {% for item in readonly_items %}
                         <div class="col-12">
                             <label class="form-label text-secondary mb-1">
