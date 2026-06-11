@@ -56,7 +56,7 @@
             <form method="post" action="/settings/configuration">
                 <input type="hidden" name="_tab" value="{{ current_tab }}">
                 <div class="card-body">
-                    <h2 class="mb-1">{{ current_tab_label }}</h2>
+                    <h2 class="mb-4">{{ current_tab_label }}</h2>
                     {% if tab_description %}
                     <p class="card-subtitle">{{ tab_description }}</p>
                     {% endif %}
@@ -77,7 +77,7 @@
 
                     {# ── Editable fields ── #}
                     {% if editable_items %}
-                    <div class="row g-3 {% if not section_name %}mt-3{% endif %}">
+                    <div class="row g-3">
                         {% for item in editable_items %}
 
                         {% if item.type == 'bool' %}
@@ -168,9 +168,9 @@
 
                     {# ── Readonly fields ── #}
                     {% if readonly_items %}
-                    <div class="row g-3 {% if editable_items %}mt-2{% elif not section_name %}mt-3{% endif %}">
+                    <div class="row g-3">
                         {% for item in readonly_items %}
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label text-secondary mb-1">
                                 <i class="ti ti-lock icon-sm text-muted me-1"></i>{{ item.description }}
                             </label>
@@ -206,7 +206,7 @@
             {% else %}
 
             <div class="card-body">
-                <h2 class="mb-1">API Tokens</h2>
+                <h2 class="mb-4">API Tokens</h2>
                 {% if tab_description %}
                 <p class="card-subtitle">{{ tab_description }}</p>
                 {% endif %}
@@ -240,40 +240,40 @@
                 </form>
 
                 <h3 class="card-title mt-4">Existing Tokens</h3>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-vcenter card-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Prefix</th>
-                            <th>Created</th>
-                            <th class="w-1"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for token in tokens %}
-                        <tr>
-                            <td>{{ token.name }}</td>
-                            <td><code>{{ token.token_prefix or '—' }}…</code></td>
-                            <td class="text-secondary">{{ token.created_at|localtime }}</td>
-                            <td>
-                                <form method="post" action="/settings/tokens/{{ token.id }}/delete"
-                                    data-confirm="Delete token &quot;{name}&quot;?" data-name="{{ token.name|e }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="ti ti-trash icon-sm"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        {% if not tokens %}
-                        <tr>
-                            <td colspan="4" class="text-center text-secondary">No tokens created yet</td>
-                        </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-vcenter">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Prefix</th>
+                                <th>Created</th>
+                                <th class="w-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for token in tokens %}
+                            <tr>
+                                <td>{{ token.name }}</td>
+                                <td><code>{{ token.token_prefix or '—' }}…</code></td>
+                                <td class="text-secondary">{{ token.created_at|localtime }}</td>
+                                <td>
+                                    <form method="post" action="/settings/tokens/{{ token.id }}/delete"
+                                        data-confirm="Delete token &quot;{name}&quot;?" data-name="{{ token.name|e }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="ti ti-trash icon-sm"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if not tokens %}
+                            <tr>
+                                <td colspan="4" class="text-center text-secondary">No tokens created yet</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {% endif %}
