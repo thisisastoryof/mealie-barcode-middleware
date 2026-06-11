@@ -42,6 +42,7 @@ def _build_config_groups():
             "field": key,
             "value": val,
             "description": meta["description"],
+            "hint": meta.get("hint"),
             "editable": False,
         })
 
@@ -56,6 +57,7 @@ def _build_config_groups():
             "field": key,
             "value": val,
             "description": meta["description"],
+            "hint": meta.get("hint"),
             "editable": True,
             "overridden": overridden,
             "env_default": env_default,

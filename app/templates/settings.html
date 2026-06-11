@@ -66,6 +66,7 @@
                         <div class="col-md-4">
                             <label class="form-label" for="setting_{{ item.field }}">
                                 {{ item.description }}
+                                <span class="form-label-description">{{ item.key }}</span>
                             </label>
                         </div>
                         <div class="col-md">
@@ -73,8 +74,10 @@
                                 <div class="form-control-plaintext">
                                     <i class="ti ti-lock icon-sm text-muted me-1"></i>
                                     <span class="text-secondary">{{ item.value }}</span>
-                                    <small class="text-muted ms-2"><code>{{ item.key }}</code></small>
                                 </div>
+                                {% if item.hint %}
+                                <small class="form-hint">{{ item.hint }}</small>
+                                {% endif %}
                             {% elif item.type == 'bool' %}
                                 <div class="d-flex align-items-center">
                                     <label class="form-check form-switch mb-0">
@@ -88,6 +91,9 @@
                                         <i class="ti ti-restore icon-sm"></i>
                                     </button>
                                 </div>
+                                {% if item.hint %}
+                                <small class="form-hint">{{ item.hint }}</small>
+                                {% endif %}
                             {% elif item.type == 'choice' %}
                                 <div class="input-group">
                                     <select class="form-select" name="setting_{{ item.field }}" id="setting_{{ item.field }}"
@@ -101,6 +107,9 @@
                                         <i class="ti ti-restore icon-sm"></i>
                                     </button>
                                 </div>
+                                {% if item.hint %}
+                                <small class="form-hint">{{ item.hint }}</small>
+                                {% endif %}
                             {% elif item.type == 'int' %}
                                 <div class="input-group">
                                     <input type="number" class="form-control"
@@ -113,6 +122,9 @@
                                         <i class="ti ti-restore icon-sm"></i>
                                     </button>
                                 </div>
+                                {% if item.hint %}
+                                <small class="form-hint">{{ item.hint }}</small>
+                                {% endif %}
                             {% else %}
                                 <div class="input-group">
                                     <input type="text" class="form-control"
@@ -124,6 +136,9 @@
                                         <i class="ti ti-restore icon-sm"></i>
                                     </button>
                                 </div>
+                                {% if item.hint %}
+                                <small class="form-hint">{{ item.hint }}</small>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>
