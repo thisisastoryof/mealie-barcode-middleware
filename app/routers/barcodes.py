@@ -43,7 +43,11 @@ def barcodes_list(
             ~BarcodeCache.barcode.in_(mapped_barcodes),
         )
     elif status == "unknown":
-        query = query.filter(BarcodeCache.found == False)
+        mapped_barcodes = db.query(BarcodeMapping.barcode).subquery()
+        query = query.filter(
+            BarcodeCache.found == False,
+            ~BarcodeCache.barcode.in_(mapped_barcodes),
+        )
 
     barcodes = query.all()
 
@@ -227,7 +231,11 @@ def barcodes_api(status: str = "all", db: Session = Depends(get_db)):
             ~BarcodeCache.barcode.in_(mapped_sub),
         )
     elif status == "unknown":
-        query = query.filter(BarcodeCache.found == False)
+        mapped_sub = db.query(BarcodeMapping.barcode).subquery()
+        query = query.filter(
+            BarcodeCache.found == False,
+            ~BarcodeCache.barcode.in_(mapped_sub),
+        )
 
     barcodes_list = query.limit(200).all()
 

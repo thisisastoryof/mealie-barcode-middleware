@@ -28,7 +28,12 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         .count()
     )
     queue_depth = db.query(RetryQueue).count()
-    unknown_count = db.query(BarcodeCache).filter(BarcodeCache.found == False).count()
+    unknown_count = (
+        db.query(BarcodeCache)
+        .filter(BarcodeCache.found == False)
+        .filter(~BarcodeCache.barcode.in_(db.query(BarcodeMapping.barcode)))
+        .count()
+    )
 
     # Recent scans
     recent = db.query(BarcodeCache).order_by(BarcodeCache.created_at.desc()).limit(10).all()
@@ -135,7 +140,12 @@ def dashboard_api(db: Session = Depends(get_db)):
             "created_at": _localtime(bc.created_at),
         })
 
-    unknown_count = db.query(BarcodeCache).filter(BarcodeCache.found == False).count()
+    unknown_count = (
+        db.query(BarcodeCache)
+        .filter(BarcodeCache.found == False)
+        .filter(~BarcodeCache.barcode.in_(db.query(BarcodeMapping.barcode)))
+        .count()
+    )
 
     return {
         "total_barcodes": total_barcodes,
