@@ -227,7 +227,11 @@ class SettingsManager:
             db.close()
 
     def save_override(self, key: str, value: str, db) -> None:
-        """Save a single override to the DB and update in-memory cache."""
+        """Save a single override to the DB and update in-memory cache.
+
+        If the new value matches the env default, the override is removed
+        instead — keeping the DB clean and the UI consistent.
+        """
         from app.models import SettingsOverride
         from app.utils import utcnow
 
@@ -235,6 +239,12 @@ class SettingsManager:
             raise ValueError(f"Setting '{key}' is not editable")
 
         coerced = self._coerce(key, value)
+        env_default = getattr(self._env, key)
+
+        # Value matches env default → remove any existing override
+        if coerced == env_default:
+            self.reset_override(key, db)
+            return
 
         existing = db.get(SettingsOverride, key)
         if existing:
