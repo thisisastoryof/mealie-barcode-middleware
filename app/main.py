@@ -27,6 +27,9 @@ async def lifespan(app: FastAPI):
     init_db()
     logger.info("Database initialized")
 
+    # Load DB setting overrides (must come after init_db creates the table)
+    settings.load_overrides_from_db()
+
     # --- Lookup config validation ---
     upcdb_usable = settings.upcdb_enabled and bool(settings.upcdb_api_key)
     if settings.upcdb_enabled and not settings.upcdb_api_key:

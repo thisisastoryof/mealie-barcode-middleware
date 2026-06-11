@@ -73,3 +73,11 @@ class Notification(Base):
     result: Mapped[str] = mapped_column(String, nullable=False)  # added | queued | unknown | added_as_note
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class SettingsOverride(Base):
+    __tablename__ = "settings_overrides"
+
+    key: Mapped[str] = mapped_column(String, primary_key=True)
+    value: Mapped[str] = mapped_column(String, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

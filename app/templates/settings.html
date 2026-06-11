@@ -5,118 +5,209 @@
 <div class="page-header d-print-none mb-3">
     <div class="row g-2 align-items-center">
         <div class="col">
-            <div class="page-pretitle">Configuration</div>
-            <h2 class="page-title">Settings</h2>
+            <h2 class="page-title">Account Settings</h2>
         </div>
     </div>
 </div>
 
-<!-- Tabs -->
-<div class="mb-3">
-    <ul class="nav nav-tabs">
-        <li class="nav-item">
-            <a class="nav-link {{ 'active' if current_tab == 'configuration' }}" href="/settings?tab=configuration">Configuration</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {{ 'active' if current_tab == 'tokens' }}" href="/settings?tab=tokens">API Tokens</a>
-        </li>
-    </ul>
-</div>
-
-{% if current_tab == 'configuration' %}
-<p class="text-secondary mb-3">Configuration is read from environment variables. To change a value, edit <code>docker-compose.yml</code> or <code>.env</code> and restart the container.</p>
-
-{% for group_name, items in config_groups %}
-<div class="card mb-3">
-    <div class="card-header">
-        <h3 class="card-title">{{ group_name }}</h3>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-vcenter card-table">
-                <thead>
-                    <tr>
-                        <th>Variable</th>
-                        <th>Value</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for key, value, description in items %}
-                    <tr>
-                        <td><code>{{ key }}</code></td>
-                        <td>{{ value }}</td>
-                        <td class="text-secondary">{{ description }}</td>
-                    </tr>
+<div class="row">
+    {# ── Left sidebar: vertical nav pills ── #}
+    <div class="col-12 col-md-3 mb-3">
+        <div class="card">
+            <div class="card-body p-2">
+                <div class="list-group list-group-transparent">
+                    {% for tab_id, tab_label, tab_icon in tabs %}
+                    <a href="/settings?tab={{ tab_id }}"
+                       class="list-group-item list-group-item-action d-flex align-items-center {{ 'active' if current_tab == tab_id }}">
+                        <span class="me-2"><i class="ti {{ tab_icon }} icon"></i></span>
+                        {{ tab_label }}
+                    </a>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endfor %}
-
-{% elif current_tab == 'tokens' %}
-<!-- Show-once new token -->
-{% if new_token %}
-<div class="alert alert-success alert-dismissible">
-    <h4 class="alert-title">Token created: {{ new_token_name }}</h4>
-    <p>Copy this token now — it will <strong>not</strong> be shown again:</p>
-    <div class="input-group mb-2 w-auto">
-        <input type="text" class="form-control font-monospace" value="{{ new_token }}" id="new-token-value" readonly>
-        <button class="btn btn-outline-secondary" type="button" data-copy-target="new-token-value">Copy</button>
-    </div>
-</div>
-{% endif %}
-
-<!-- Create token form -->
-<div class="card mb-3">
-    <div class="card-header"><h3 class="card-title">Create New Token</h3></div>
-    <div class="card-body">
-        <form method="post" action="/settings/tokens/create">
-            <div class="row g-2 align-items-end">
-                <div class="col-auto">
-                    <label class="form-label">Token Name</label>
-                    <input type="text" name="name" class="form-control" placeholder="e.g. Kitchen scanner" required>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-primary">Create</button>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
-</div>
 
-<!-- Existing tokens -->
-<div class="card">
-    <div class="card-header"><h3 class="card-title">Existing Tokens</h3></div>
-    <div class="table-responsive">
-        <table class="table table-vcenter card-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Created</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for token in tokens %}
-                <tr>
-                    <td>{{ token.name }}</td>
-                    <td>{{ token.created_at|localtime }}</td>
-                    <td>
-                        <form method="post" action="/settings/tokens/{{ token.id }}/delete" data-confirm="Delete token &quot;{name}&quot;?" data-name="{{ token.name|e }}">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-                {% if not tokens %}
-                <tr><td colspan="3" class="text-center text-secondary">No tokens created yet</td></tr>
+    {# ── Right content area ── #}
+    <div class="col-12 col-md-9">
+
+        {% if saved %}
+        <div class="alert alert-success alert-dismissible">
+            <div class="d-flex">
+                <div><i class="ti ti-check icon alert-icon"></i></div>
+                <div>Settings saved. Changes take effect immediately — no restart needed.</div>
+            </div>
+            <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+        </div>
+        {% endif %}
+
+        {# ──────────── Config tabs (mealie, lookup, matching, system) ──────────── #}
+        {% if current_tab != 'tokens' %}
+
+        <form method="post" action="/settings/configuration">
+            <input type="hidden" name="_tab" value="{{ current_tab }}">
+
+            {% for group_name, items in config_groups %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">{{ group_name }}</h3>
+                </div>
+                <div class="card-body">
+                    {% for item in items %}
+                    <div class="mb-3 row">
+                        <label class="col-lg-4 col-form-label">
+                            {{ item.description }}
+                            {% if item.editable and item.overridden %}
+                            <span class="badge bg-blue-lt ms-1" title="Overridden via UI (env default: {{ item.env_default }})">modified</span>
+                            {% endif %}
+                        </label>
+                        <div class="col-lg-6">
+                            {% if not item.editable %}
+                                {# Read-only #}
+                                <div class="form-control-plaintext">
+                                    <i class="ti ti-lock icon-sm text-muted me-1"></i>
+                                    <span class="text-secondary">{{ item.value }}</span>
+                                </div>
+                            {% elif item.type == 'bool' %}
+                                <label class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" name="setting_{{ item.field }}" value="true"
+                                        {% if item.value == 'True' %}checked{% endif %}>
+                                </label>
+                            {% elif item.type == 'choice' %}
+                                <select class="form-select" name="setting_{{ item.field }}">
+                                    {% for opt in item.choices %}
+                                    <option value="{{ opt }}" {% if item.value == opt %}selected{% endif %}>{{ opt }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% elif item.type == 'int' %}
+                                <input type="number" class="form-control" name="setting_{{ item.field }}"
+                                    value="{{ item.value }}"
+                                    {% if item.min is not none %}min="{{ item.min }}"{% endif %}
+                                    {% if item.max is not none %}max="{{ item.max }}"{% endif %}>
+                            {% else %}
+                                <input type="text" class="form-control" name="setting_{{ item.field }}"
+                                    value="{{ item.value }}" placeholder="{{ item.env_default or '' }}">
+                            {% endif %}
+                        </div>
+                        <div class="col-lg-2 d-flex align-items-center">
+                            {% if item.editable and item.overridden %}
+                            <button type="button" class="btn btn-sm btn-ghost-secondary"
+                                title="Reset to env default ({{ item.env_default }})"
+                                onclick="if(confirm('Reset to env default?')){var f=document.createElement('form');f.method='post';f.action='/settings/configuration/{{ item.field }}/reset';document.body.appendChild(f);f.submit();}">
+                                <i class="ti ti-restore icon-sm"></i>
+                            </button>
+                            {% endif %}
+                            {% if not item.editable %}
+                            <small class="text-muted"><code>{{ item.key }}</code></small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if config_groups|length > 0 %}
+                <div class="card-footer text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ti ti-device-floppy icon-sm me-1"></i>
+                        Save
+                    </button>
+                </div>
                 {% endif %}
-            </tbody>
-        </table>
+            </div>
+            {% endfor %}
+
+            {% if not config_groups %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="empty">
+                        <p class="empty-title">No editable settings on this tab</p>
+                        <p class="empty-subtitle text-secondary">These settings are configured via environment variables in <code>.env</code>.</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </form>
+
+        {# ──────────── Tokens tab ──────────── #}
+        {% else %}
+
+        {% if new_token %}
+        <div class="alert alert-success alert-dismissible">
+            <h4 class="alert-title">Token created: {{ new_token_name }}</h4>
+            <p>Copy this token now — it will <strong>not</strong> be shown again:</p>
+            <div class="input-group mb-2" style="max-width: 500px;">
+                <input type="text" class="form-control font-monospace" value="{{ new_token }}" id="new-token-value" readonly>
+                <button class="btn btn-outline-secondary" type="button" data-copy-target="new-token-value">
+                    <i class="ti ti-copy icon-sm"></i> Copy
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Create token #}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">Create New Token</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/settings/tokens/create">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-auto">
+                            <label class="form-label">Token Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. Kitchen scanner" required>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="ti ti-plus icon-sm me-1"></i> Create
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# Existing tokens #}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Existing Tokens</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Prefix</th>
+                            <th>Created</th>
+                            <th class="w-1"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for token in tokens %}
+                        <tr>
+                            <td>{{ token.name }}</td>
+                            <td><code>{{ token.token_prefix or '—' }}…</code></td>
+                            <td class="text-secondary">{{ token.created_at|localtime }}</td>
+                            <td>
+                                <form method="post" action="/settings/tokens/{{ token.id }}/delete"
+                                    data-confirm="Delete token &quot;{name}&quot;?" data-name="{{ token.name|e }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="ti ti-trash icon-sm"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not tokens %}
+                        <tr>
+                            <td colspan="4" class="text-center text-secondary">No tokens created yet</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% endif %}
+
     </div>
 </div>
-{% endif %}
 {% endblock %}
