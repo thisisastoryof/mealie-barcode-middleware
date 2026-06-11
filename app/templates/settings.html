@@ -2,158 +2,171 @@
 {% block title %}Settings — Barcode Middleware{% endblock %}
 
 {% block content %}
+<!-- BEGIN PAGE HEADER -->
 <div class="page-header d-print-none mb-3">
     <div class="row g-2 align-items-center">
         <div class="col">
-            <h2 class="page-title">Account Settings</h2>
+            <div class="page-pretitle">Configuration</div>
+            <h2 class="page-title">Settings</h2>
         </div>
     </div>
 </div>
+<!-- END PAGE HEADER -->
 
-<div class="row">
-    {# ── Left sidebar: vertical nav pills ── #}
-    <div class="col-12 col-md-3 mb-3">
-        <div class="card">
-            <div class="card-body p-2">
+<!-- BEGIN PAGE BODY -->
+{% if saved %}
+<div class="alert alert-success alert-dismissible mt-3 mb-0">
+    <div class="d-flex">
+        <div><i class="ti ti-check icon alert-icon"></i></div>
+        <div>Settings saved. Changes take effect immediately — no restart needed.</div>
+    </div>
+    <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="row g-0">
+        {# ── Left sidebar ── #}
+        <div class="col-12 col-md-3 border-end">
+            <div class="card-body">
+                <h4 class="subheader">Configuration</h4>
                 <div class="list-group list-group-transparent">
                     {% for tab_id, tab_label, tab_icon in tabs %}
+                    {% if tab_id != 'tokens' %}
                     <a href="/settings?tab={{ tab_id }}"
                        class="list-group-item list-group-item-action d-flex align-items-center {{ 'active' if current_tab == tab_id }}">
                         <span class="me-2"><i class="ti {{ tab_icon }} icon"></i></span>
                         {{ tab_label }}
                     </a>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                <h4 class="subheader mt-4">Security</h4>
+                <div class="list-group list-group-transparent">
+                    {% for tab_id, tab_label, tab_icon in tabs %}
+                    {% if tab_id == 'tokens' %}
+                    <a href="/settings?tab={{ tab_id }}"
+                       class="list-group-item list-group-item-action d-flex align-items-center {{ 'active' if current_tab == tab_id }}">
+                        <span class="me-2"><i class="ti {{ tab_icon }} icon"></i></span>
+                        {{ tab_label }}
+                    </a>
+                    {% endif %}
                     {% endfor %}
                 </div>
             </div>
         </div>
-    </div>
 
-    {# ── Right content area ── #}
-    <div class="col-12 col-md-9">
+        {# ── Right content area ── #}
+        <div class="col-12 col-md-9 d-flex flex-column">
 
-        {% if saved %}
-        <div class="alert alert-success alert-dismissible">
-            <div class="d-flex">
-                <div><i class="ti ti-check icon alert-icon"></i></div>
-                <div>Settings saved. Changes take effect immediately — no restart needed.</div>
-            </div>
-            <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
-        </div>
-        {% endif %}
+            {# ──────────── Config tabs (mealie, lookup, matching, system) ──────────── #}
+            {% if current_tab != 'tokens' %}
 
-        {# ──────────── Config tabs (mealie, lookup, matching, system) ──────────── #}
-        {% if current_tab != 'tokens' %}
-
-        <form method="post" action="/settings/configuration">
-            <input type="hidden" name="_tab" value="{{ current_tab }}">
-
-            {% for group_name, items in config_groups %}
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h3 class="card-title">{{ group_name }}</h3>
-                </div>
+            <form method="post" action="/settings/configuration">
+                <input type="hidden" name="_tab" value="{{ current_tab }}">
                 <div class="card-body">
+                    <h2 class="mb-4">{{ current_tab_label }}</h2>
+
+                    {% for group_name, items in config_groups %}
+                    <h3 class="card-title{% if not loop.first %} mt-4{% endif %}">{{ group_name }}</h3>
+
                     {% for item in items %}
-                    <div class="mb-3 row">
-                        <label class="col-lg-4 col-form-label">
-                            {{ item.description }}
-                            {% if item.editable and item.overridden %}
-                            <span class="badge bg-blue-lt ms-1" title="Overridden via UI (env default: {{ item.env_default }})">modified</span>
-                            {% endif %}
-                        </label>
-                        <div class="col-lg-6">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label" for="setting_{{ item.field }}">
+                                {{ item.description }}
+                                {% if item.editable and item.overridden %}
+                                <span class="badge bg-blue text-blue-fg ms-1" title="Overridden via UI (env default: {{ item.env_default }})">modified</span>
+                                {% endif %}
+                            </label>
+                        </div>
+                        <div class="col-md">
                             {% if not item.editable %}
-                                {# Read-only #}
                                 <div class="form-control-plaintext">
                                     <i class="ti ti-lock icon-sm text-muted me-1"></i>
                                     <span class="text-secondary">{{ item.value }}</span>
+                                    <small class="text-muted ms-2"><code>{{ item.key }}</code></small>
                                 </div>
                             {% elif item.type == 'bool' %}
-                                <label class="form-check form-switch mt-2">
-                                    <input class="form-check-input" type="checkbox" name="setting_{{ item.field }}" value="true"
+                                <label class="form-check form-switch mt-1">
+                                    <input class="form-check-input" type="checkbox" name="setting_{{ item.field }}" id="setting_{{ item.field }}" value="true"
                                         {% if item.value == 'True' %}checked{% endif %}>
                                 </label>
                             {% elif item.type == 'choice' %}
-                                <select class="form-select" name="setting_{{ item.field }}">
+                                <select class="form-select" name="setting_{{ item.field }}" id="setting_{{ item.field }}">
                                     {% for opt in item.choices %}
                                     <option value="{{ opt }}" {% if item.value == opt %}selected{% endif %}>{{ opt }}</option>
                                     {% endfor %}
                                 </select>
                             {% elif item.type == 'int' %}
-                                <input type="number" class="form-control" name="setting_{{ item.field }}"
+                                <input type="number" class="form-control" name="setting_{{ item.field }}" id="setting_{{ item.field }}"
                                     value="{{ item.value }}"
                                     {% if item.min is not none %}min="{{ item.min }}"{% endif %}
                                     {% if item.max is not none %}max="{{ item.max }}"{% endif %}>
                             {% else %}
-                                <input type="text" class="form-control" name="setting_{{ item.field }}"
+                                <input type="text" class="form-control" name="setting_{{ item.field }}" id="setting_{{ item.field }}"
                                     value="{{ item.value }}" placeholder="{{ item.env_default or '' }}">
                             {% endif %}
                         </div>
-                        <div class="col-lg-2 d-flex align-items-center">
-                            {% if item.editable and item.overridden %}
+                        {% if item.editable and item.overridden %}
+                        <div class="col-auto d-flex align-items-center">
                             <button type="button" class="btn btn-sm btn-ghost-secondary"
                                 title="Reset to env default ({{ item.env_default }})"
-                                onclick="if(confirm('Reset to env default?')){var f=document.createElement('form');f.method='post';f.action='/settings/configuration/{{ item.field }}/reset';document.body.appendChild(f);f.submit();}">
+                                data-confirm-post="/settings/configuration/{{ item.field }}/reset"
+                                data-confirm-msg="Reset &quot;{{ item.description }}&quot; to env default ({{ item.env_default }})?">
                                 <i class="ti ti-restore icon-sm"></i>
                             </button>
-                            {% endif %}
-                            {% if not item.editable %}
-                            <small class="text-muted"><code>{{ item.key }}</code></small>
-                            {% endif %}
                         </div>
+                        {% endif %}
                     </div>
                     {% endfor %}
-                </div>
-                {% if config_groups|length > 0 %}
-                <div class="card-footer text-end">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="ti ti-device-floppy icon-sm me-1"></i>
-                        Save
-                    </button>
-                </div>
-                {% endif %}
-            </div>
-            {% endfor %}
+                    {% endfor %}
 
-            {% if not config_groups %}
-            <div class="card">
-                <div class="card-body">
+                    {% if not config_groups %}
                     <div class="empty">
                         <p class="empty-title">No editable settings on this tab</p>
                         <p class="empty-subtitle text-secondary">These settings are configured via environment variables in <code>.env</code>.</p>
                     </div>
+                    {% endif %}
                 </div>
-            </div>
-            {% endif %}
-        </form>
+                {% if config_groups %}
+                <div class="card-footer bg-transparent mt-auto">
+                    <div class="d-flex">
+                        <a href="/settings?tab={{ current_tab }}" class="btn btn-link">Cancel</a>
+                        <button type="submit" class="btn btn-primary ms-auto">
+                            <i class="ti ti-device-floppy icon-sm me-1"></i>
+                            Save
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            </form>
 
-        {# ──────────── Tokens tab ──────────── #}
-        {% else %}
+            {# ──────────── Tokens tab ──────────── #}
+            {% else %}
 
-        {% if new_token %}
-        <div class="alert alert-success alert-dismissible">
-            <h4 class="alert-title">Token created: {{ new_token_name }}</h4>
-            <p>Copy this token now — it will <strong>not</strong> be shown again:</p>
-            <div class="input-group mb-2" style="max-width: 500px;">
-                <input type="text" class="form-control font-monospace" value="{{ new_token }}" id="new-token-value" readonly>
-                <button class="btn btn-outline-secondary" type="button" data-copy-target="new-token-value">
-                    <i class="ti ti-copy icon-sm"></i> Copy
-                </button>
-            </div>
-        </div>
-        {% endif %}
-
-        {# Create token #}
-        <div class="card mb-3">
-            <div class="card-header">
-                <h3 class="card-title">Create New Token</h3>
-            </div>
             <div class="card-body">
+                <h2 class="mb-4">API Tokens</h2>
+
+                {% if new_token %}
+                <div class="alert alert-success alert-dismissible">
+                    <h4 class="alert-title">Token created: {{ new_token_name }}</h4>
+                    <p>Copy this token now — it will <strong>not</strong> be shown again:</p>
+                    <div class="input-group mb-2" style="max-width: 500px;">
+                        <input type="text" class="form-control font-monospace" value="{{ new_token }}" id="new-token-value" readonly>
+                        <button class="btn btn-outline-secondary" type="button" data-copy-target="new-token-value">
+                            <i class="ti ti-copy icon-sm"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+
+                <h3 class="card-title">Create New Token</h3>
                 <form method="post" action="/settings/tokens/create">
-                    <div class="row g-2 align-items-end">
+                    <div class="row g-2 align-items-end mb-4">
                         <div class="col-auto">
-                            <label class="form-label">Token Name</label>
-                            <input type="text" name="name" class="form-control" placeholder="e.g. Kitchen scanner" required>
+                            <label class="form-label" for="token-name">Token Name</label>
+                            <input type="text" name="name" id="token-name" class="form-control" placeholder="e.g. Kitchen scanner" required>
                         </div>
                         <div class="col-auto">
                             <button type="submit" class="btn btn-primary">
@@ -162,13 +175,8 @@
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
 
-        {# Existing tokens #}
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Existing Tokens</h3>
+                <h3 class="card-title mt-4">Existing Tokens</h3>
             </div>
             <div class="table-responsive">
                 <table class="table table-vcenter card-table">
@@ -204,10 +212,10 @@
                     </tbody>
                 </table>
             </div>
+
+            {% endif %}
+
         </div>
-
-        {% endif %}
-
     </div>
 </div>
 {% endblock %}

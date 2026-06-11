@@ -95,9 +95,13 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
     tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all() if tab == "tokens" else []
     saved = request.query_params.get("saved")
 
+    # Resolve the current tab label for the content heading
+    tab_label = next((label for tid, label, _ in _TABS if tid == tab), tab.title())
+
     return templates.TemplateResponse(request, "settings.html", {
         "tabs": _TABS,
         "current_tab": tab,
+        "current_tab_label": tab_label,
         "config_groups": tab_groups,
         "tokens": tokens,
         "new_token": None,
@@ -172,6 +176,7 @@ def create_token(request: Request, name: str = Form(...), db: Session = Depends(
         "config_groups": [],
         "tokens": tokens,
         "current_tab": "tokens",
+        "current_tab_label": "API Tokens",
         "new_token": raw,
         "new_token_name": name,
         "saved": None,

@@ -17,6 +17,22 @@
         });
     });
 
+    // Confirm + POST via dynamic form — any button with [data-confirm-post]
+    // Use when a real <form> would create invalid nested-form HTML.
+    document.querySelectorAll('[data-confirm-post]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var msg = btn.dataset.confirmMsg || 'Are you sure?';
+            if (!confirm(msg)) return;
+            var f = document.createElement('form');
+            f.method = 'post';
+            f.action = btn.dataset.confirmPost;
+            f.style.display = 'none';
+            document.body.appendChild(f);
+            f.submit();
+        });
+    });
+
     // Clipboard copy — any button with [data-copy-target]
     document.querySelectorAll('[data-copy-target]').forEach(function(btn) {
         btn.addEventListener('click', function() {
