@@ -13,6 +13,11 @@
         return d.innerHTML;
     }
 
+    // ─── Bootstrap Tooltips ──────────────────────────────────────────────────────
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+        new bootstrap.Tooltip(el);
+    });
+
     // ─── Flash Toasts (URL-param driven) ───────────────────────────────────────
     // Show a toast when the page loads with ?saved=1 (or similar flags).
     // Cleans the URL param afterwards so refresh doesn't re-trigger.
