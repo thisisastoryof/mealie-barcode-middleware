@@ -23,34 +23,33 @@
     </div>
 </div>
 
-<!-- Filter tabs -->
-<div class="mb-3">
-    <ul class="nav nav-tabs">
-        <li class="nav-item">
+<!-- Filter tabs + card -->
+<div class="card-tabs">
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
             <a class="nav-link {{ 'active' if current_filter == 'all' }}" href="/activities?result=all">All</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item" role="presentation">
             <a class="nav-link {{ 'active' if current_filter == 'added' }}" href="/activities?result=added">Added</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item" role="presentation">
             <a class="nav-link {{ 'active' if current_filter == 'needs_mapping' }}" href="/activities?result=needs_mapping">Not Linked</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item" role="presentation">
             <a class="nav-link {{ 'active' if current_filter == 'auto_mapped' }}" href="/activities?result=auto_mapped">Auto-linked</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item" role="presentation">
             <a class="nav-link {{ 'active' if current_filter == 'unknown' }}" href="/activities?result=unknown">Unknown</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item" role="presentation">
             <a class="nav-link {{ 'active' if current_filter == 'broken' }}" href="/activities?result=broken">Broken</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item" role="presentation">
             <a class="nav-link {{ 'active' if current_filter == 'retry_failed' }}" href="/activities?result=retry_failed">Failed</a>
         </li>
     </ul>
-</div>
-
-<div class="card">
+    <div class="tab-content">
+        <div class="card active show" role="tabpanel">
     <div class="card-header">
         <div class="row w-100">
             <div class="col">
@@ -159,7 +158,9 @@
         </div>
         <ul class="pagination m-0 ms-auto" id="activity-pagination"></ul>
     </div>
-</div>
+    </div>{# /card tabpanel #}
+    </div>{# /tab-content #}
+</div>{# /card-tabs #}
 {% endblock %}
 
 {% block scripts %}
