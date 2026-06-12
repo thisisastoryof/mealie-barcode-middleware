@@ -173,18 +173,18 @@ READONLY_SETTINGS: dict[str, dict[str, Any]] = {
         "group": "Mealie Connection",
         "section": "",
     },
-    "mealie_shopping_list_id": {
-        "label": "MEALIE_SHOPPING_LIST_ID",
-        "description": "Shopping list ID",
-        "group": "Mealie Connection",
-        "section": "",
-    },
     "mealie_api_key": {
         "label": "MEALIE_API_KEY",
         "description": "API key",
         "group": "Mealie Connection",
         "section": "",
         "secret": True,
+    },
+    "mealie_shopping_list_id": {
+        "label": "MEALIE_SHOPPING_LIST_ID",
+        "description": "Shopping list ID",
+        "group": "Mealie Connection",
+        "section": "",
     },
     "off_url_base": {
         "label": "OFF_URL_BASE",
