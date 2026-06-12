@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Barcode {{ cached.barcode if cached else '' }} — Barcode Middleware{% endblock %}
+{% block title %}{{ cached.title if cached and cached.title else 'Unknown Barcode' }} — Barcode Middleware{% endblock %}
 
 {% block content %}
 <div class="page-header d-print-none mb-3">

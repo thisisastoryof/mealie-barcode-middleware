@@ -5,7 +5,6 @@
 <div class="page-header d-print-none mb-3">
     <div class="row g-2 align-items-center">
         <div class="col">
-            <div class="page-pretitle">History</div>
             <h2 class="page-title">Activity</h2>
         </div>
         <div class="col-auto">
@@ -58,15 +57,15 @@
                     {% if current_filter == 'added' %}
                     Items successfully added to the shopping list or queued for retry.
                     {% elif current_filter == 'needs_mapping' %}
-                    Product found but not linked to a Mealie item — requires manual linking.
+                    Found in product database but not linked to a Mealie item yet.
                     {% elif current_filter == 'auto_mapped' %}
-                    Fuzzy matching linked a barcode to an item automatically — review recommended.
+                    Automatically linked via fuzzy matching — review recommended.
                     {% elif current_filter == 'unknown' %}
-                    Barcode not found in any product database (OpenFoodFacts, UPC Database).
+                    Not found in any product database.
                     {% elif current_filter == 'broken' %}
-                    A linked item was deleted in Mealie — the barcode needs to be relinked.
+                    Linked item was deleted in Mealie — needs relinking.
                     {% elif current_filter == 'retry_failed' %}
-                    Failed to reach Mealie after multiple retries — check connectivity.
+                    Could not reach Mealie after retries — check connectivity.
                     {% else %}
                     All scan events and notifications, newest first.
                     {% endif %}

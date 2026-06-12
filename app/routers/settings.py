@@ -24,12 +24,12 @@ _GROUP_ORDER = [
 
 # Tab-level descriptions shown below the heading
 _TAB_DESCRIPTIONS = {
-    "mealie": "Connection details for your Mealie instance. Set via environment variables.",
+    "mealie": "Connection details for your Mealie instance. Configured via environment variables.",
     "lookup": "Configure which product databases to query and how they interact.",
     "matching": "Control how scanned products are matched and synced with Mealie.",
-    "system": "General system configuration.",
+    "system": "Timezone, logging, and other system-level settings.",
     "appearance": "Customize the look and feel of the web dashboard.",
-    "tokens": "Bearer tokens for authenticating scanner devices.",
+    "tokens": "API tokens for authenticating barcode scanners.",
 }
 
 # Section-level descriptions shown below section headings
@@ -38,7 +38,7 @@ _SECTION_DESCRIPTIONS = {
     "Strategy": "Control how multiple data sources work together.",
     "Fuzzy Matching": "How product names are compared against your Mealie food catalog.",
     "Scheduling & Retry": "How often data is refreshed and how failures are handled.",
-    "Infrastructure": "Configured via environment variables.",
+    "Infrastructure": "Set via environment variables — not editable here.",
 }
 
 
