@@ -44,8 +44,8 @@
 
     // Find all reset buttons and wire them up
     document.querySelectorAll('.btn-reset').forEach(function (btn) {
-        // Walk up to the row/flex container and find the field inside it
-        var container = btn.closest('.row, .d-flex');
+        // Walk up to the row/flex/actions container and find the field inside it
+        var container = btn.closest('.row, .d-flex, .card-actions');
         var field = container ? container.querySelector('input, select') : null;
         if (!field) return;
 
