@@ -82,7 +82,7 @@
                                 </label>
                                 <button type="button" class="btn btn-sm btn-ghost-secondary ms-2 btn-reset"
                                     title="Reset to default" disabled>
-                                    <i class="ti ti-restore icon-sm"></i>
+                                    <i class="ti ti-restore icon"></i>
                                 </button>
                             </div>
                             {% if item.hint %}
@@ -103,7 +103,7 @@
                                 </select>
                                 <button type="button" class="btn btn-outline-secondary btn-reset"
                                     title="Reset to default" disabled>
-                                    <i class="ti ti-restore icon-sm"></i>
+                                    <i class="ti ti-restore icon"></i>
                                 </button>
                             </div>
                             {% if item.hint %}
@@ -123,7 +123,7 @@
                                     {% if item.max is not none %}max="{{ item.max }}"{% endif %}>
                                 <button type="button" class="btn btn-outline-secondary btn-reset"
                                     title="Reset to default" disabled>
-                                    <i class="ti ti-restore icon-sm"></i>
+                                    <i class="ti ti-restore icon"></i>
                                 </button>
                             </div>
                             {% if item.hint %}
@@ -142,7 +142,7 @@
                                     placeholder="{{ item.env_default or '' }}">
                                 <button type="button" class="btn btn-outline-secondary btn-reset"
                                     title="Reset to default" disabled>
-                                    <i class="ti ti-restore icon-sm"></i>
+                                    <i class="ti ti-restore icon"></i>
                                 </button>
                             </div>
                             {% if item.hint %}
@@ -157,7 +157,7 @@
                         {% for item in readonly_items %}
                         <div class="col-12">
                             <label class="form-label text-secondary mb-1">
-                                <i class="ti ti-lock icon-sm text-muted me-1"></i>{{ item.description }}
+                                <i class="ti ti-lock icon text-muted"></i>{{ item.description }}
                             </label>
                             <div class="form-control-plaintext pt-0">{{ item.value }}</div>
                         </div>
@@ -179,7 +179,7 @@
                 <div class="card-footer bg-transparent mt-auto">
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-device-floppy icon-sm me-1"></i>
+                            <i class="ti ti-device-floppy icon"></i>
                             Save
                         </button>
                     </div>
@@ -206,7 +206,7 @@
                                 class="form-selectgroup-input"
                                 {% if theme.mode == opt %}checked{% endif %}>
                             <span class="form-selectgroup-label">
-                                <i class="ti ti-{{ 'sun' if opt == 'light' else 'moon' }} icon me-1"></i>
+                                <i class="ti ti-{{ 'sun' if opt == 'light' else 'moon' }} icon"></i>
                                 {{ opt|capitalize }}
                             </span>
                         </label>
@@ -266,7 +266,7 @@
                 <div class="card-footer bg-transparent mt-auto">
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-device-floppy icon-sm me-1"></i>
+                            <i class="ti ti-device-floppy icon"></i>
                             Save
                         </button>
                     </div>
@@ -289,7 +289,7 @@
                     <div class="input-group" style="max-width: 500px;">
                         <input type="text" class="form-control font-monospace" value="{{ new_token }}" id="new-token-value" readonly>
                         <button class="btn btn-outline-secondary" type="button" data-copy-target="new-token-value">
-                            <i class="ti ti-copy icon-sm"></i> Copy
+                            <i class="ti ti-copy icon"></i> Copy
                         </button>
                     </div>
                 </div>
@@ -304,7 +304,7 @@
                         </div>
                         <div class="col-auto">
                             <button type="submit" class="btn btn-primary">
-                                <i class="ti ti-plus icon-sm me-1"></i> Create
+                                <i class="ti ti-plus icon"></i> Create
                             </button>
                         </div>
                     </div>
@@ -331,7 +331,7 @@
                                     <form method="post" action="/settings/tokens/{{ token.id }}/delete"
                                         data-confirm="Delete token &quot;{name}&quot;?" data-name="{{ token.name|e }}">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="ti ti-trash icon-sm"></i>
+                                            <i class="ti ti-trash icon"></i>
                                         </button>
                                     </form>
                                 </td>
