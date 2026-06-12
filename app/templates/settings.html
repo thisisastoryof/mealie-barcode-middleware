@@ -155,11 +155,11 @@
 
                         {# ── Readonly fields ── #}
                         {% for item in readonly_items %}
-                        <div class="col-12">
+                        <div class="col-md-6">
                             <label class="form-label text-secondary mb-1">
                                 <i class="ti ti-lock icon text-muted"></i>{{ item.description }}
                             </label>
-                            <div class="form-control-plaintext pt-0">{{ item.value }}</div>
+                            <input type="text" class="form-control" value="{{ item.value }}" disabled>
                         </div>
                         {% endfor %}
                     </div>
