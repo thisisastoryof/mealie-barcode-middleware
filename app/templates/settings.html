@@ -98,7 +98,16 @@
 
                                 {% if item.type == 'bool' %}
                                 {# ── Toggle switch ── #}
-                                <div class="col-12">
+                                <div class="col-md-6">
+                                    {% if item.form_label %}
+                                    <label class="form-label">
+                                        {{ item.form_label }}
+                                        {% if item.help %}
+                                        <span class="form-help ms-1" data-bs-toggle="popover" data-bs-placement="top"
+                                            data-bs-content="{{ item.help }}">?</span>
+                                        {% endif %}
+                                    </label>
+                                    {% endif %}
                                     <div class="d-flex align-items-center">
                                         <label class="form-check form-switch mb-0">
                                             <input class="form-check-input" type="checkbox"
@@ -107,7 +116,7 @@
                                                 {% if item.value == 'True' %}checked{% endif %}>
                                             <span class="form-check-label">{{ item.description }}</span>
                                         </label>
-                                        {% if item.help %}
+                                        {% if not item.form_label and item.help %}
                                         <span class="form-help ms-2" data-bs-toggle="popover" data-bs-placement="top"
                                             data-bs-content="{{ item.help }}">?</span>
                                         {% endif %}

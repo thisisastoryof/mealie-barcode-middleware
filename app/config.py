@@ -80,7 +80,8 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
     "lookup_enrich_in_background": {
         "type": "bool",
         "label": "LOOKUP_ENRICH_IN_BACKGROUND",
-        "description": "Background enrichment",
+        "description": "Enabled",
+        "form_label": "Background enrichment",
         "help": "In complement mode, run the secondary lookup after responding to the scanner for faster scans.",
         "group": "Barcode Lookup Sources",
         "section": "Strategy",

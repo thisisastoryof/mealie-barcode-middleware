@@ -62,6 +62,7 @@ def _build_config_groups():
             "description": meta["description"],
             "hint": meta.get("hint"),
             "help": meta.get("help"),
+            "form_label": meta.get("form_label"),
             "editable": True,
             "overridden": overridden,
             "env_default": env_default,
