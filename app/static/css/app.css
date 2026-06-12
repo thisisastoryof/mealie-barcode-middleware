@@ -9,3 +9,9 @@
 .col-message {
     max-width: 300px;
 }
+.navbar-divider {
+    height: 1.25rem;
+}
+.input-group-narrow {
+    max-width: 500px;
+}
