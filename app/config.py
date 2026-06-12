@@ -242,7 +242,11 @@ class SettingsManager:
 
     # ── override management ──
     def load_overrides_from_db(self) -> None:
-        """Load all overrides from the settings_overrides table."""
+        """Load all overrides from the settings_overrides table.
+
+        Also prunes any overrides that now match the current env value
+        (e.g. user added an env var that makes a former UI override redundant).
+        """
         from app.database import SessionLocal
         from app.models import SettingsOverride
 
@@ -250,9 +254,25 @@ class SettingsManager:
         try:
             rows = db.query(SettingsOverride).all()
             overrides = {}
+            stale = []
             for row in rows:
-                if row.key in EDITABLE_SETTINGS:
-                    overrides[row.key] = self._coerce(row.key, row.value)
+                if row.key not in EDITABLE_SETTINGS:
+                    continue
+                coerced = self._coerce(row.key, row.value)
+                env_val = getattr(self._env, row.key)
+                if coerced == env_val:
+                    stale.append(row)
+                else:
+                    overrides[row.key] = coerced
+
+            # Remove redundant overrides
+            if stale:
+                for row in stale:
+                    db.delete(row)
+                db.commit()
+                logger.info("Pruned %d redundant override(s): %s",
+                            len(stale), ", ".join(r.key for r in stale))
+
             self.__dict__["_overrides"] = overrides
             if overrides:
                 logger.info("Loaded %d settings override(s) from DB: %s",
