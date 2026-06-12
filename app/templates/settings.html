@@ -20,10 +20,11 @@
         {# ── Left sidebar ── #}
         <div class="col-12 col-md-3 border-end">
             <div class="card-body">
-                <h4 class="subheader">Configuration</h4>
+                {% for group_label, group_tab_ids in sidebar_groups.items() %}
+                <h4 class="subheader{% if not loop.first %} mt-4{% endif %}">{{ group_label }}</h4>
                 <div class="list-group list-group-transparent">
                     {% for tab_id, tab_label, tab_icon in tabs %}
-                    {% if tab_id != 'tokens' %}
+                    {% if tab_id in group_tab_ids %}
                     <a href="/settings?tab={{ tab_id }}"
                        class="list-group-item list-group-item-action d-flex align-items-center {{ 'active' if current_tab == tab_id }}">
                         <span class="me-2"><i class="ti {{ tab_icon }} icon"></i></span>
@@ -32,18 +33,7 @@
                     {% endif %}
                     {% endfor %}
                 </div>
-                <h4 class="subheader mt-4">Security</h4>
-                <div class="list-group list-group-transparent">
-                    {% for tab_id, tab_label, tab_icon in tabs %}
-                    {% if tab_id == 'tokens' %}
-                    <a href="/settings?tab={{ tab_id }}"
-                       class="list-group-item list-group-item-action d-flex align-items-center {{ 'active' if current_tab == tab_id }}">
-                        <span class="me-2"><i class="ti {{ tab_icon }} icon"></i></span>
-                        {{ tab_label }}
-                    </a>
-                    {% endif %}
-                    {% endfor %}
-                </div>
+                {% endfor %}
             </div>
         </div>
 
@@ -51,7 +41,7 @@
         <div class="col-12 col-md-9 d-flex flex-column">
 
             {# ──────────── Config tabs (mealie, lookup, matching, system) ──────────── #}
-            {% if current_tab != 'tokens' %}
+            {% if current_tab not in ('tokens', 'appearance') %}
 
             <form method="post" action="/settings/configuration">
                 <input type="hidden" name="_tab" value="{{ current_tab }}">
@@ -195,6 +185,92 @@
                     </div>
                 </div>
                 {% endif %}
+            </form>
+
+            {# ──────────── Appearance tab ──────────── #}
+            {% elif current_tab == 'appearance' %}
+
+            <form method="post" action="/settings/theme">
+                <div class="card-body">
+                    <h2 class="mb-4">{{ current_tab_label }}</h2>
+                    {% if tab_description %}
+                    <p class="card-subtitle">{{ tab_description }}</p>
+                    {% endif %}
+
+                    <h3 class="card-title mt-4">Color mode</h3>
+                    <p class="card-subtitle">Choose between light and dark mode.</p>
+                    <div class="form-selectgroup">
+                        {% for opt in theme_choices.mode %}
+                        <label class="form-selectgroup-item">
+                            <input type="radio" name="theme_mode" value="{{ opt }}"
+                                class="form-selectgroup-input"
+                                {% if theme.mode == opt %}checked{% endif %}>
+                            <span class="form-selectgroup-label">
+                                <i class="ti ti-{{ 'sun' if opt == 'light' else 'moon' }} icon me-1"></i>
+                                {{ opt|capitalize }}
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <h3 class="card-title mt-4">Accent color</h3>
+                    <p class="card-subtitle">The primary color used for buttons, links, and highlights.</p>
+                    <div class="row g-2">
+                        {% for color in theme_choices.color %}
+                        <div class="col-auto">
+                            <label class="form-colorinput">
+                                <input name="theme_color" type="radio" value="{{ color }}"
+                                    class="form-colorinput-input"
+                                    {% if theme.color == color %}checked{% endif %}>
+                                <span class="form-colorinput-color bg-{{ color }}"></span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <h3 class="card-title mt-4">Font family</h3>
+                    <p class="card-subtitle">Choose the font family for the interface.</p>
+                    {% for opt in theme_choices.font %}
+                    <label class="form-check">
+                        <input type="radio" name="theme_font" value="{{ opt }}"
+                            class="form-check-input"
+                            {% if theme.font == opt %}checked{% endif %}>
+                        <span class="form-check-label">{{ opt|capitalize }}</span>
+                    </label>
+                    {% endfor %}
+
+                    <h3 class="card-title mt-4">Gray shade</h3>
+                    <p class="card-subtitle">The neutral gray tone used for backgrounds and borders.</p>
+                    {% for opt in theme_choices.base %}
+                    <label class="form-check">
+                        <input type="radio" name="theme_base" value="{{ opt }}"
+                            class="form-check-input"
+                            {% if theme.base == opt %}checked{% endif %}>
+                        <span class="form-check-label">{{ opt|capitalize }}</span>
+                    </label>
+                    {% endfor %}
+
+                    <h3 class="card-title mt-4">Corner radius</h3>
+                    <p class="card-subtitle">Border radius factor for cards, buttons, and inputs.</p>
+                    <div class="form-selectgroup">
+                        {% for opt in theme_choices.radius %}
+                        <label class="form-selectgroup-item">
+                            <input type="radio" name="theme_radius" value="{{ opt }}"
+                                class="form-selectgroup-input"
+                                {% if theme.radius == opt %}checked{% endif %}>
+                            <span class="form-selectgroup-label">{{ opt }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent mt-auto">
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-device-floppy icon-sm me-1"></i>
+                            Save
+                        </button>
+                    </div>
+                </div>
             </form>
 
             {# ──────────── Tokens tab ──────────── #}

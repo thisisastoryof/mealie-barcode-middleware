@@ -1,14 +1,15 @@
 import logging
 
 from fastapi import APIRouter, Depends, Form, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from sqlalchemy.orm import Session
 
 from app.auth import generate_token, hash_token
 from app.config import settings, EDITABLE_SETTINGS, READONLY_SETTINGS
 from app.database import get_db
 from app.models import ApiToken
-from app.templating import templates
+from app.templating import templates, set_cached_theme, get_cached_theme_css
+from app.theme import THEME_CHOICES, THEME_DEFAULTS, get_theme, save_theme
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -27,6 +28,7 @@ _TAB_DESCRIPTIONS = {
     "lookup": "Configure which product databases to query and how they interact.",
     "matching": "Control how scanned products are matched and synced with Mealie.",
     "system": "General system configuration.",
+    "appearance": "Customize the look and feel of the web dashboard.",
     "tokens": "Bearer tokens for authenticating scanner devices.",
 }
 
@@ -113,12 +115,20 @@ def _build_config_groups():
 
 # Tab definitions: id → (label, icon, group heading)
 _TABS = [
-    ("mealie",   "Mealie Connection",  "ti-plug"),
-    ("lookup",   "Barcode Lookup",     "ti-barcode"),
-    ("matching", "Matching & Sync",    "ti-arrows-sort"),
-    ("system",   "System",             "ti-settings"),
-    ("tokens",   "API Tokens",         "ti-key"),
+    ("mealie",     "Mealie Connection",  "ti-plug"),
+    ("lookup",     "Barcode Lookup",     "ti-barcode"),
+    ("matching",   "Matching & Sync",    "ti-arrows-sort"),
+    ("system",     "System",             "ti-settings"),
+    ("appearance", "Appearance",         "ti-palette"),
+    ("tokens",     "API Tokens",         "ti-key"),
 ]
+
+# Sidebar grouping: which tabs go under which subheader
+_SIDEBAR_GROUPS = {
+    "Configuration": ["mealie", "lookup", "matching", "system"],
+    "Personalization": ["appearance"],
+    "Security": ["tokens"],
+}
 
 # Which config groups map to which tab
 _TAB_GROUPS = {
@@ -142,12 +152,14 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
         for item in items
     )
     tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all() if tab == "tokens" else []
+    theme = get_theme(db) if tab == "appearance" else {}
 
     # Resolve the current tab label for the content heading
     tab_label = next((label for tid, label, _ in _TABS if tid == tab), tab.title())
 
     return templates.TemplateResponse(request, "settings.html", {
         "tabs": _TABS,
+        "sidebar_groups": _SIDEBAR_GROUPS,
         "current_tab": tab,
         "current_tab_label": tab_label,
         "tab_description": _TAB_DESCRIPTIONS.get(tab, ""),
@@ -156,6 +168,8 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
         "has_editable": has_editable,
         "tokens": tokens,
         "new_token": None,
+        "theme": theme,
+        "theme_choices": THEME_CHOICES,
     })
 
 
@@ -228,6 +242,7 @@ def create_token(request: Request, name: str = Form(...), db: Session = Depends(
     tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all()
     return templates.TemplateResponse(request, "settings.html", {
         "tabs": _TABS,
+        "sidebar_groups": _SIDEBAR_GROUPS,
         "config_groups": [],
         "tokens": tokens,
         "current_tab": "tokens",
@@ -236,6 +251,8 @@ def create_token(request: Request, name: str = Form(...), db: Session = Depends(
         "section_descriptions": _SECTION_DESCRIPTIONS,
         "new_token": raw,
         "new_token_name": name,
+        "theme": {},
+        "theme_choices": THEME_CHOICES,
     })
 
 
@@ -246,3 +263,48 @@ def delete_token(token_id: str, db: Session = Depends(get_db)):
         db.delete(token)
         db.commit()
     return RedirectResponse("/settings?tab=tokens", status_code=303)
+
+
+# ── Theme ────────────────────────────────────────────────────────────
+
+@router.get("/theme.css")
+def theme_css():
+    """Serve the current theme as a tiny CSS file (overrides Tabler defaults)."""
+    css = get_cached_theme_css()
+    return Response(content=css, media_type="text/css", headers={
+        "Cache-Control": "no-cache",
+    })
+
+
+@router.get("/api/theme")
+def api_get_theme(db: Session = Depends(get_db)):
+    """Return the current theme settings as JSON (used by theme-init.js)."""
+    return JSONResponse(get_theme(db))
+
+
+@router.post("/api/theme/mode")
+async def api_set_theme_mode(request: Request, db: Session = Depends(get_db)):
+    """Quick-toggle color mode from the navbar (fire-and-forget)."""
+    body = await request.json()
+    mode = body.get("mode", "light")
+    current = get_theme(db)
+    current["mode"] = mode
+    save_theme(db, current)
+    set_cached_theme(get_theme(db))
+    return JSONResponse({"ok": True})
+
+
+@router.post("/settings/theme")
+async def save_theme_settings(request: Request, db: Session = Depends(get_db)):
+    """Save theme settings from the appearance tab form."""
+    form_data = await request.form()
+    values = {
+        "mode": form_data.get("theme_mode", THEME_DEFAULTS["mode"]),
+        "color": form_data.get("theme_color", THEME_DEFAULTS["color"]),
+        "font": form_data.get("theme_font", THEME_DEFAULTS["font"]),
+        "base": form_data.get("theme_base", THEME_DEFAULTS["base"]),
+        "radius": form_data.get("theme_radius", THEME_DEFAULTS["radius"]),
+    }
+    save_theme(db, values)
+    set_cached_theme(get_theme(db))
+    return RedirectResponse("/settings?tab=appearance&saved=1", status_code=303)

@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="en" data-bs-theme="light">
+{% set t = get_theme() %}
+<html lang="en" data-bs-theme="{{ t.mode }}">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
@@ -8,6 +9,7 @@
     <!-- Inter font (bundled for offline use) -->
     <link rel="stylesheet" href="/static/vendor/inter/inter.css">
     <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
+    <link rel="stylesheet" href="/theme.css">
     <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
     <link rel="stylesheet" href="/static/css/app.css?v={{ v }}">
     <script src="/static/js/theme-init.js?v={{ v }}"></script>

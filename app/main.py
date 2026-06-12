@@ -30,6 +30,16 @@ async def lifespan(app: FastAPI):
     # Load DB setting overrides (must come after init_db creates the table)
     settings.load_overrides_from_db()
 
+    # Load theme settings into the template cache
+    from app.database import SessionLocal
+    from app.theme import get_theme
+    from app.templating import set_cached_theme
+    db = SessionLocal()
+    try:
+        set_cached_theme(get_theme(db))
+    finally:
+        db.close()
+
     # --- Lookup config validation ---
     upcdb_usable = settings.upcdb_enabled and bool(settings.upcdb_api_key)
     if settings.upcdb_enabled and not settings.upcdb_api_key:

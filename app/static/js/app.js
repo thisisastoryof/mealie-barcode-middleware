@@ -51,7 +51,14 @@
 
     function setTheme(theme) {
         document.documentElement.setAttribute('data-bs-theme', theme);
-        localStorage.setItem('theme', theme);
+        // Persist to DB via API (fire-and-forget)
+        fetch('/api/theme/mode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: theme })
+        });
+        // Clear any localStorage override since we're saving to DB
+        localStorage.removeItem('theme-mode-override');
     }
 
     if (toggleDark) {
