@@ -64,7 +64,7 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "label": "LOOKUP_PRIMARY",
         "description": "Primary source",
         "help": "Which API is queried first. The other becomes the fallback or complement source.",
-        "choices": ["off", "upcdb"],
+        "choices": [("off", "Open Food Facts"), ("upcdb", "UPC Database")],
         "group": "Barcode Lookup Sources",
         "section": "Strategy",
     },
