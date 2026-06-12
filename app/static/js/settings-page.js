@@ -2,7 +2,7 @@
  * settings-page.js — Client-side reset logic for the settings form.
  *
  * Every editable field has a data-default attribute with the env/default value.
- * A .btn-reset button sits next to it (inside an input-group or inline).
+ * A .btn-reset button sits next to it (separated layout or inline for toggles).
  * - Clicking reset restores the field to its default (client-side only).
  * - The reset button is disabled when the current value already matches the default.
  * - All changes (including resets) are persisted via the single Save button.
@@ -44,9 +44,9 @@
 
     // Find all reset buttons and wire them up
     document.querySelectorAll('.btn-reset').forEach(function (btn) {
-        // The field is the sibling input/select/checkbox in the same parent group
-        var container = btn.parentElement;
-        var field = container.querySelector('input, select');
+        // Walk up to the row/flex container and find the field inside it
+        var container = btn.closest('.row, .d-flex');
+        var field = container ? container.querySelector('input, select') : null;
         if (!field) return;
 
         // Initial state

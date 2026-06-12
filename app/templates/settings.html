@@ -79,6 +79,10 @@
                                         {% if item.value == 'True' %}checked{% endif %}>
                                     <span class="form-check-label">{{ item.description }}</span>
                                 </label>
+                                {% if item.help %}
+                                <span class="form-help ms-2" data-bs-toggle="popover" data-bs-placement="top"
+                                    data-bs-content="{{ item.help }}">?</span>
+                                {% endif %}
                                 <button type="button" class="btn btn-sm btn-ghost-secondary ms-2 btn-reset"
                                     title="Reset to default" disabled>
                                     <i class="ti ti-restore icon"></i>
@@ -92,18 +96,28 @@
                         {% elif item.type == 'choice' %}
                         {# ── Dropdown select ── #}
                         <div class="col-md-6">
-                            <label class="form-label" for="setting_{{ item.field }}">{{ item.description }}</label>
-                            <div class="input-group">
-                                <select class="form-select" name="setting_{{ item.field }}" id="setting_{{ item.field }}"
-                                    data-default="{{ item.env_default }}">
-                                    {% for opt in item.choices %}
-                                    <option value="{{ opt }}" {% if item.value == opt %}selected{% endif %}>{{ opt }}</option>
-                                    {% endfor %}
-                                </select>
-                                <button type="button" class="btn btn-outline-secondary btn-reset"
-                                    title="Reset to default" disabled>
-                                    <i class="ti ti-restore icon"></i>
-                                </button>
+                            <label class="form-label" for="setting_{{ item.field }}">
+                                {{ item.description }}
+                                {% if item.help %}
+                                <span class="form-help ms-1" data-bs-toggle="popover" data-bs-placement="top"
+                                    data-bs-content="{{ item.help }}">?</span>
+                                {% endif %}
+                            </label>
+                            <div class="row g-2">
+                                <div class="col">
+                                    <select class="form-select" name="setting_{{ item.field }}" id="setting_{{ item.field }}"
+                                        data-default="{{ item.env_default }}">
+                                        {% for opt in item.choices %}
+                                        <option value="{{ opt }}" {% if item.value == opt %}selected{% endif %}>{{ opt }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="button" class="btn btn-icon btn-outline-secondary btn-reset"
+                                        title="Reset to default" disabled>
+                                        <i class="ti ti-restore icon"></i>
+                                    </button>
+                                </div>
                             </div>
                             {% if item.hint %}
                             <small class="form-hint">{{ item.hint }}</small>
@@ -113,17 +127,27 @@
                         {% elif item.type == 'int' %}
                         {# ── Number input ── #}
                         <div class="col-md-6">
-                            <label class="form-label" for="setting_{{ item.field }}">{{ item.description }}</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control"
-                                    name="setting_{{ item.field }}" id="setting_{{ item.field }}"
-                                    value="{{ item.value }}" data-default="{{ item.env_default }}"
-                                    {% if item.min is not none %}min="{{ item.min }}"{% endif %}
-                                    {% if item.max is not none %}max="{{ item.max }}"{% endif %}>
-                                <button type="button" class="btn btn-outline-secondary btn-reset"
-                                    title="Reset to default" disabled>
-                                    <i class="ti ti-restore icon"></i>
-                                </button>
+                            <label class="form-label" for="setting_{{ item.field }}">
+                                {{ item.description }}
+                                {% if item.help %}
+                                <span class="form-help ms-1" data-bs-toggle="popover" data-bs-placement="top"
+                                    data-bs-content="{{ item.help }}">?</span>
+                                {% endif %}
+                            </label>
+                            <div class="row g-2">
+                                <div class="col">
+                                    <input type="number" class="form-control"
+                                        name="setting_{{ item.field }}" id="setting_{{ item.field }}"
+                                        value="{{ item.value }}" data-default="{{ item.env_default }}"
+                                        {% if item.min is not none %}min="{{ item.min }}"{% endif %}
+                                        {% if item.max is not none %}max="{{ item.max }}"{% endif %}>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="button" class="btn btn-icon btn-outline-secondary btn-reset"
+                                        title="Reset to default" disabled>
+                                        <i class="ti ti-restore icon"></i>
+                                    </button>
+                                </div>
                             </div>
                             {% if item.hint %}
                             <small class="form-hint">{{ item.hint }}</small>
@@ -133,16 +157,26 @@
                         {% else %}
                         {# ── Text input ── #}
                         <div class="col-md-6">
-                            <label class="form-label" for="setting_{{ item.field }}">{{ item.description }}</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control"
-                                    name="setting_{{ item.field }}" id="setting_{{ item.field }}"
-                                    value="{{ item.value }}" data-default="{{ item.env_default }}"
-                                    placeholder="{{ item.env_default or '' }}">
-                                <button type="button" class="btn btn-outline-secondary btn-reset"
-                                    title="Reset to default" disabled>
-                                    <i class="ti ti-restore icon"></i>
-                                </button>
+                            <label class="form-label" for="setting_{{ item.field }}">
+                                {{ item.description }}
+                                {% if item.help %}
+                                <span class="form-help ms-1" data-bs-toggle="popover" data-bs-placement="top"
+                                    data-bs-content="{{ item.help }}">?</span>
+                                {% endif %}
+                            </label>
+                            <div class="row g-2">
+                                <div class="col">
+                                    <input type="text" class="form-control"
+                                        name="setting_{{ item.field }}" id="setting_{{ item.field }}"
+                                        value="{{ item.value }}" data-default="{{ item.env_default }}"
+                                        placeholder="{{ item.env_default or '' }}">
+                                </div>
+                                <div class="col-auto">
+                                    <button type="button" class="btn btn-icon btn-outline-secondary btn-reset"
+                                        title="Reset to default" disabled>
+                                        <i class="ti ti-restore icon"></i>
+                                    </button>
+                                </div>
                             </div>
                             {% if item.hint %}
                             <small class="form-hint">{{ item.hint }}</small>

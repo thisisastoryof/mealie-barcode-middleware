@@ -62,6 +62,7 @@ def _build_config_groups():
             "value": val,
             "description": meta["description"],
             "hint": meta.get("hint"),
+            "help": meta.get("help"),
             "editable": True,
             "overridden": overridden,
             "env_default": env_default,
@@ -89,6 +90,7 @@ def _build_config_groups():
             "value": val,
             "description": meta["description"],
             "hint": meta.get("hint"),
+            "help": meta.get("help"),
             "editable": False,
             "section": meta.get("section", ""),
         })
