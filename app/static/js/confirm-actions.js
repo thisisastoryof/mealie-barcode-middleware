@@ -1,35 +1,54 @@
 /**
- * confirm-actions.js — Progressive enhancement for confirm dialogs and clipboard.
- * Replaces inline onsubmit/onclick handlers to comply with strict CSP.
+ * confirm-actions.js — Tabler modal confirmations and clipboard.
+ * Replaces browser confirm() with a styled modal dialog.
  */
 (function() {
+    var modalEl = document.getElementById('modal-confirm');
+    if (!modalEl) return;
+    var modal = new bootstrap.Modal(modalEl);
+    var msgEl = document.getElementById('modal-confirm-msg');
+    var okBtn = document.getElementById('modal-confirm-ok');
+    var pendingAction = null;
+
+    okBtn.addEventListener('click', function() {
+        modal.hide();
+        if (pendingAction) {
+            pendingAction();
+            pendingAction = null;
+        }
+    });
+
+    function showConfirm(message, onConfirm) {
+        msgEl.textContent = message;
+        pendingAction = onConfirm;
+        modal.show();
+    }
+
     // Confirm before submit — any form with [data-confirm]
     document.querySelectorAll('form[data-confirm]').forEach(function(form) {
         form.addEventListener('submit', function(e) {
+            e.preventDefault();
             var msg = form.dataset.confirm;
-            // Interpolate {name} from data-name attribute if present
             if (form.dataset.name) {
                 msg = msg.replace('{name}', form.dataset.name);
             }
-            if (!confirm(msg)) {
-                e.preventDefault();
-            }
+            showConfirm(msg, function() { form.submit(); });
         });
     });
 
     // Confirm + POST via dynamic form — any button with [data-confirm-post]
-    // Use when a real <form> would create invalid nested-form HTML.
     document.querySelectorAll('[data-confirm-post]').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             var msg = btn.dataset.confirmMsg || 'Are you sure?';
-            if (!confirm(msg)) return;
-            var f = document.createElement('form');
-            f.method = 'post';
-            f.action = btn.dataset.confirmPost;
-            f.style.display = 'none';
-            document.body.appendChild(f);
-            f.submit();
+            showConfirm(msg, function() {
+                var f = document.createElement('form');
+                f.method = 'post';
+                f.action = btn.dataset.confirmPost;
+                f.style.display = 'none';
+                document.body.appendChild(f);
+                f.submit();
+            });
         });
     });
 
