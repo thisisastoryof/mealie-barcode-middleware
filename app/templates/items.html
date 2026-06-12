@@ -8,21 +8,43 @@
             <div class="page-pretitle">Catalog</div>
             <h2 class="page-title">Items</h2>
         </div>
+        <div class="col-auto ms-auto d-print-none">
+            <a href="#" class="btn btn-primary d-none d-sm-inline-block" data-bs-toggle="modal" data-bs-target="#modal-add-item">
+                <i class="ti ti-plus icon"></i>
+                Add item
+            </a>
+            <a href="#" class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-add-item" aria-label="Add item">
+                <i class="ti ti-plus icon"></i>
+            </a>
+        </div>
     </div>
 </div>
 
-<!-- Add custom item -->
-<div class="card mb-3">
-    <div class="card-body">
-        <form method="post" action="/items/add" class="row g-2 align-items-end">
-            <div class="col">
-                <label class="form-label">Add custom item</label>
-                <input type="text" name="name" class="form-control" placeholder="e.g. Fairy Dish Soap" required>
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-primary">Add</button>
-            </div>
-        </form>
+<!-- Add item modal -->
+<div class="modal modal-blur fade" id="modal-add-item" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form method="post" action="/items/add">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Custom Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary">Create an item manually. It won't be linked to Mealie.</p>
+                    <div>
+                        <label class="form-label" for="item-name">Item name</label>
+                        <input type="text" name="name" id="item-name" class="form-control" placeholder="e.g. Fairy Dish Soap" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn me-auto" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ti ti-plus icon"></i>
+                        Add item
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -98,8 +120,8 @@
                                 <div class="empty-icon"><i class="ti ti-apple icon icon-lg"></i></div>
                                 <p class="empty-title">No items yet</p>
                                 <p class="empty-subtitle text-secondary">
-                                    Items are synced from your Mealie shopping lists.<br>
-                                    Trigger a sync or add a custom item above.
+                                    Items are synced from your Mealie food catalog.<br>
+                                    Trigger a sync or add a custom item with the button above.
                                 </p>
                                 <div class="empty-action">
                                     <form method="post" action="/items/sync" class="d-inline">
