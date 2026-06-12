@@ -106,6 +106,10 @@
         };
         es.addEventListener('scan', onScanEvent);
     }
+    // Close SSE cleanly before page unload to avoid console warnings
+    window.addEventListener('beforeunload', function() {
+        if (es) es.close();
+    });
     function onScanEvent(e) {
         var data = JSON.parse(e.data);
         var barcode = data.barcode;
