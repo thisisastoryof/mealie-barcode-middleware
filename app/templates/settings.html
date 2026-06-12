@@ -329,7 +329,8 @@
                                 <td class="text-secondary">{{ token.created_at|localtime }}</td>
                                 <td>
                                     <form method="post" action="/settings/tokens/{{ token.id }}/delete"
-                                        data-confirm="Delete token &quot;{name}&quot;?" data-name="{{ token.name|e }}">
+                                        data-confirm="Delete token &quot;{{ token.name|e }}&quot;?"
+                                        data-confirm-detail="Any scanner using this token will no longer be able to authenticate.">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">
                                             <i class="ti ti-trash icon"></i>
                                         </button>

@@ -6,6 +6,7 @@
 (function() {
     var modalEl = document.getElementById('modal-confirm');
     if (!modalEl) return;
+    var titleEl = document.getElementById('modal-confirm-title');
     var msgEl = document.getElementById('modal-confirm-msg');
     var okBtn = document.getElementById('modal-confirm-ok');
     var pendingAction = null;
@@ -36,8 +37,9 @@
         pendingAction = null;
     });
 
-    function showConfirm(message, onConfirm) {
-        msgEl.textContent = message;
+    function showConfirm(title, detail, onConfirm) {
+        titleEl.textContent = title;
+        msgEl.textContent = detail || '';
         pendingAction = onConfirm;
         trigger.click();
     }
@@ -46,11 +48,9 @@
     document.querySelectorAll('form[data-confirm]').forEach(function(form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            var msg = form.dataset.confirm;
-            if (form.dataset.name) {
-                msg = msg.replace('{name}', form.dataset.name);
-            }
-            showConfirm(msg, function() { form.submit(); });
+            var title = form.dataset.confirm;
+            var detail = form.dataset.confirmDetail || '';
+            showConfirm(title, detail, function() { form.submit(); });
         });
     });
 
@@ -58,8 +58,9 @@
     document.querySelectorAll('[data-confirm-post]').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            var msg = btn.dataset.confirmMsg || 'Are you sure?';
-            showConfirm(msg, function() {
+            var title = btn.dataset.confirmMsg || 'Are you sure?';
+            var detail = btn.dataset.confirmDetail || '';
+            showConfirm(title, detail, function() {
                 var f = document.createElement('form');
                 f.method = 'post';
                 f.action = btn.dataset.confirmPost;

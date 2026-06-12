@@ -77,7 +77,9 @@
                 {% else %}
                 <div></div>
                 {% endif %}
-                <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline" data-confirm="Delete this barcode and its mapping?">
+                <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline"
+                    data-confirm="Delete barcode {{ cached.barcode }}?"
+                    data-confirm-detail="The barcode entry{% if cached.item_name %} and its link to &quot;{{ cached.item_name }}&quot;{% endif %} will be permanently removed.">
                     <button type="submit" class="btn btn-outline-danger">Delete</button>
                 </form>
             </div>
