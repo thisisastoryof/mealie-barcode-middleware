@@ -5,13 +5,16 @@
 (function() {
     var modalEl = document.getElementById('modal-confirm');
     if (!modalEl) return;
-    var modal = new bootstrap.Modal(modalEl);
     var msgEl = document.getElementById('modal-confirm-msg');
     var okBtn = document.getElementById('modal-confirm-ok');
     var pendingAction = null;
 
+    function getModal() {
+        return bootstrap.Modal.getOrCreateInstance(modalEl);
+    }
+
     okBtn.addEventListener('click', function() {
-        modal.hide();
+        getModal().hide();
         if (pendingAction) {
             pendingAction();
             pendingAction = null;
@@ -21,7 +24,7 @@
     function showConfirm(message, onConfirm) {
         msgEl.textContent = message;
         pendingAction = onConfirm;
-        modal.show();
+        getModal().show();
     }
 
     // Confirm before submit — any form with [data-confirm]
