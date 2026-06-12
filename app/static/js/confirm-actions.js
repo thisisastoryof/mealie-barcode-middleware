@@ -1,6 +1,7 @@
 /**
  * confirm-actions.js — Tabler modal confirmations and clipboard.
  * Replaces browser confirm() with a styled modal dialog.
+ * Uses a hidden trigger + data-bs-toggle so Tabler handles the modal lifecycle.
  */
 (function() {
     var modalEl = document.getElementById('modal-confirm');
@@ -9,22 +10,36 @@
     var okBtn = document.getElementById('modal-confirm-ok');
     var pendingAction = null;
 
-    function getModal() {
-        return bootstrap.Modal.getOrCreateInstance(modalEl);
-    }
+    // Hidden trigger that Tabler's built-in handler will pick up
+    var trigger = document.createElement('button');
+    trigger.setAttribute('data-bs-toggle', 'modal');
+    trigger.setAttribute('data-bs-target', '#modal-confirm');
+    trigger.style.display = 'none';
+    document.body.appendChild(trigger);
 
     okBtn.addEventListener('click', function() {
-        getModal().hide();
+        // Close the modal via the dismiss mechanism
+        okBtn.setAttribute('data-bs-dismiss', 'modal');
+        // Let Tabler close it, then run the action
         if (pendingAction) {
-            pendingAction();
+            var action = pendingAction;
             pendingAction = null;
+            // Small delay to let modal close before navigation
+            setTimeout(action, 50);
         }
+    });
+
+    // Remove the dismiss attribute after modal is hidden so it doesn't
+    // auto-close next time the modal opens
+    modalEl.addEventListener('hidden.bs.modal', function() {
+        okBtn.removeAttribute('data-bs-dismiss');
+        pendingAction = null;
     });
 
     function showConfirm(message, onConfirm) {
         msgEl.textContent = message;
         pendingAction = onConfirm;
-        getModal().show();
+        trigger.click();
     }
 
     // Confirm before submit — any form with [data-confirm]
