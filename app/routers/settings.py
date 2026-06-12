@@ -34,7 +34,6 @@ _TAB_DESCRIPTIONS = {
 
 # Section-level descriptions shown below section headings
 _SECTION_DESCRIPTIONS = {
-    "Data Sources": "Enable the product databases used for barcode lookups.",
     "Strategy": "Control how multiple data sources work together.",
     "Fuzzy Matching": "How product names are compared against your Mealie food catalog.",
     "Scheduling & Retry": "How often data is refreshed and how failures are handled.",
