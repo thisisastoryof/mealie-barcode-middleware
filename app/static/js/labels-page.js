@@ -427,7 +427,6 @@
             previewGrid.style.setProperty("--preview-img-max", Math.max(0, Math.round(imgMax)) + "px");
         } else if (landscape && showText) {
             const imgMax = previewHeight - 2 * previewPadding;
-            const imgMax = previewHeight - 2 * previewPadding;
             previewGrid.style.setProperty("--preview-img-max", Math.max(0, Math.round(imgMax)) + "px");
         } else {
             previewGrid.style.removeProperty("--preview-img-max");
