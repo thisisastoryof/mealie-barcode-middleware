@@ -489,47 +489,45 @@
                             <p class="card-subtitle">Clear individual tables. This cannot be undone.</p>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-vcenter">
-                                <thead>
-                                    <tr>
-                                        <th>Table</th>
-                                        <th>Rows</th>
-                                        <th class="w-1"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% set purge_tables = [
-                                        ("barcode_cache", "Barcode Cache", "Cached product lookups from OpenFoodFacts / UPCDatabase"),
-                                        ("barcode_mappings", "Barcode Mappings", "Links between barcodes and Mealie food items"),
-                                        ("items", "Items", "Synced Mealie food catalog (also removes mappings)"),
-                                        ("notifications", "Notifications", "Activity log and notification history"),
-                                        ("retry_queue", "Retry Queue", "Failed requests waiting to be retried"),
-                                    ] %}
-                                    {% for key, label, desc in purge_tables %}
-                                    <tr>
-                                        <td>
-                                            <div>{{ label }}</div>
-                                            <div class="text-secondary small">{{ desc }}</div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-secondary-lt">{{ admin_info.tables[key] }}</span>
-                                        </td>
-                                        <td>
-                                            <button type="button" class="btn btn-icon btn-outline-warning"
-                                                data-confirm-post="/settings/admin/purge/{{ key }}"
-                                                data-confirm-msg="Purge {{ label }}?"
-                                                data-confirm-detail="This will delete all {{ admin_info.tables[key] }} rows from {{ label }}. This cannot be undone."
-                                                {% if admin_info.tables[key] == 0 %}disabled{% endif %}>
-                                                <i class="ti ti-eraser icon"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table card-table table-vcenter">
+                            <thead>
+                                <tr>
+                                    <th>Table</th>
+                                    <th>Rows</th>
+                                    <th class="w-1"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set purge_tables = [
+                                    ("barcode_cache", "Barcode Cache", "Cached product lookups from OpenFoodFacts / UPCDatabase"),
+                                    ("barcode_mappings", "Barcode Mappings", "Links between barcodes and Mealie food items"),
+                                    ("items", "Items", "Synced Mealie food catalog (also removes mappings)"),
+                                    ("notifications", "Notifications", "Activity log and notification history"),
+                                    ("retry_queue", "Retry Queue", "Failed requests waiting to be retried"),
+                                ] %}
+                                {% for key, label, desc in purge_tables %}
+                                <tr>
+                                    <td>
+                                        <div>{{ label }}</div>
+                                        <div class="text-secondary small">{{ desc }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary-lt">{{ admin_info.tables[key] }}</span>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-icon btn-outline-warning"
+                                            data-confirm-post="/settings/admin/purge/{{ key }}"
+                                            data-confirm-msg="Purge {{ label }}?"
+                                            data-confirm-detail="This will delete all {{ admin_info.tables[key] }} rows from {{ label }}. This cannot be undone."
+                                            {% if admin_info.tables[key] == 0 %}disabled{% endif %}>
+                                            <i class="ti ti-eraser icon"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
