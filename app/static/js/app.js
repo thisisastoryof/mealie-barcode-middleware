@@ -437,7 +437,7 @@
             + '<span class="' + (isRead ? 'text-secondary' : 'text-body fw-medium') + '">' + esc(n.title) + '</span>'
             + (timeStr ? '<small class="text-secondary ms-2 text-nowrap">' + timeStr + '</small>' : '')
             + '</div>'
-            + '<div class="d-block text-secondary text-truncate mt-n1 small">' + esc(n.message) + '</div>'
+            + '<div class="d-block text-secondary text-truncate mt-n1">' + esc(n.message) + '</div>'
             + '</div>'
             + '<div class="col-auto d-flex align-items-center gap-1">'
             + (isRead ? '' : '<span class="status-dot ' + dotClass + ' d-block"></span>')
