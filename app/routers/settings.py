@@ -77,6 +77,7 @@ def _build_config_groups():
             "choices": meta.get("choices"),
             "min": meta.get("min"),
             "max": meta.get("max"),
+            "wide": meta.get("wide", False),
             "section": meta.get("section", ""),
         })
 

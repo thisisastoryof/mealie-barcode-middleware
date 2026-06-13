@@ -197,7 +197,7 @@
 
                                 {% else %}
                                 {# ── Text input ── #}
-                                <div class="col-md-6">
+                                <div class="{{ 'col-12' if item.wide else 'col-md-6' }}">
                                     <label class="form-label" for="setting_{{ item.field }}">
                                         {{ item.description }}
                                         {% if item.help %}
