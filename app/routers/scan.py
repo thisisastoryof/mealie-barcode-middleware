@@ -301,3 +301,50 @@ def _enqueue_note(barcode: str, note: str, db: Session) -> None:
         "note": note,
     }
     enqueue_retry(barcode, payload, db)
+
+
+# ── Mobile App Endpoint ─────────────────────────────────────────────
+# Accepts POST /scan/app with barcode in the JSON body and authenticates
+# via a pre-shared key in the `deviceId` field (e.g. BinaryEye scanner app).
+# No Authorization header required — the token IS the deviceId.
+
+
+class AppScanRequest(BaseModel):
+    """Flexible request model for mobile scanner apps.
+
+    BinaryEye sends: content, raw, format, deviceId, timestamp, etc.
+    We require `content` (the barcode) and `deviceId` (the auth token).
+    All other fields are accepted but ignored.
+    """
+    content: str = Field(..., max_length=256)
+    deviceId: str = Field(..., max_length=256)
+
+    # Accept (and ignore) all other fields BinaryEye sends
+    model_config = {"extra": "ignore"}
+
+
+@router.post("/scan/app", response_model=ScanResponse)
+def scan_barcode_app(
+    body: AppScanRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    """Mobile app scan endpoint with pre-shared key authentication.
+
+    Designed for apps like BinaryEye that cannot set custom HTTP headers.
+    The API token is sent as the `deviceId` field in the JSON body.
+    """
+    from app.auth import verify_psk
+
+    verify_psk(body.deviceId, db)
+
+    barcode = body.content.strip()
+    if not barcode:
+        raise HTTPException(status_code=422, detail="Barcode cannot be empty")
+
+    try:
+        return _process_scan(barcode, db, background_tasks)
+    except Exception:
+        logger.exception("Unhandled error processing app scan for barcode %s", barcode)
+        db.rollback()
+        return ScanResponse(result="error", item=barcode, via=None)

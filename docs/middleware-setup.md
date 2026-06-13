@@ -164,17 +164,27 @@ If `LOOKUP_ENRICH_IN_BACKGROUND=false`, the secondary call is made synchronously
 
 ## Creating API Tokens
 
-The ESP32 scanner authenticates to the middleware using Bearer tokens. Tokens are hashed with bcrypt — the raw token is shown **once** when created and cannot be recovered.
+The middleware uses Bearer tokens for authentication. Tokens are hashed with bcrypt — the raw token is shown **once** when created and cannot be recovered.
 
 1. Open the middleware web UI → **Settings** → **Tokens** tab
-2. Enter a name (e.g. "Kitchen Scanner") and click **Create**
+2. Enter a name (e.g. "Kitchen Scanner" or "Phone – BinaryEye") and click **Create**
 3. Copy the displayed token immediately
-4. Add it to your ESPHome `secrets.yaml`:
-   ```yaml
-   middleware_auth_header: "Bearer eyJ..."
-   ```
 
-You can create multiple tokens for multiple scanners. Each can be revoked independently.
+### For the ESP32 DIY Scanner
+
+Add the token to your ESPHome `secrets.yaml`:
+
+```yaml
+middleware_auth_header: "Bearer eyJ..."
+```
+
+The ESP32 sends it as a standard `Authorization: Bearer` header.
+
+### For Mobile Apps (BinaryEye, etc.)
+
+Mobile scanner apps that can't set custom HTTP headers use the **same token** as a pre-shared key. In BinaryEye, paste the raw token into the **Scanner ID** setting — see [Mobile Apps Guide](mobile-apps.md) for step-by-step setup.
+
+You can create multiple tokens for multiple devices. Each can be revoked independently.
 
 ---
 

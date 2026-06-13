@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 _SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
 # Paths exempt from CSRF check (token-authenticated API)
-_CSRF_EXEMPT_PREFIXES = ("/scan",)
+_CSRF_EXEMPT_PREFIXES = ("/scan", "/scan/app")
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):

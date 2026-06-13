@@ -28,6 +28,25 @@ def require_token(request: Request, db: Session = Depends(get_db)) -> ApiToken:
             detail="Missing or invalid Authorization header",
         )
     raw_token = auth_header.removeprefix("Bearer ").strip()
+    return _authenticate_raw_token(raw_token, db)
+
+
+def verify_psk(device_id: str, db: Session) -> ApiToken:
+    """Authenticate using a pre-shared key (e.g. BinaryEye's deviceId field).
+
+    Same token verification as Bearer auth, but the raw token comes from
+    the request body instead of the Authorization header.
+    """
+    if not device_id or not device_id.strip():
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or empty device ID",
+        )
+    return _authenticate_raw_token(device_id.strip(), db)
+
+
+def _authenticate_raw_token(raw_token: str, db: Session) -> ApiToken:
+    """Core token verification logic shared by Bearer and PSK auth."""
     prefix = raw_token[:8]
 
     # Fast path: query by prefix (covers tokens created with prefix column)

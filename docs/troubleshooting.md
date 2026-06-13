@@ -140,6 +140,42 @@ esp32:
 
 ---
 
+## Mobile Apps
+
+### BinaryEye: 401 Unauthorized
+
+**Symptom:** Docker logs show `401 Unauthorized` for POST `/scan/app`.
+
+**Cause:** The Scanner ID in BinaryEye doesn't match any valid token.
+
+**Fix:**
+1. Make sure you're using the **raw token** (the long string shown once when you created it), not the token name
+2. Check for leading/trailing spaces — copy-paste carefully
+3. Verify the token still exists: middleware web UI → Settings → Tokens tab
+4. If in doubt, create a fresh token and re-paste it
+
+### BinaryEye: 422 Unprocessable Entity
+
+**Symptom:** Scan sends but returns 422.
+
+**Cause:** The `content` field is empty (BinaryEye scanned something it couldn't decode cleanly) or the Content-Type is wrong.
+
+**Fix:** Make sure BinaryEye is configured to send **POST JSON** (`application/json`). The other modes (GET, form-urlencoded) are not supported by `/scan/app`.
+
+### BinaryEye: Connection Refused / Timeout
+
+**Fix:**
+1. Is your phone on the same WiFi as the middleware? Mobile data won't reach a local IP.
+2. Check the URL: `http://your-ip:9930/scan/app` — note the port and path.
+3. Test from your phone's browser: open `http://your-ip:9930/health` — you should see a JSON response.
+4. Firewall: some routers block inter-device traffic. Check your router's "AP isolation" setting.
+
+### iOS Shortcut: "The request timed out"
+
+**Fix:** Same network check as above. Also ensure the URL doesn't have a trailing slash.
+
+---
+
 ## Docker
 
 ### Container Won't Start

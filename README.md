@@ -1,17 +1,20 @@
 # Barcode → Mealie Shopping List
 
-A self-hosted barcode scanner that adds items to your [Mealie](https://mealie.io/) shopping list. Scan a product, it gets looked up, matched to your food catalog, and added.
+A self-hosted barcode scanning system that adds items to your [Mealie](https://mealie.io/) shopping list. Scan a product — from a dedicated DIY scanner or your phone — and it gets looked up, matched to your food catalog, and added.
 
 ```
-[ESP32 + GM67 Scanner + OLED]
-        │
-        │  HTTP POST /scan
-        ▼
-[Middleware]  ◄──►  [OpenFoodFacts / UPCDatabase]
-        │
-        │  Mealie REST API
-        ▼
-[Mealie]  →  Shopping List
+[ESP32 + GM67 Scanner + OLED]──┐
+                               │  HTTP POST /scan (Bearer token)
+[BinaryEye (Android)]──────────┤
+                               │  HTTP POST /scan/app (PSK in body)
+[iOS Shortcuts]────────────────┤
+                               │  HTTP POST /scan (Bearer token)
+                               ▼
+                       [Middleware :9930]  ◄──►  [OpenFoodFacts / UPCDatabase]
+                               │
+                               │  Mealie REST API
+                               ▼
+                       [Mealie]  →  Shopping List
 ```
 
 ## Features
@@ -24,20 +27,27 @@ A self-hosted barcode scanner that adds items to your [Mealie](https://mealie.io
 - **GENERIC QR codes** — Scan `GENERIC:Milk` to add items by name without a barcode lookup
 - **Web dashboard** — Tabler-based UI to manage barcodes, review mappings, and monitor the system
 - **Real-time notifications** — SSE-powered live toasts and a notification bell in the web UI
-- **Token auth** — Bearer tokens for scanner devices; web UI is open (private network)
+- **Mobile app support** — Scan from your phone with BinaryEye (Android) or iOS Shortcuts
+- **Token auth** — Bearer tokens for scanners with header support; pre-shared key auth for mobile apps
 - **Offline-first** — No CDN dependencies; all CSS/JS vendored locally
 
 ## Quick Start
 
-### 1. Build the Scanner
+### Option A: Build the DIY Scanner (ESP32)
 
-Wire up an ESP32, GM67 barcode scanner module, SSD1306 OLED, and a push button on a perf board.
+Wire up an ESP32, GM67 barcode scanner module, SSD1306 OLED, and a push button on a perf board. This gives you a dedicated, always-on scanner — grab it, point, done.
 
 → [**Hardware Build Guide**](docs/hardware-build.md) — parts list, wiring diagram, power design
 
 > **First-time GM67 setup:** The scanner ships in USB mode. Before it will talk to the ESP32, you need to scan a one-time configuration QR code to switch it to UART. See [**Scanner Configuration**](docs/scanner-configuration.md#initial-setup-switching-to-uart-mode).
 
-### 2. Deploy the Middleware
+### Option B: Use Your Phone
+
+No soldering required. Install [BinaryEye](https://github.com/markusfisch/BinaryEye) (Android) or build a quick iOS Shortcut, configure it to point at the middleware, and scan away.
+
+→ [**Mobile Apps Guide**](docs/mobile-apps.md) — BinaryEye setup, iOS Shortcuts walkthrough
+
+### Deploy the Middleware
 
 ```bash
 # Configure
@@ -52,14 +62,14 @@ Open `http://your-ip:9930` → Settings → create an API token for the scanner.
 
 → [**Middleware Setup**](docs/middleware-setup.md) — Docker, configuration reference, security notes
 
-### 3. Flash the Firmware
+### Flash the Firmware (ESP32 only)
 
 Copy `esphome/barcode-scanner.yaml` to your ESPHome dashboard, configure `secrets.yaml` with your WiFi and middleware credentials, and flash via USB.
 
 → [**ESPHome Firmware**](docs/esphome-firmware.md) — setup, display states, scanner options, HA integration
 → [**Scanner Configuration**](docs/scanner-configuration.md) — trigger modes, buzzer, laser, and the UART protocol explained
 
-### 4. Scan!
+### Scan!
 
 Point the scanner at a barcode. The middleware looks it up, matches it to your Mealie catalog, and adds it to your shopping list. The OLED shows the result.
 
@@ -75,6 +85,7 @@ Point the scanner at a barcode. The middleware looks it up, matches it to your M
 | [ESPHome Firmware](docs/esphome-firmware.md)           | Flashing, display states, scanner config, HA entities |
 | [Scanner Configuration](docs/scanner-configuration.md) | GM67 initial setup, settings reference, UART protocol |
 | [Middleware Setup](docs/middleware-setup.md)           | Docker deployment, env vars, tokens, database         |
+| [Mobile Apps](docs/mobile-apps.md)                     | BinaryEye (Android) + iOS Shortcuts setup             |
 | [How Scanning Works](docs/barcode-workflow.md)         | Scan pipeline, lookup, fuzzy matching, retry queue    |
 | [Web Dashboard](docs/web-dashboard.md)                 | UI walkthrough, barcode management, notifications     |
 | [Troubleshooting](docs/troubleshooting.md)             | Common issues for hardware, middleware, and Docker    |
@@ -106,7 +117,7 @@ app/
 ├── config.py                # Environment variable config
 ├── database.py              # SQLAlchemy + SQLite
 ├── models.py                # ORM models (6 tables)
-├── auth.py                  # Bearer token authentication
+├── auth.py                  # Token auth (Bearer + PSK for mobile apps)
 ├── events.py                # SSE event bus
 ├── routers/
 │   ├── scan.py              # POST /scan — core scan pipeline

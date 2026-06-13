@@ -4,13 +4,19 @@ This document explains what happens when you scan a barcode, how products are lo
 
 ## The Scan Pipeline
 
-When the GM67 scanner reads a barcode, the following steps execute in sequence:
+When a barcode is scanned — whether from the ESP32 hardware scanner, a phone app like BinaryEye, or an iOS Shortcut — the following steps execute in sequence:
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌──────────────────┐
 │  GM67 scans │────►│  ESP32 receives  │────►│  HTTP POST /scan │
 │  barcode    │     │  via UART        │     │  to middleware   │
 └─────────────┘     └──────────────────┘     └────────┬─────────┘
+                                                      │
+┌─────────────┐     ┌──────────────────┐              │
+│  Phone app  │────►│  HTTP POST       │──────────────┘
+│  scans      │     │  /scan or        │
+│  barcode    │     │  /scan/app       │
+└─────────────┘     └──────────────────┘
                                                       │
                     ┌─────────────────────────────────┘
                     ▼
