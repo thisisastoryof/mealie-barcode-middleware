@@ -152,14 +152,14 @@ If `LOOKUP_ENRICH_IN_BACKGROUND=false`, the secondary call is made synchronously
 
 ### System
 
-| Variable              | Default            | Description                                                         |
-| --------------------- | ------------------ | ------------------------------------------------------------------- |
-| `MIDDLEWARE_BASE_URL` | (empty)            | Full URL for deep links in notifications (e.g. `http://ip:9930`)    |
-| `HA_WEBHOOK_URL`      | (empty)            | HA webhook URL for push notifications (see below)                   |
-| `TIMEZONE`            | `Europe/Berlin`    | IANA timezone for UI timestamps                                     |
-| `DB_PATH`             | `/data/barcode.db` | SQLite database file path                                           |
-| `PORT`                | `8000`             | HTTP listen port (inside container)                                 |
-| `LOG_LEVEL`           | `INFO`             | Python log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`)              |
+| Variable              | Default            | Description                                                      |
+| --------------------- | ------------------ | ---------------------------------------------------------------- |
+| `MIDDLEWARE_BASE_URL` | (empty)            | Full URL for deep links in notifications (e.g. `http://ip:9930`) |
+| `HA_WEBHOOK_URL`      | (empty)            | HA webhook URL for push notifications (see below)                |
+| `TIMEZONE`            | `Europe/Berlin`    | IANA timezone for UI timestamps                                  |
+| `DB_PATH`             | `/data/barcode.db` | SQLite database file path                                        |
+| `PORT`                | `8000`             | HTTP listen port (inside container)                              |
+| `LOG_LEVEL`           | `INFO`             | Python log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`)           |
 
 ### Home Assistant Push Notifications (Optional)
 

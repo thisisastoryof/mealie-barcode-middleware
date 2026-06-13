@@ -20,6 +20,7 @@ router = APIRouter()
 # Ordered groups for the settings page
 _GROUP_ORDER = [
     "Mealie Connection",
+    "Home Assistant",
     "Barcode Lookup Sources",
     "Matching & Sync",
     "System",
@@ -28,6 +29,7 @@ _GROUP_ORDER = [
 # Tab-level descriptions shown below the heading
 _TAB_DESCRIPTIONS = {
     "mealie": "Connection details for your Mealie instance. Configured via environment variables.",
+    "homeassistant": "Push notifications and deep links via Home Assistant webhooks.",
     "lookup": "Configure which product databases to query and how they interact.",
     "matching": "Control how scanned products are matched and synced with Mealie.",
     "system": "Timezone, logging, and other system-level settings.",
@@ -41,6 +43,7 @@ _SECTION_DESCRIPTIONS = {
     "Strategy": "Control how multiple data sources work together.",
     "Fuzzy Matching": "How product names are compared against your Mealie food catalog.",
     "Scheduling & Retry": "How often data is refreshed and how failures are handled.",
+    "Notifications": "Send push notifications to your phone when a scanned item needs attention.",
     "Infrastructure": "Set via environment variables — not editable here.",
 }
 
@@ -121,18 +124,20 @@ def _build_config_groups():
 
 # Tab definitions: id → (label, icon, group heading)
 _TABS = [
-    ("mealie",     "Mealie Connection",  "ti-plug"),
-    ("lookup",     "Barcode Lookup",     "ti-barcode"),
-    ("matching",   "Matching & Sync",    "ti-arrows-sort"),
-    ("system",     "System",             "ti-settings"),
-    ("appearance", "Appearance",         "ti-palette"),
-    ("tokens",     "API Tokens",         "ti-key"),
-    ("admin",      "Database",           "ti-database"),
+    ("mealie",        "Mealie",            "ti-plug"),
+    ("homeassistant", "Home Assistant",     "ti-home"),
+    ("lookup",        "Barcode Lookup",     "ti-barcode"),
+    ("matching",      "Matching & Sync",    "ti-arrows-sort"),
+    ("system",        "System",             "ti-settings"),
+    ("appearance",    "Appearance",         "ti-palette"),
+    ("tokens",        "API Tokens",         "ti-key"),
+    ("admin",         "Database",           "ti-database"),
 ]
 
 # Sidebar grouping: which tabs go under which subheader
 _SIDEBAR_GROUPS = {
-    "Configuration": ["mealie", "lookup", "matching", "system"],
+    "Integrations": ["mealie", "homeassistant"],
+    "Configuration": ["lookup", "matching", "system"],
     "Personalization": ["appearance"],
     "Security": ["tokens"],
     "Administration": ["admin"],
@@ -140,10 +145,11 @@ _SIDEBAR_GROUPS = {
 
 # Which config groups map to which tab
 _TAB_GROUPS = {
-    "mealie":   ["Mealie Connection"],
-    "lookup":   ["Barcode Lookup Sources"],
-    "matching": ["Matching & Sync"],
-    "system":   ["System"],
+    "mealie":        ["Mealie Connection"],
+    "homeassistant": ["Home Assistant"],
+    "lookup":        ["Barcode Lookup Sources"],
+    "matching":      ["Matching & Sync"],
+    "system":        ["System"],
 }
 
 

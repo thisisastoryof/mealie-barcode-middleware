@@ -191,6 +191,7 @@ esp32:
 5. Is `MIDDLEWARE_BASE_URL` set? Without it, the notification's deep link will be a relative path (`/barcodes/...`) instead of a clickable URL.
 
 **Test the webhook manually:**
+
 ```bash
 curl -X POST http://homeassistant.local:8123/api/webhook/barcode-scanner \
   -H "Content-Type: application/json" \

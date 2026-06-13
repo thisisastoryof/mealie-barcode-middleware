@@ -156,21 +156,22 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "group": "System",
         "section": "General",
     },
+    # Home Assistant
     "middleware_base_url": {
         "type": "str",
         "label": "MIDDLEWARE_BASE_URL",
         "description": "Middleware URL",
         "hint": "Base URL used for deep links in notifications (e.g. http://192.168.1.50:9930).",
-        "group": "System",
-        "section": "Home Assistant",
+        "group": "Home Assistant",
+        "section": "Notifications",
     },
     "ha_webhook_url": {
         "type": "str",
         "label": "HA_WEBHOOK_URL",
         "description": "Webhook URL",
         "hint": "HA webhook URL for push notifications (e.g. http://homeassistant.local:8123/api/webhook/barcode-scanner). Leave empty to disable.",
-        "group": "System",
-        "section": "Home Assistant",
+        "group": "Home Assistant",
+        "section": "Notifications",
     },
 }
 
