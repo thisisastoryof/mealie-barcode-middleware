@@ -166,8 +166,10 @@
     .d-print-none { display: none !important; }
     .d-print-block { display: block !important; }
 
-    @page {
-        margin: 0;
+    /* Strip all Tabler wrapper spacing — @page margin handles it */
+    body, .page, .page-wrapper, .page-body, .container-xl {
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     .label-print-grid {
