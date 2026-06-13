@@ -68,6 +68,16 @@ def scan_barcode(
 
 def _process_scan(barcode: str, db: Session, background_tasks: BackgroundTasks) -> ScanResponse:
 
+    # --- Validate barcode format ---
+    # Accept: digits only (EAN-13, UPC-A, EAN-8, etc.) or GENERIC: prefix.
+    # Reject: URLs, WiFi configs, vCards, and other QR code payloads.
+    if not barcode.upper().startswith("GENERIC:") and not barcode.isdigit():
+        logger.info("Rejected non-barcode input: %.40s…", barcode)
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid barcode format — only numeric barcodes and GENERIC: codes are accepted",
+        )
+
     # --- Check existing mapping FIRST (works for both standard and GENERIC barcodes) ---
     mapping = db.get(BarcodeMapping, barcode)
     if mapping:
