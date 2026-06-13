@@ -108,11 +108,11 @@
     flex: 1 1 0;
     min-height: 0;
     width: 100%;
+    max-height: var(--preview-img-max, none);
     object-fit: contain;
 }
 .label-preview-cell .label-preview-text {
     flex: 0 0 auto;
-    height: 2.4em;
     font-size: var(--preview-font-size, 6px);
     margin-top: 1px;
     text-align: center;
@@ -194,11 +194,11 @@
         flex: 1 1 0;
         min-height: 0;
         width: 100%;
+        max-height: var(--label-img-max, none);
         object-fit: contain;
     }
     .label-cell .label-text {
         flex: 0 0 auto;
-        height: 2.4em;
         font-size: var(--label-font-size, 8pt);
         margin-top: 1mm;
         text-align: center;

@@ -298,6 +298,19 @@
         printGrid.style.setProperty("--label-margin", marginMm);
         printGrid.style.setProperty("--label-font-size", fontSize);
 
+        // Cap image height for consistent QR sizing in print
+        if (showText) {
+            const sizeVal = parseInt(sizeRange.value);
+            const paddingMm = Math.max(sizeVal * 0.05, 1.5);
+            const fontPt = parseInt(fontSizeSelect.value);
+            const fontMm = fontPt * 0.353; // 1pt ≈ 0.353mm
+            const textReserveMm = 2.4 * fontMm + 1; // 2 lines + 1mm margin
+            const imgMaxMm = sizeVal - 2 * paddingMm - textReserveMm;
+            printGrid.style.setProperty("--label-img-max", Math.max(0, imgMaxMm.toFixed(1)) + "mm");
+        } else {
+            printGrid.style.removeProperty("--label-img-max");
+        }
+
         // Inject @page rule for page format
         let pageStyle = document.getElementById("label-page-style");
         if (!pageStyle) {
@@ -362,6 +375,17 @@
         previewGrid.style.setProperty("--preview-gap", previewGap + "px");
         previewGrid.style.setProperty("--preview-margin", previewMargin + "px");
         previewGrid.style.setProperty("--preview-font-size", Math.max(5, previewFontSize) + "px");
+
+        // Cap image height so QR is consistent (always sized as if 2-line text)
+        if (showText) {
+            const previewPadding = Math.max(previewSize * 0.05, 2);
+            const actualFontSize = Math.max(5, previewFontSize);
+            const textReserve = 2.4 * actualFontSize + 1; // 2 lines + margin
+            const imgMax = previewSize - 2 * previewPadding - textReserve;
+            previewGrid.style.setProperty("--preview-img-max", Math.max(0, Math.round(imgMax)) + "px");
+        } else {
+            previewGrid.style.removeProperty("--preview-img-max");
+        }
 
         // Compute how many rows fit (cell is a square: sizeMm × sizeMm)
         const printableH = pageH - 2 * marginMm;
