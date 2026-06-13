@@ -66,7 +66,7 @@ DOCS_CATALOG = [
 
 _slug_to_meta = {d["slug"]: d for d in DOCS_CATALOG}
 
-_md = mistune.create_markdown(escape=False)
+_md = mistune.create_markdown(escape=False, plugins=["table"])
 
 
 @router.get("/docs", response_class=HTMLResponse)
