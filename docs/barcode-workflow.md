@@ -65,7 +65,7 @@ If a mapping exists:
 - If the item comes from Mealie (`source=mealie`), it's added to the shopping list using Mealie's `foodId` — this gives proper deduplication (scanning the same item twice doesn't add it twice)
 - If the item is manual (`source=manual`), it's added as a note
 
-**This is the fast path.** A mapped barcode skips all external lookups entirely.
+**This is the fast path.** A linked barcode skips all external lookups entirely.
 
 ---
 
@@ -113,7 +113,7 @@ By default, the secondary call in complement mode runs in the background (`LOOKU
 
 ### If Nothing Is Found
 
-If neither database recognizes the barcode, the barcode string itself is added as a plain note on the shopping list. A notification is created in the web UI so you can manually identify and map it later.
+If neither database recognizes the barcode, the barcode string itself is added as a plain note on the shopping list. A notification is created in the web UI so you can manually identify and link it later.
 
 ---
 
@@ -148,7 +148,7 @@ Consider a product called "Chunk Light Tuna In Water". It might score:
 
 Both exceed the threshold, but the gap is 0. Without the ambiguity check, it would pick whichever is alphabetically first — which could easily be wrong. The gap requirement prevents this class of false positive.
 
-### Auto-Map Results
+### Auto-Link Results
 
 - **Match found:** The barcode is linked to the item with `mapped_by=auto`. The product is added to the shopping list. A notification is created so you can review the link.
 - **No match:** The product title is added as a plain note. A notification is created so you can manually link it.
@@ -192,9 +192,9 @@ The ESP32 still shows the scan result immediately — it doesn't wait for the re
 
 ## Shopping List Deduplication
 
-When adding via `foodId` (mapped barcodes), Mealie handles deduplication — scanning the same item multiple times won't create duplicate entries on your shopping list.
+When adding via `foodId` (linked barcodes), Mealie handles deduplication — scanning the same item multiple times won't create duplicate entries on your shopping list.
 
-When adding via note (unmapped barcodes), there's no deduplication — each scan adds a new note line. This is by design, since the middleware can't know if you intentionally scanned the same unknown barcode twice.
+When adding via note (unlinked barcodes), there's no deduplication — each scan adds a new note line. This is by design, since the middleware can't know if you intentionally scanned the same unknown barcode twice.
 
 ---
 

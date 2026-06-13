@@ -81,7 +81,7 @@ Check:
 
 **Symptom:** Barcodes are auto-linked to the wrong Mealie items.
 
-**Fix:** Increase `FUZZY_MATCH_THRESHOLD` (default 85) and/or `FUZZY_AMBIGUITY_GAP` (default 10). Setting the threshold to 90+ and gap to 15+ will make auto-mapping more conservative. You can always manually map from the barcode detail page.
+**Fix:** Increase `FUZZY_MATCH_THRESHOLD` (default 85) and/or `FUZZY_AMBIGUITY_GAP` (default 10). Setting the threshold to 90+ and gap to 15+ will make auto-linking more conservative. You can always manually link from the barcode detail page.
 
 ### Fuzzy Matching Too Conservative
 

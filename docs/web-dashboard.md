@@ -10,7 +10,7 @@ The web UI has **no authentication** — it's designed for private home networks
 
 The home page shows an at-a-glance overview of the system:
 
-- **Stats cards:** Total barcodes, mapped, pending mapping, unknown, retry queue depth
+- **Stats cards:** Total barcodes, linked, pending, unknown, retry queue depth
 - **Mealie status:** Connectivity check + last item sync time
 - **Recent scans:** The last 10 scanned barcodes with status badges
 
@@ -25,7 +25,7 @@ The barcode list shows all known barcodes with filtering tabs:
 | Tab     | Shows                                               |
 | ------- | --------------------------------------------------- |
 | All     | Every barcode the system has seen                   |
-| Mapped  | Barcodes linked to a Mealie item                    |
+| Linked  | Barcodes linked to a Mealie item                    |
 | Pending | Barcodes with a product title but no item link      |
 | Unknown | Barcodes not found in any external product database |
 
@@ -36,17 +36,17 @@ Each barcode has a detail page showing:
 - **Product info:** Title, brand, quantity, product type, lookup source
 - **Linked item:** The Mealie item this barcode maps to (if any)
 - **Fuzzy match candidates:** Top scoring Mealie items with match scores — useful for manual linking
-- **Item search:** Search Mealie items by name to find the right mapping
+- **Item search:** Search Mealie items by name to find the right match
 
 **Actions available:**
 
 | Action        | Description                                                                |
 | ------------- | -------------------------------------------------------------------------- |
-| Link to item  | Map this barcode to an existing Mealie item                                |
-| Create & link | Create a new manual item and map it in one step                            |
-| Unlink        | Remove the barcode→item mapping                                            |
+| Link to item  | Link this barcode to an existing Mealie item                              |
+| Create & link | Create a new manual item and link it in one step                          |
+| Unlink        | Remove the barcode→item link                                              |
 | Retry lookup  | Re-query OpenFoodFacts/UPCDatabase (useful if TTL expired or API was down) |
-| Delete        | Remove the barcode, its mapping, and any retry queue entries               |
+| Delete        | Remove the barcode, its link, and any retry queue entries                 |
 
 ---
 
@@ -55,16 +55,16 @@ Each barcode has a detail page showing:
 The items page shows all food items — both synced from Mealie and manually created.
 
 - **Search** by name or aliases
-- **Barcode count** per item (how many barcodes are mapped to it)
+- **Barcode count** per item (how many barcodes are linked to it)
 - **Last sync** timestamp
 - **Manual sync** button to trigger an immediate Mealie catalog refresh
 
 ### Item Detail (`/items/{item_id}`)
 
-Shows all barcodes mapped to this item, with the ability to remove individual mappings.
+Shows all barcodes linked to this item, with the ability to unlink individual barcodes.
 
 - **Mealie items** (`source=mealie`) cannot be deleted — they're managed by Mealie
-- **Manual items** (`source=manual`) can be deleted, which also removes their barcode mappings
+- **Manual items** (`source=manual`) can be deleted, which also removes their barcode links
 
 ### Adding Manual Items
 
