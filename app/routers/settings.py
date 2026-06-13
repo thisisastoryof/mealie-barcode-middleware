@@ -397,10 +397,18 @@ def admin_backup(request: Request):
     # Create a safe copy to avoid locking issues
     backup_path = db_path + ".backup"
     shutil.copy2(db_path, backup_path)
+
+    def _cleanup():
+        try:
+            os.unlink(backup_path)
+        except OSError:
+            pass
+
     return FileResponse(
         backup_path,
         media_type="application/octet-stream",
         filename="barcode.db",
+        background=_cleanup,
     )
 
 
@@ -479,7 +487,7 @@ def add_user(
     if not request.session.get("is_admin", False):
         return RedirectResponse("/settings?tab=mealie", status_code=303)
     username = username.strip()
-    if len(username) < 3 or len(password) < 8:
+    if len(username) < 3 or len(password) < 8 or len(password) > 128:
         return RedirectResponse("/settings?tab=users", status_code=303)
 
     # Check for duplicates
@@ -528,7 +536,7 @@ def change_password(
     if not is_admin and user_id != current_user_id:
         return RedirectResponse("/settings?tab=users", status_code=303)
 
-    if len(password) < 8:
+    if len(password) < 8 or len(password) > 128:
         return RedirectResponse("/settings?tab=users", status_code=303)
 
     user = db.get(User, user_id)

@@ -102,7 +102,6 @@ _AUTH_EXEMPT_PREFIXES = (
     "/api/redoc",
     "/openapi.json",
     "/theme.css",
-    "/events",
     "/favicon",
 )
 
