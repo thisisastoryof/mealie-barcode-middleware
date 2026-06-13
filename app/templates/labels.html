@@ -42,19 +42,19 @@
             </div>
         </div>
 
-        <!-- Print Settings -->
+        <!-- Layout -->
         <div class="card mt-3">
             <div class="card-header">
-                <h3 class="card-title">Print Settings</h3>
+                <h3 class="card-title">Layout</h3>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-6 mb-3">
-                        <label class="form-label">Label size</label>
-                        <select class="form-select" id="label-size">
-                            <option value="small">Small (25mm)</option>
-                            <option value="medium" selected>Medium (35mm)</option>
-                            <option value="large">Large (50mm)</option>
+                        <label class="form-label">Page format</label>
+                        <select class="form-select" id="label-page-format">
+                            <option value="auto">Auto (browser default)</option>
+                            <option value="A4" selected>A4</option>
+                            <option value="Letter">Letter</option>
                         </select>
                     </div>
                     <div class="col-6 mb-3">
@@ -68,19 +68,43 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="label-show-text" checked>
-                        <span class="form-check-label">Show text below QR code</span>
-                    </label>
+                    <label class="form-label">QR code size: <strong id="label-size-value">35</strong> mm</label>
+                    <input type="range" class="form-range" id="label-size" min="15" max="80" step="5" value="35">
                 </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-primary" id="label-print" disabled>
-                        <i class="ti ti-printer icon"></i> Register &amp; Print
-                    </button>
-                    <button class="btn btn-outline-danger" id="label-clear" disabled>
-                        <i class="ti ti-trash icon"></i> Clear All
-                    </button>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Gap: <strong id="label-gap-value">4</strong> mm</label>
+                        <input type="range" class="form-range" id="label-gap" min="0" max="10" step="1" value="4">
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Page margin: <strong id="label-margin-value">5</strong> mm</label>
+                        <input type="range" class="form-range" id="label-margin" min="0" max="15" step="1" value="5">
+                    </div>
                 </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="label-show-text" checked>
+                            <span class="form-check-label">Show text below QR</span>
+                        </label>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Text size</label>
+                        <select class="form-select" id="label-font-size">
+                            <option value="6">Small (6pt)</option>
+                            <option value="8" selected>Medium (8pt)</option>
+                            <option value="10">Large (10pt)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <button class="btn btn-primary" id="label-print" disabled>
+                    <i class="ti ti-printer icon"></i> Register &amp; Print
+                </button>
+                <button class="btn btn-outline-danger" id="label-clear" disabled>
+                    <i class="ti ti-trash icon"></i> Clear All
+                </button>
             </div>
         </div>
     </div>

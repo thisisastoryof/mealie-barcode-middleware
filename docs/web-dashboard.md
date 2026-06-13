@@ -42,11 +42,11 @@ Each barcode has a detail page showing:
 
 | Action        | Description                                                                |
 | ------------- | -------------------------------------------------------------------------- |
-| Link to item  | Link this barcode to an existing Mealie item                              |
-| Create & link | Create a new manual item and link it in one step                          |
-| Unlink        | Remove the barcode→item link                                              |
+| Link to item  | Link this barcode to an existing Mealie item                               |
+| Create & link | Create a new manual item and link it in one step                           |
+| Unlink        | Remove the barcode→item link                                               |
 | Retry lookup  | Re-query OpenFoodFacts/UPCDatabase (useful if TTL expired or API was down) |
-| Delete        | Remove the barcode, its link, and any retry queue entries                 |
+| Delete        | Remove the barcode, its link, and any retry queue entries                  |
 
 ---
 

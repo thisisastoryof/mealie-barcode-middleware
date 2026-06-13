@@ -78,11 +78,15 @@
     .d-print-none { display: none !important; }
     .d-print-block { display: block !important; }
 
+    @page {
+        margin: 0;
+    }
+
     .label-print-grid {
         display: grid;
         grid-template-columns: repeat(var(--label-columns, 4), 1fr);
-        gap: 4mm;
-        padding: 5mm;
+        gap: var(--label-gap, 4mm);
+        padding: var(--label-margin, 5mm);
     }
     .label-cell {
         display: flex;
@@ -97,7 +101,7 @@
         height: var(--label-size, 35mm);
     }
     .label-cell .label-text {
-        font-size: 8pt;
+        font-size: var(--label-font-size, 8pt);
         margin-top: 1mm;
         text-align: center;
         max-width: var(--label-size, 35mm);

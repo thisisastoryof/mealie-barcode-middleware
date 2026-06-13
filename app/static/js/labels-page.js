@@ -11,11 +11,23 @@
     const labelCount = document.getElementById("label-count");
     const printBtn = document.getElementById("label-print");
     const clearBtn = document.getElementById("label-clear");
-    const sizeSelect = document.getElementById("label-size");
+    const sizeRange = document.getElementById("label-size");
+    const sizeValue = document.getElementById("label-size-value");
+    const gapRange = document.getElementById("label-gap");
+    const gapValue = document.getElementById("label-gap-value");
+    const marginRange = document.getElementById("label-margin");
+    const marginValue = document.getElementById("label-margin-value");
     const columnsSelect = document.getElementById("label-columns");
+    const pageFormatSelect = document.getElementById("label-page-format");
+    const fontSizeSelect = document.getElementById("label-font-size");
     const showTextCheck = document.getElementById("label-show-text");
     const printArea = document.getElementById("print-area");
     const printGrid = document.getElementById("print-grid");
+
+    // --- Range slider live value display ---
+    sizeRange.addEventListener("input", () => { sizeValue.textContent = sizeRange.value; });
+    gapRange.addEventListener("input", () => { gapValue.textContent = gapRange.value; });
+    marginRange.addEventListener("input", () => { marginValue.textContent = marginRange.value; });
 
     // --- Queue Management (localStorage) ---
     function getQueue() {
@@ -33,7 +45,7 @@
         const queue = getQueue();
         // Avoid exact duplicates
         if (queue.some(l => l.text === text)) return;
-        queue.push({ text, itemId: itemId || null, itemName: itemName || text, addedAt: Date.now() });
+        queue.push({ text, itemId: itemId || null, itemName: itemName || text, qty: 1, addedAt: Date.now() });
         saveQueue(queue);
     }
 
@@ -42,10 +54,20 @@
         saveQueue(queue);
     }
 
+    function updateQty(text, delta) {
+        const queue = getQueue();
+        const item = queue.find(l => l.text === text);
+        if (item) {
+            item.qty = Math.max(1, (item.qty || 1) + delta);
+            saveQueue(queue);
+        }
+    }
+
     // --- Render Queue ---
     function renderQueue() {
         const queue = getQueue();
-        labelCount.textContent = `(${queue.length} label${queue.length !== 1 ? "s" : ""})`;
+        const totalLabels = queue.reduce((sum, l) => sum + (l.qty || 1), 0);
+        labelCount.textContent = `(${totalLabels} label${totalLabels !== 1 ? "s" : ""})`;
         printBtn.disabled = queue.length === 0;
         clearBtn.disabled = queue.length === 0;
 
@@ -56,8 +78,9 @@
         }
         queueEmpty.classList.add("d-none");
         queueContainer.innerHTML = queue.map(label => {
+            const qty = label.qty || 1;
             const statusHtml = label.itemId
-                ? '<span class="status-dot status-dot-animated bg-green me-1"></span><span class="small text-secondary">Mapped</span>'
+                ? '<span class="status-dot status-dot-animated bg-green me-1"></span><span class="small text-secondary">Linked</span>'
                 : '<span class="status-dot bg-azure me-1"></span><span class="small text-secondary">Generic</span>';
             return `
             <div class="col-6 col-sm-4 col-md-3">
@@ -69,6 +92,11 @@
                         <img src="/labels/qr.svg?text=${encodeURIComponent(label.text)}" alt="QR" class="label-qr-preview mb-1">
                         <div class="text-truncate small">${escapeHtml(label.itemName || label.text)}</div>
                         <div class="mt-1 d-flex align-items-center justify-content-center">${statusHtml}</div>
+                        <div class="mt-1 d-flex align-items-center justify-content-center gap-1">
+                            <button type="button" class="btn btn-icon btn-sm btn-ghost-secondary label-qty-minus" data-text="${escapeAttr(label.text)}"><i class="ti ti-minus icon"></i></button>
+                            <span class="small fw-bold label-qty-display">${qty}</span>
+                            <button type="button" class="btn btn-icon btn-sm btn-ghost-secondary label-qty-plus" data-text="${escapeAttr(label.text)}"><i class="ti ti-plus icon"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>`;
@@ -81,6 +109,13 @@
                 e.preventDefault();
                 removeFromQueue(btn.dataset.text);
             });
+        });
+        // Attach qty handlers
+        queueContainer.querySelectorAll(".label-qty-minus").forEach(btn => {
+            btn.addEventListener("click", (e) => { e.stopPropagation(); updateQty(btn.dataset.text, -1); });
+        });
+        queueContainer.querySelectorAll(".label-qty-plus").forEach(btn => {
+            btn.addEventListener("click", (e) => { e.stopPropagation(); updateQty(btn.dataset.text, 1); });
         });
         // Attach card click → navigate to item
         queueContainer.querySelectorAll(".label-card[data-href]").forEach(card => {
@@ -218,21 +253,43 @@
         printBtn.innerHTML = '<i class="ti ti-printer icon"></i> Register &amp; Print';
         printBtn.disabled = false;
 
-        const size = sizeSelect.value;
+        const sizeMm = sizeRange.value + "mm";
+        const gapMm = gapRange.value + "mm";
+        const marginMm = marginRange.value + "mm";
         const columns = parseInt(columnsSelect.value);
+        const fontSize = fontSizeSelect.value + "pt";
         const showText = showTextCheck.checked;
+        const pageFormat = pageFormatSelect.value;
 
         // Set CSS variables for print
-        const sizeMap = { small: "25mm", medium: "35mm", large: "50mm" };
-        printGrid.style.setProperty("--label-size", sizeMap[size]);
+        printGrid.style.setProperty("--label-size", sizeMm);
+        printGrid.style.setProperty("--label-gap", gapMm);
+        printGrid.style.setProperty("--label-margin", marginMm);
         printGrid.style.setProperty("--label-columns", columns);
+        printGrid.style.setProperty("--label-font-size", fontSize);
 
-        printGrid.innerHTML = queue.map(label => `
-            <div class="label-cell">
+        // Inject @page rule for page format
+        let pageStyle = document.getElementById("label-page-style");
+        if (!pageStyle) {
+            pageStyle = document.createElement("style");
+            pageStyle.id = "label-page-style";
+            document.head.appendChild(pageStyle);
+        }
+        if (pageFormat === "auto") {
+            pageStyle.textContent = "";
+        } else {
+            pageStyle.textContent = `@page { size: ${pageFormat}; }`;
+        }
+
+        // Build grid cells — repeat per qty
+        printGrid.innerHTML = queue.map(label => {
+            const qty = label.qty || 1;
+            const cell = `<div class="label-cell">
                 <img src="/labels/qr.svg?text=${encodeURIComponent(label.text)}" alt="${escapeAttr(label.text)}">
                 ${showText ? `<span class="label-text">${escapeHtml(label.itemName || label.text)}</span>` : ""}
-            </div>
-        `).join("");
+            </div>`;
+            return cell.repeat(qty);
+        }).join("");
 
         // Small delay to let images load, then print
         setTimeout(() => window.print(), 300);

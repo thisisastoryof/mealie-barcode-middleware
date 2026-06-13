@@ -142,13 +142,13 @@ If `LOOKUP_ENRICH_IN_BACKGROUND=false`, the secondary call is made synchronously
 
 ### Matching & Sync
 
-| Variable                   | Default | Description                                                          |
-| -------------------------- | ------- | -------------------------------------------------------------------- |
-| `FUZZY_MATCH_THRESHOLD`    | `85`    | Minimum score (0–100) to auto-link a barcode to a Mealie item        |
-| `FUZZY_AMBIGUITY_GAP`      | `10`    | Minimum gap between #1 and #2 match scores (prevents ambiguous links)|
-| `ITEM_SYNC_INTERVAL_HOURS` | `6`     | How often to re-sync the Mealie food catalog                         |
-| `LOOKUP_TTL_DAYS`          | `30`    | Days before retrying an external lookup for an unresolved barcode    |
-| `MAX_RETRY_ATTEMPTS`       | `10`    | Max retries for failed Mealie shopping list additions                |
+| Variable                   | Default | Description                                                           |
+| -------------------------- | ------- | --------------------------------------------------------------------- |
+| `FUZZY_MATCH_THRESHOLD`    | `85`    | Minimum score (0–100) to auto-link a barcode to a Mealie item         |
+| `FUZZY_AMBIGUITY_GAP`      | `10`    | Minimum gap between #1 and #2 match scores (prevents ambiguous links) |
+| `ITEM_SYNC_INTERVAL_HOURS` | `6`     | How often to re-sync the Mealie food catalog                          |
+| `LOOKUP_TTL_DAYS`          | `30`    | Days before retrying an external lookup for an unresolved barcode     |
+| `MAX_RETRY_ATTEMPTS`       | `10`    | Max retries for failed Mealie shopping list additions                 |
 
 ### System
 
