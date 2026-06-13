@@ -17,17 +17,22 @@
     const gapValue = document.getElementById("label-gap-value");
     const marginRange = document.getElementById("label-margin");
     const marginValue = document.getElementById("label-margin-value");
-    const columnsSelect = document.getElementById("label-columns");
     const pageFormatSelect = document.getElementById("label-page-format");
     const fontSizeSelect = document.getElementById("label-font-size");
     const showTextCheck = document.getElementById("label-show-text");
     const printArea = document.getElementById("print-area");
     const printGrid = document.getElementById("print-grid");
+    const previewPage = document.getElementById("preview-page");
+    const previewGrid = document.getElementById("preview-grid");
+    const previewSummary = document.getElementById("preview-summary");
 
     // --- Range slider live value display ---
-    sizeRange.addEventListener("input", () => { sizeValue.textContent = sizeRange.value; });
-    gapRange.addEventListener("input", () => { gapValue.textContent = gapRange.value; });
-    marginRange.addEventListener("input", () => { marginValue.textContent = marginRange.value; });
+    sizeRange.addEventListener("input", () => { sizeValue.textContent = sizeRange.value; updatePreview(); });
+    gapRange.addEventListener("input", () => { gapValue.textContent = gapRange.value; updatePreview(); });
+    marginRange.addEventListener("input", () => { marginValue.textContent = marginRange.value; updatePreview(); });
+    pageFormatSelect.addEventListener("change", updatePreview);
+    fontSizeSelect.addEventListener("change", updatePreview);
+    showTextCheck.addEventListener("change", updatePreview);
 
     // --- Queue Management (localStorage) ---
     function getQueue() {
@@ -39,6 +44,7 @@
     function saveQueue(queue) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
         renderQueue();
+        updatePreview();
     }
 
     function addToQueue(text, itemId, itemName) {
@@ -256,7 +262,6 @@
         const sizeMm = sizeRange.value + "mm";
         const gapMm = gapRange.value + "mm";
         const marginMm = marginRange.value + "mm";
-        const columns = parseInt(columnsSelect.value);
         const fontSize = fontSizeSelect.value + "pt";
         const showText = showTextCheck.checked;
         const pageFormat = pageFormatSelect.value;
@@ -265,7 +270,6 @@
         printGrid.style.setProperty("--label-size", sizeMm);
         printGrid.style.setProperty("--label-gap", gapMm);
         printGrid.style.setProperty("--label-margin", marginMm);
-        printGrid.style.setProperty("--label-columns", columns);
         printGrid.style.setProperty("--label-font-size", fontSize);
 
         // Inject @page rule for page format
@@ -295,11 +299,84 @@
         setTimeout(() => window.print(), 300);
     });
 
+    // --- Preview ---
+    function updatePreview() {
+        const queue = getQueue();
+        const sizeMm = parseInt(sizeRange.value);
+        const gapMm = parseInt(gapRange.value);
+        const marginMm = parseInt(marginRange.value);
+        const showText = showTextCheck.checked;
+        const pageFormat = pageFormatSelect.value;
+
+        // Page dimensions in mm
+        let pageW = 210, pageH = 297; // A4 default
+        if (pageFormat === "Letter") { pageW = 216; pageH = 279; }
+
+        // Scale: fit the preview container width
+        // The preview-page element has a fixed aspect-ratio via CSS
+        // We compute a px-per-mm scale based on the container width
+        const containerWidth = previewPage.clientWidth || 400;
+        const scale = containerWidth / pageW;
+
+        // Set landscape class
+        previewPage.classList.remove("landscape");
+
+        // Compute columns that fit
+        const printableW = pageW - 2 * marginMm;
+        const cols = Math.max(1, Math.floor((printableW + gapMm) / (sizeMm + gapMm)));
+
+        // Set CSS variables for preview (in px)
+        const previewSize = Math.round(sizeMm * scale);
+        const previewGap = Math.round(gapMm * scale);
+        const previewMargin = Math.round(marginMm * scale);
+        const previewFontSize = Math.round(parseInt(fontSizeSelect.value) * scale * 0.4);
+
+        previewGrid.style.setProperty("--preview-size", previewSize + "px");
+        previewGrid.style.setProperty("--preview-gap", previewGap + "px");
+        previewGrid.style.setProperty("--preview-margin", previewMargin + "px");
+        previewGrid.style.setProperty("--preview-font-size", Math.max(5, previewFontSize) + "px");
+
+        // Compute how many rows fit
+        const printableH = pageH - 2 * marginMm;
+        const cellH = sizeMm + (showText ? 3 : 0); // rough text height ~3mm
+        const rows = Math.max(1, Math.floor((printableH + gapMm) / (cellH + gapMm)));
+        const perPage = cols * rows;
+
+        // Total labels (with copies)
+        const totalLabels = queue.reduce((sum, l) => sum + (l.qty || 1), 0);
+        const pages = Math.max(1, Math.ceil(totalLabels / perPage));
+
+        // Build cells
+        if (totalLabels === 0) {
+            previewGrid.innerHTML = '<div class="label-preview-empty text-center text-secondary py-4">Add labels to see preview</div>';
+            previewSummary.textContent = "";
+            return;
+        }
+
+        let cells = "";
+        queue.forEach(label => {
+            const qty = label.qty || 1;
+            const cell = `<div class="label-preview-cell">
+                <img src="/labels/qr.svg?text=${encodeURIComponent(label.text)}" alt="">
+                ${showText ? `<span class="label-preview-text">${escapeHtml(label.itemName || label.text)}</span>` : ""}
+            </div>`;
+            cells += cell.repeat(qty);
+        });
+        previewGrid.innerHTML = cells;
+
+        // Summary
+        previewSummary.textContent = `${cols} columns × ${rows} rows — ${totalLabels} label${totalLabels !== 1 ? "s" : ""}${pages > 1 ? ` (${pages} pages)` : ""}`;
+    }
+
+    // Update preview when switching to preview tab
+    document.querySelector('[href="#tab-preview"]').addEventListener("shown.bs.tab", updatePreview);
+
     // --- Clear All ---
     clearBtn.addEventListener("click", () => {
         if (confirm("Remove all labels from the queue?")) {
             localStorage.removeItem(STORAGE_KEY);
             renderQueue();
+            updatePreview();
         }
     });
 
@@ -316,4 +393,5 @@
 
     // --- Init ---
     renderQueue();
+    updatePreview();
 })();

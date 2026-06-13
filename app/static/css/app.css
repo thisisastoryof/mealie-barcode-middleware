@@ -73,6 +73,49 @@
     opacity: 1;
 }
 
+/* Preview page simulation */
+.label-preview-page {
+    aspect-ratio: 210 / 297;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: var(--tblr-border-radius);
+    background: white;
+    overflow: hidden;
+    max-height: 500px;
+}
+.label-preview-page.landscape {
+    aspect-ratio: 297 / 210;
+}
+.label-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--preview-size, 60px), 1fr));
+    gap: var(--preview-gap, 3px);
+    padding: var(--preview-margin, 4px);
+    height: 100%;
+    align-content: start;
+}
+.label-preview-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.label-preview-cell img {
+    width: var(--preview-size, 60px);
+    height: var(--preview-size, 60px);
+}
+.label-preview-cell .label-preview-text {
+    font-size: var(--preview-font-size, 6px);
+    margin-top: 1px;
+    text-align: center;
+    max-width: var(--preview-size, 60px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.label-preview-empty {
+    grid-column: 1 / -1;
+}
+
 /* Print styles for label sheets */
 @media print {
     .d-print-none { display: none !important; }
@@ -84,7 +127,7 @@
 
     .label-print-grid {
         display: grid;
-        grid-template-columns: repeat(var(--label-columns, 4), 1fr);
+        grid-template-columns: repeat(auto-fill, var(--label-size, 35mm));
         gap: var(--label-gap, 4mm);
         padding: var(--label-margin, 5mm);
     }

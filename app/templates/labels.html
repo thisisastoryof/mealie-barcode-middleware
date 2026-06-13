@@ -48,24 +48,13 @@
                 <h3 class="card-title">Layout</h3>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-6 mb-3">
-                        <label class="form-label">Page format</label>
-                        <select class="form-select" id="label-page-format">
-                            <option value="auto">Auto (browser default)</option>
-                            <option value="A4" selected>A4</option>
-                            <option value="Letter">Letter</option>
-                        </select>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label">Columns</label>
-                        <select class="form-select" id="label-columns">
-                            <option value="3">3 columns</option>
-                            <option value="4" selected>4 columns</option>
-                            <option value="5">5 columns</option>
-                            <option value="6">6 columns</option>
-                        </select>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Page format</label>
+                    <select class="form-select" id="label-page-format">
+                        <option value="auto">Auto (browser default)</option>
+                        <option value="A4" selected>A4</option>
+                        <option value="Letter">Letter</option>
+                    </select>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">QR code size: <strong id="label-size-value">35</strong> mm</label>
@@ -109,21 +98,47 @@
         </div>
     </div>
 
-    <!-- Label Queue -->
+    <!-- Label Queue / Preview -->
     <div class="col-lg-7">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Label Queue</h3>
-                <span class="card-title ms-2 text-secondary" id="label-count">(0 labels)</span>
-            </div>
-            <div class="card-body">
-                <div id="label-queue-empty" class="text-center text-secondary py-4">
-                    <i class="ti ti-qrcode icon icon-lg mb-2 opacity-50"></i>
-                    <p>No labels in queue. Search for items or type custom text to add labels.</p>
+        <div class="card-tabs">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#tab-queue" role="tab" aria-selected="true">
+                        <i class="ti ti-list icon me-1"></i> Queue <span class="text-secondary ms-1" id="label-count">(0)</span>
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" data-bs-toggle="tab" href="#tab-preview" role="tab" aria-selected="false">
+                        <i class="ti ti-eye icon me-1"></i> Preview
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <!-- Queue Tab -->
+                <div class="tab-pane active show" id="tab-queue" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="label-queue-empty" class="text-center text-secondary py-4">
+                                <i class="ti ti-qrcode icon icon-lg mb-2 opacity-50"></i>
+                                <p>No labels in queue. Search for items or type custom text to add labels.</p>
+                            </div>
+                            <div id="label-queue" class="row g-2"></div>
+                        </div>
+                    </div>
                 </div>
-                <div id="label-queue" class="row g-2"></div>
+                <!-- Preview Tab -->
+                <div class="tab-pane" id="tab-preview" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body p-3">
+                            <div id="preview-page" class="label-preview-page">
+                                <div id="preview-grid" class="label-preview-grid"></div>
+                            </div>
+                            <div class="text-center text-secondary mt-2 small" id="preview-summary"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </div>{# /card-tabs #}
     </div>
 </div>
 
