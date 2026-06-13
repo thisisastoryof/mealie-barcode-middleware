@@ -18,6 +18,7 @@ from app.services.mealie import (
     add_to_shopping_list_by_note,
     enqueue_retry,
 )
+from app.services.homeassistant import notify_scan as ha_notify_scan
 from app.utils import utcnow, sanitize_for_display
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,10 @@ def scan_barcode(
         raise HTTPException(status_code=422, detail="Barcode cannot be empty")
 
     try:
-        return _process_scan(barcode, db, background_tasks)
+        resp = _process_scan(barcode, db, background_tasks)
+        if resp.needs_action:
+            background_tasks.add_task(ha_notify_scan, barcode, resp.item, resp.result, resp.action_url or "")
+        return resp
     except Exception:
         logger.exception("Unhandled error processing scan for barcode %s", barcode)
         db.rollback()
@@ -353,7 +357,10 @@ def scan_barcode_app(
         raise HTTPException(status_code=422, detail="Barcode cannot be empty")
 
     try:
-        return _process_scan(barcode, db, background_tasks)
+        resp = _process_scan(barcode, db, background_tasks)
+        if resp.needs_action:
+            background_tasks.add_task(ha_notify_scan, barcode, resp.item, resp.result, resp.action_url or "")
+        return resp
     except Exception:
         logger.exception("Unhandled error processing app scan for barcode %s", barcode)
         db.rollback()

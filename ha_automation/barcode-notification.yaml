@@ -5,39 +5,49 @@
 # The notification includes an actionable button that opens the
 # middleware's barcode detail page for review.
 #
-# Copy this file to your HA config/automations/ directory,
-# or paste the content into the HA Automations UI editor (YAML mode).
+# This automation is triggered by a webhook from the middleware.
+# All scan sources (ESP32 DIY scanner, BinaryEye, iOS Shortcuts)
+# generate the same notification — the middleware handles it centrally.
 #
 # Setup:
-#   1. Replace notify.mobile_app_YOUR_PHONE (line 65) with your
-#      HA Companion App notify service (find it in HA → Developer Tools → Services)
-#   2. The action_url comes from the middleware's MIDDLEWARE_BASE_URL env var —
-#      set that in your docker-compose.yml (see docs/middleware-setup.md)
+#   1. In HA, go to Settings → Automations → Create Automation → YAML mode
+#      and paste this file (or copy it to config/automations/).
+#   2. Note the webhook ID below ("barcode-scanner") — you'll need it
+#      for the middleware's HA_WEBHOOK_URL setting.
+#   3. Replace notify.mobile_app_YOUR_PHONE (line 65) with your
+#      HA Companion App notify service (find it in HA → Developer Tools → Services).
+#   4. In the middleware, set:
+#        HA_WEBHOOK_URL=http://homeassistant.local:8123/api/webhook/barcode-scanner
+#        MIDDLEWARE_BASE_URL=http://your-middleware-ip:9930
+#
+# The webhook ID can be anything you like — just make sure it matches
+# the URL you set in HA_WEBHOOK_URL.
 
 alias: "Barcode Scanner — Needs Attention"
 description: >-
   Notify when a scanned barcode needs manual action (unknown product,
-  auto-linked item to review, etc.). Taps the notification to open
-  the middleware barcode detail page.
+  auto-linked item to review, etc.). Works for all scan sources —
+  ESP32 hardware scanner, BinaryEye (Android), and iOS Shortcuts.
 
 mode: queued
 max: 10
 
 triggers:
-  - trigger: event
-    event_type: esphome.barcode_scanned
+  - trigger: webhook
+    webhook_id: "barcode-scanner"
+    allowed_methods:
+      - POST
+    local_only: true
 
-conditions:
-  - condition: template
-    value_template: "{{ trigger.event.data.needs_action == 'true' }}"
+# No conditions needed — the middleware only sends webhooks
+# for scans that actually need attention (needs_action=true).
 
 actions:
   - variables:
-      barcode: "{{ trigger.event.data.barcode }}"
-      item: "{{ trigger.event.data.item }}"
-      result_type: "{{ trigger.event.data.result_type }}"
-      needs_action: "{{ trigger.event.data.needs_action }}"
-      action_url: "{{ trigger.event.data.action_url }}"
+      barcode: "{{ trigger.json.barcode }}"
+      item: "{{ trigger.json.item }}"
+      result_type: "{{ trigger.json.result_type }}"
+      action_url: "{{ trigger.json.action_url }}"
 
   - variables:
       title: >-
@@ -45,8 +55,8 @@ actions:
           Unknown barcode
         {% elif result_type == 'added_as_note' %}
           Not linked
-        {% elif result_type == 'added' and needs_action == 'true' %}
-          Auto-linked
+        {% elif result_type == 'added' %}
+          Auto-linked — review
         {% else %}
           Barcode scanned
         {% endif %}
@@ -55,7 +65,7 @@ actions:
           {{ barcode }} — tap to identify
         {% elif result_type == 'added_as_note' %}
           {{ item }} — tap to link to a Mealie item
-        {% elif result_type == 'added' and needs_action == 'true' %}
+        {% elif result_type == 'added' %}
           {{ item }} — tap to review
         {% else %}
           {{ item }}

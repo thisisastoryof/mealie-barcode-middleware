@@ -184,7 +184,9 @@ data:
   action_url: ""
 ```
 
-You can use this in HA automations — for example, to send a phone notification when `needs_action` is `"true"`, including the `action_url` as a deep link to the middleware's barcode detail page.
+This event is available for custom HA automations (e.g. incrementing a scan counter, logging to a database).
+
+> **Note:** Phone notifications are now handled centrally by the middleware via HA webhook — see [Middleware Setup → Home Assistant Push Notifications](middleware-setup.md#home-assistant-push-notifications-optional). The ESPHome event still fires for any custom automations you want to build, but it's no longer needed for notifications.
 
 ---
 

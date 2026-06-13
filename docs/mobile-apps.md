@@ -4,6 +4,8 @@ Don't have an ESP32 scanner? No problem. Your phone works too.
 
 This guide covers two options: **BinaryEye** (Android) and **iOS Shortcuts** (iPhone/iPad). Both send scanned barcodes directly to the middleware — no Home Assistant required, no cloud services involved.
 
+> **Push notifications work too.** If you've set up the HA webhook (see [Middleware Setup](middleware-setup.md#home-assistant-push-notifications-optional)), you'll get phone notifications for scans that need attention — regardless of whether you scanned with the ESP32, BinaryEye, or an iOS Shortcut.
+
 ---
 
 ## How It Works
@@ -187,6 +189,7 @@ Tap the shortcut name → **Add to Home Screen**. Now you have a one-tap barcode
 | Works without phone    | ✅                | ❌                   | ❌                   |
 | Zero hardware cost     | ❌ (~€15 parts)   | ✅                   | ✅                   |
 | Bulk rapid scanning    | ✅                | ✅ (bulk mode)       | One at a time        |
+| HA push notifications  | ✅                | ✅                   | ✅                   |
 | Auth method            | Bearer header     | Pre-shared key       | Bearer header        |
 | Setup difficulty       | Medium (solder)   | Easy (5 min)         | Easy (10 min)        |
 

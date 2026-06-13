@@ -26,7 +26,7 @@ A self-hosted barcode scanning system that adds items to your [Mealie](https://m
 - **OLED display** — Shows scan results, product name, brand, and status in real time
 - **GENERIC QR codes** — Scan `GENERIC:Milk` to add items by name without a barcode lookup
 - **Web dashboard** — Tabler-based UI to manage barcodes, review mappings, and monitor the system
-- **Real-time notifications** — SSE-powered live toasts and a notification bell in the web UI
+- **Real-time notifications** — SSE-powered live toasts in the web UI, plus optional HA webhook push notifications to your phone (works for all scan sources)
 - **Mobile app support** — Scan from your phone with BinaryEye (Android) or iOS Shortcuts
 - **Token auth** — Bearer tokens for scanners with header support; pre-shared key auth for mobile apps
 - **Offline-first** — No CDN dependencies; all CSS/JS vendored locally

@@ -45,6 +45,10 @@ When a barcode is scanned — whether from the ESP32 hardware scanner, a phone a
         │ 5. Add as note        │──► Shopping list gets product title as note
         │    (not linked)       │
         └───────────────────────┘
+
+After each scan, if the result needs attention (steps 3–5), two things happen:
+- A **notification** is saved for the web UI bell icon
+- If `HA_WEBHOOK_URL` is set, a **push notification** is sent to your phone via Home Assistant
 ```
 
 Let's walk through each step.

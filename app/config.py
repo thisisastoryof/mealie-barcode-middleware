@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     max_retry_attempts: int = 10
 
     middleware_base_url: str = ""
+    ha_webhook_url: str = ""
 
     db_path: str = "/data/barcode.db"
     timezone: str = "Europe/Berlin"
@@ -159,7 +160,15 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "type": "str",
         "label": "MIDDLEWARE_BASE_URL",
         "description": "Middleware URL",
-        "hint": "Base URL used for deep links in Home Assistant notifications. Leave empty if not using HA.",
+        "hint": "Base URL used for deep links in notifications (e.g. http://192.168.1.50:9930).",
+        "group": "System",
+        "section": "Home Assistant",
+    },
+    "ha_webhook_url": {
+        "type": "str",
+        "label": "HA_WEBHOOK_URL",
+        "description": "Webhook URL",
+        "hint": "HA webhook URL for push notifications (e.g. http://homeassistant.local:8123/api/webhook/barcode-scanner). Leave empty to disable.",
         "group": "System",
         "section": "Home Assistant",
     },

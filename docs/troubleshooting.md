@@ -178,6 +178,33 @@ esp32:
 
 ---
 
+## Home Assistant Notifications
+
+### No Push Notifications After Scanning
+
+**Check:**
+
+1. Is `HA_WEBHOOK_URL` set? Check the middleware web UI → Settings → System → Home Assistant.
+2. Is the URL correct? It should be `http://homeassistant.local:8123/api/webhook/YOUR-WEBHOOK-ID` (or your HA IP).
+3. Does the webhook ID match? The ID in the URL must match the `webhook_id` in the HA automation YAML.
+4. Is the HA automation enabled? Check Settings → Automations in HA.
+5. Is `MIDDLEWARE_BASE_URL` set? Without it, the notification's deep link will be a relative path (`/barcodes/...`) instead of a clickable URL.
+
+**Test the webhook manually:**
+```bash
+curl -X POST http://homeassistant.local:8123/api/webhook/barcode-scanner \
+  -H "Content-Type: application/json" \
+  -d '{"barcode":"0000000000000","item":"Test Item","result_type":"unknown","action_url":"http://ip:9930/barcodes/0000000000000"}'
+```
+
+If this triggers a notification, the webhook works and the issue is on the middleware side. Check Docker logs for `HA webhook` messages.
+
+### Duplicate Notifications (ESP32 + Webhook)
+
+If you previously used the ESPHome event-based automation (`esphome.barcode_scanned`), disable it. Notifications are now handled centrally by the middleware webhook — keeping both active will produce duplicates for ESP32 scans.
+
+---
+
 ## Docker
 
 ### Container Won't Start

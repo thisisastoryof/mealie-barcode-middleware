@@ -154,11 +154,30 @@ If `LOOKUP_ENRICH_IN_BACKGROUND=false`, the secondary call is made synchronously
 
 | Variable              | Default            | Description                                                         |
 | --------------------- | ------------------ | ------------------------------------------------------------------- |
-| `MIDDLEWARE_BASE_URL` | (empty)            | Full URL for deep links in HA notifications (e.g. `http://ip:9930`) |
+| `MIDDLEWARE_BASE_URL` | (empty)            | Full URL for deep links in notifications (e.g. `http://ip:9930`)    |
+| `HA_WEBHOOK_URL`      | (empty)            | HA webhook URL for push notifications (see below)                   |
 | `TIMEZONE`            | `Europe/Berlin`    | IANA timezone for UI timestamps                                     |
 | `DB_PATH`             | `/data/barcode.db` | SQLite database file path                                           |
 | `PORT`                | `8000`             | HTTP listen port (inside container)                                 |
 | `LOG_LEVEL`           | `INFO`             | Python log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`)              |
+
+### Home Assistant Push Notifications (Optional)
+
+When a barcode scan needs attention (unknown product, auto-linked item to review), the middleware can send a push notification to your phone via a Home Assistant webhook. This works for **all** scan sources — the ESP32 hardware scanner, BinaryEye (Android), and iOS Shortcuts.
+
+**Setup:**
+
+1. Copy `ha_automation/barcode-notification.yaml` into Home Assistant (Settings → Automations → Create → YAML mode)
+2. In the automation, replace `notify.mobile_app_YOUR_PHONE` with your HA Companion App service name
+3. Set these env vars in the middleware:
+   ```bash
+   MIDDLEWARE_BASE_URL=http://your-middleware-ip:9930
+   HA_WEBHOOK_URL=http://homeassistant.local:8123/api/webhook/barcode-scanner
+   ```
+
+The webhook ID (`barcode-scanner`) must match the `webhook_id` in the HA automation. You can change it to anything — just keep them in sync.
+
+> **No HA API key needed.** HA webhooks are accessible by their ID alone. The automation is set to `local_only: true`, so only devices on your local network can trigger it.
 
 ---
 
