@@ -75,21 +75,22 @@
 
 /* Preview page simulation */
 .label-preview-page {
-    aspect-ratio: 210 / 297;
+    min-height: 200px;
+    max-height: 70vh;
     border: 1px solid var(--tblr-border-color);
     border-radius: var(--tblr-border-radius);
     background: white;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 .label-preview-page.landscape {
-    aspect-ratio: 297 / 210;
+    /* no special ratio needed — scrollable */
 }
 .label-preview-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, var(--preview-width, 60px));
     gap: var(--preview-gap, 3px);
     padding: var(--preview-margin, 4px);
-    height: 100%;
     align-content: start;
     justify-content: center;
 }
