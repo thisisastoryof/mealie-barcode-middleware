@@ -65,6 +65,7 @@
     position: absolute;
     top: 0.25rem;
     right: 0.25rem;
+    z-index: 2;
     opacity: 0;
     transition: opacity 0.15s;
 }
