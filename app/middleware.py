@@ -2,7 +2,7 @@
 
 import logging
 import secrets
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -163,6 +163,10 @@ class LoginRequiredMiddleware(BaseHTTPMiddleware):
         # Check session
         user_id = request.session.get("user_id")
         if not user_id:
-            return RedirectResponse("/login", status_code=303)
+            next_url = quote(str(request.url.path), safe="/:@!$&'()*+,;=-._~")
+            qs = str(request.url.query)
+            if qs:
+                next_url += "?" + qs
+            return RedirectResponse(f"/login?next={quote(next_url, safe='')}", status_code=303)
 
         return await call_next(request)

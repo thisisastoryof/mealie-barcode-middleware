@@ -1,5 +1,5 @@
 """Login, logout, and first-run setup routes."""
-
+from urllib.parse import unquote
 import bcrypt
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -24,11 +24,11 @@ def _verify_password(password: str, password_hash: str) -> bool:
 
 
 @router.get("/login", response_class=HTMLResponse)
-def login_page(request: Request):
+def login_page(request: Request, next: str = Query("")):
     # Already logged in → go home
     if request.session.get("user_id"):
         return RedirectResponse("/", status_code=303)
-    return templates.TemplateResponse(request, "login.html", {"error": None})
+    return templates.TemplateResponse(request, "login.html", {"error": None, "next": next})
 
 
 @router.post("/login", response_class=HTMLResponse)
@@ -37,13 +37,14 @@ def login_submit(
     username: str = Form(...),
     password: str = Form(...),
     remember: str = Form(""),
+    next: str = Form(""),
     db: Session = Depends(get_db),
 ):
     user = db.query(User).filter(User.username == username).first()
     if not user or not _verify_password(password, user.password_hash):
         return templates.TemplateResponse(
             request, "login.html",
-            {"error": "Invalid username or password"},
+            {"error": "Invalid username or password", "next": next},
             status_code=401,
         )
 
@@ -55,7 +56,9 @@ def login_submit(
     if remember:
         request.session["remember"] = True
 
-    return RedirectResponse("/", status_code=303)
+    # Redirect to the original page or home
+    redirect_to = unquote(next) if next and next.startswith("/") else "/"
+    return RedirectResponse(redirect_to, status_code=303)
 
 
 @router.post("/logout")
