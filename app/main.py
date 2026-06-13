@@ -76,7 +76,7 @@ async def lifespan(app: FastAPI):
     stop_scheduler()
 
 
-app = FastAPI(title="Barcode-Mealie Middleware", lifespan=lifespan)
+app = FastAPI(title="Barcode-Mealie Middleware", lifespan=lifespan, docs_url="/api/docs", redoc_url="/api/redoc")
 
 # Security middleware (order matters: outermost runs first)
 app.add_middleware(SecurityHeadersMiddleware)
