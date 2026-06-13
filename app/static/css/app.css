@@ -114,7 +114,7 @@
 .label-preview-cell .label-preview-text {
     flex: 0 0 auto;
     font-size: var(--preview-font-size, 6px);
-    margin-top: 1px;
+    margin-top: calc(var(--preview-padding, 2px) / 2);
     text-align: center;
     width: 100%;
     overflow: hidden;
@@ -141,7 +141,7 @@
     width: auto;
     height: auto;
     margin-top: 0;
-    margin-left: 4px;
+    margin-left: var(--preview-padding, 4px);
     text-align: left;
     overflow-wrap: anywhere;
     -webkit-line-clamp: 3;
@@ -224,7 +224,7 @@
     .label-cell .label-text {
         flex: 0 0 auto;
         font-size: var(--label-font-size, 8pt);
-        margin-top: 1mm;
+        margin-top: calc(var(--label-padding, 1.5mm) / 2);
         text-align: center;
         width: 100%;
         overflow: hidden;
@@ -251,7 +251,7 @@
         width: auto;
         height: auto;
         margin-top: 0;
-        margin-left: 2mm;
+        margin-left: var(--label-padding, 2mm);
         text-align: left;
         overflow-wrap: anywhere;
         -webkit-line-clamp: 3;

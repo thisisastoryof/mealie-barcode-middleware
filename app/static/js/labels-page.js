@@ -331,7 +331,8 @@
             const sizeVal = getHeightMm(parseInt(sizeRange.value));
             const fontPt = parseInt(fontSizeSelect.value);
             const fontMm = fontPt * 0.353; // 1pt ≈ 0.353mm
-            const textReserveMm = 2.4 * fontMm + 1; // 2 lines + 1mm margin
+            const gapBetween = paddingMmVal / 2; // QR-to-text gap = half padding
+            const textReserveMm = 2.4 * fontMm + gapBetween;
             const imgMaxMm = sizeVal - 2 * paddingMmVal - textReserveMm;
             printGrid.style.setProperty("--label-img-max", Math.max(0, imgMaxMm.toFixed(1)) + "mm");
         } else if (landscape && showText) {
@@ -422,7 +423,8 @@
         // Cap image size for consistent QR sizing
         if (showText && !landscape) {
             const actualFontSize = Math.max(5, previewFontSize);
-            const textReserve = 2.4 * actualFontSize + 1;
+            const gapBetween = previewPadding / 2; // QR-to-text gap = half padding
+            const textReserve = 2.4 * actualFontSize + gapBetween;
             const imgMax = previewHeight - 2 * previewPadding - textReserve;
             previewGrid.style.setProperty("--preview-img-max", Math.max(0, Math.round(imgMax)) + "px");
         } else if (landscape && showText) {
