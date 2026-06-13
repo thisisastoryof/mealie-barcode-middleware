@@ -174,7 +174,7 @@
         container.innerHTML = candidates.map(c => `
             <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center fuzzy-pick" data-id="${escapeAttr(c.id)}" data-name="${escapeAttr(c.name)}">
                 ${escapeHtml(c.name)}
-                <span class="badge bg-blue-lt">${c.score}%</span>
+                <span class="text-secondary small">${c.score}%</span>
             </a>
         `).join("");
 
