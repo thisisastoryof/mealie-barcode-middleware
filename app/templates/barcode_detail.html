@@ -24,7 +24,7 @@
 
 <div class="row row-cards mb-3">
     <!-- Product info -->
-    <div class="col-lg-7">
+    <div class="{{ 'col-lg-7' if mapping and is_confirmed and mapped_item else 'col-12' }}">
         <div class="card">
             <div class="card-header"><h3 class="card-title">Product Information</h3></div>
             <div class="card-body">
@@ -72,7 +72,9 @@
             <div class="card-footer d-flex justify-content-between">
                 {% if not cached.found %}
                 <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/retry-lookup" class="d-inline">
-                    <button type="submit" class="btn btn-warning">Retry Lookup</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="ti ti-refresh icon"></i> Retry Lookup
+                    </button>
                 </form>
                 {% else %}
                 <div></div>
@@ -80,229 +82,199 @@
                 <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/delete" class="d-inline"
                     data-confirm="Delete barcode {{ cached.barcode }}?"
                     data-confirm-detail="The barcode entry{% if cached.item_name %} and its link to &quot;{{ cached.item_name }}&quot;{% endif %} will be permanently removed.">
-                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="ti ti-trash icon"></i> Delete
+                    </button>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Right column: mapping state -->
+    {% if mapping and is_confirmed and mapped_item %}
+    {# ── STATE 2: Confirmed — compact card beside product info ── #}
     <div class="col-lg-5">
-
-        {% if mapping and mapping.mapped_by == 'auto' and mapped_item %}
-        {# ── STATE 1: Auto-mapped, unverified ── #}
-        <div class="card mb-3">
-            <div class="card-header">
-                <h3 class="card-title">Suggested Match</h3>
-            </div>
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-2">
-                    <span class="status-dot status-dot-animated bg-yellow me-2"></span>
-                    <span class="text-secondary">Auto-matched · not yet confirmed</span>
-                </div>
-                <div class="datagrid">
-                    <div class="datagrid-item">
-                        <div class="datagrid-title">Item</div>
-                        <div class="datagrid-content">
-                            <a href="/items/{{ mapped_item.id }}">{{ mapped_item.name }}</a>
-                        </div>
-                    </div>
-                    <div class="datagrid-item">
-                        <div class="datagrid-title">Source</div>
-                        <div class="datagrid-content">
-                            <span class="badge bg-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }} text-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }}-fg">{{ 'Mealie' if mapped_item.source == 'mealie' else 'Custom' }}</span>
-                        </div>
-                    </div>
-                    <div class="datagrid-item">
-                        <div class="datagrid-title">Date</div>
-                        <div class="datagrid-content">{{ mapping.created_at|localtime }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer">
-                <div class="row">
-                    <div class="col">
-                        <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/confirm">
-                            <button type="submit" class="btn btn-success w-100">
-                                <i class="ti ti-check icon"></i> Confirm
-                            </button>
-                        </form>
-                    </div>
-                    <div class="col">
-                        <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/unmap">
-                            <button type="submit" class="btn btn-outline-danger w-100">
-                                <i class="ti ti-x icon"></i> Wrong
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {# Candidates below the suggestion card #}
-        {% if candidates %}
-        <div class="card">
-            <div class="card-header">
-                <div class="row w-100 align-items-center">
-                    <div class="col">
-                        <h3 class="card-title mb-0">Other Candidates</h3>
-                    </div>
-                    <div class="col-auto">
-                        <div class="input-icon">
-                            <span class="input-icon-addon">
-                                <i class="ti ti-search icon" aria-hidden="true"></i>
-                            </span>
-                            <input type="text" id="item-search" class="form-control" placeholder="Find or create…" autocomplete="off">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-vcenter card-table" id="item-assign-table" data-barcode="{{ cached.barcode }}">
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Source</th>
-                            <th>Match</th>
-                            <th class="w-1"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="item-assign-tbody">
-                        {% for c in candidates %}
-                        {% if c.item_id != mapped_item.id %}
-                        <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
-                            <td><a href="/items/{{ c.item_id }}">{{ c.item_name }}</a></td>
-                            <td class="text-secondary">{{ 'Mealie' if c.source == 'mealie' else 'Custom' }}</td>
-                            <td>
-                                <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}%</span>
-                            </td>
-                            <td>
-                                <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/map" class="d-inline">
-                                    <input type="hidden" name="item_id" value="{{ c.item_id }}">
-                                    <button type="submit" class="btn btn-primary">Link</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endif %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% endif %}
-
-        {% elif mapping and is_confirmed and mapped_item %}
-        {# ── STATE 2: Confirmed mapping ── #}
         <div class="card">
             <div class="card-header"><h3 class="card-title">Linked Item</h3></div>
             <div class="card-body">
-                <div class="d-flex align-items-center mb-2">
+                <div class="d-flex align-items-center">
                     <span class="status-dot status-dot-animated bg-green me-2"></span>
-                    <span class="text-secondary">Confirmed</span>
+                    <a href="/items/{{ mapped_item.id }}" class="fw-bold text-reset">{{ mapped_item.name }}</a>
                 </div>
-                <div class="datagrid">
-                    <div class="datagrid-item">
-                        <div class="datagrid-title">Item</div>
-                        <div class="datagrid-content">
-                            <a href="/items/{{ mapped_item.id }}">{{ mapped_item.name }}</a>
-                        </div>
-                    </div>
-                    <div class="datagrid-item">
-                        <div class="datagrid-title">Source</div>
-                        <div class="datagrid-content">
-                            <span class="badge bg-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }} text-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }}-fg">{{ 'Mealie' if mapped_item.source == 'mealie' else 'Custom' }}</span>
-                        </div>
-                    </div>
-                    <div class="datagrid-item">
-                        <div class="datagrid-title">Linked</div>
-                        <div class="datagrid-content">
-                            {% if mapping.mapped_by == 'auto_confirmed' %}Auto (confirmed){% elif mapping.mapped_by == 'manual' %}Manual{% else %}{{ mapping.mapped_by }}{% endif %}
-                        </div>
-                    </div>
-                    <div class="datagrid-item">
-                        <div class="datagrid-title">Date</div>
-                        <div class="datagrid-content">{{ mapping.created_at|localtime }}</div>
-                    </div>
+                <div class="text-secondary mt-1 small">
+                    {{ 'Mealie' if mapped_item.source == 'mealie' else 'Custom' }} ·
+                    {% if mapping.mapped_by == 'auto_confirmed' %}auto (confirmed){% elif mapping.mapped_by == 'manual' %}linked manually{% else %}{{ mapping.mapped_by }}{% endif %} ·
+                    {{ mapping.created_at|localtime }}
                 </div>
             </div>
             <div class="card-footer d-flex justify-content-end">
                 <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/unmap">
-                    <button type="submit" class="btn btn-outline-danger">Unlink</button>
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="ti ti-unlink icon"></i> Unlink
+                    </button>
                 </form>
             </div>
         </div>
+    </div>
+    {% endif %}
+</div>
 
-        {% elif mapping and not mapped_item %}
-        {# Mapped to a deleted item #}
-        <div class="card mb-3">
-            <div class="card-header"><h3 class="card-title">Linked Item</h3></div>
-            <div class="card-body">
-                <p class="text-secondary mb-1">Mapped to a deleted item</p>
-                <code class="small">{{ mapping.item_id }}</code>
-            </div>
-            <div class="card-footer d-flex justify-content-end">
-                <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/unmap">
-                    <button type="submit" class="btn btn-outline-danger">Unlink</button>
-                </form>
-            </div>
+{% if mapping and mapping.mapped_by == 'auto' and mapped_item %}
+{# ── STATE 1: Auto-mapped, unverified — full width below ── #}
+<div class="card mb-3">
+    <div class="card-header">
+        <h3 class="card-title">Suggested Match</h3>
+    </div>
+    <div class="card-body">
+        <div class="d-flex align-items-center">
+            <span class="status-dot status-dot-animated bg-yellow me-2"></span>
+            <a href="/items/{{ mapped_item.id }}" class="fw-bold text-reset">{{ mapped_item.name }}</a>
         </div>
-
-        {% else %}
-        {# ── STATE 3: Unmapped ── #}
-        <div class="card">
-            <div class="card-header">
-                <div class="row w-100 align-items-center">
-                    <div class="col">
-                        <h3 class="card-title mb-0">Search or Create Item</h3>
-                    </div>
-                    <div class="col-auto">
-                        <div class="input-icon">
-                            <span class="input-icon-addon">
-                                <i class="ti ti-search icon" aria-hidden="true"></i>
-                            </span>
-                            <input type="text" id="item-search" class="form-control" placeholder="Find or create…" autocomplete="off">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-vcenter card-table" id="item-assign-table" data-barcode="{{ cached.barcode }}">
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Source</th>
-                            <th>Match</th>
-                            <th class="w-1"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="item-assign-tbody">
-                        {% if candidates %}
-                        {% for c in candidates %}
-                        <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
-                            <td><a href="/items/{{ c.item_id }}">{{ c.item_name }}</a></td>
-                            <td class="text-secondary">{{ 'Mealie' if c.source == 'mealie' else 'Custom' }}</td>
-                            <td>
-                                <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}%</span>
-                            </td>
-                            <td>
-                                <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/map" class="d-inline">
-                                    <input type="hidden" name="item_id" value="{{ c.item_id }}">
-                                    <button type="submit" class="btn btn-primary">Link</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        {% else %}
-                        <tr class="empty-row"><td colspan="4" class="text-center text-secondary">Type to search or create a new item</td></tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
+        <div class="text-secondary mt-1 small">
+            {{ 'Mealie' if mapped_item.source == 'mealie' else 'Custom' }} ·
+            auto-matched · {{ mapping.created_at|localtime }}
         </div>
-        {% endif %}
-
+    </div>
+    <div class="card-footer">
+        <div class="d-flex gap-2">
+            <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/confirm">
+                <button type="submit" class="btn btn-success">
+                    <i class="ti ti-check icon"></i> Confirm
+                </button>
+            </form>
+            <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/unmap">
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="ti ti-x icon"></i> Wrong
+                </button>
+            </form>
+        </div>
     </div>
 </div>
+
+{# Other Candidates #}
+<div class="card mb-3">
+    <div class="card-header">
+        <div class="row w-100 align-items-center">
+            <div class="col">
+                <h3 class="card-title mb-0">Other Candidates</h3>
+            </div>
+            <div class="col-auto">
+                <div class="input-icon">
+                    <span class="input-icon-addon">
+                        <i class="ti ti-search icon" aria-hidden="true"></i>
+                    </span>
+                    <input type="text" id="item-search" class="form-control" placeholder="Find or create…" autocomplete="off">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table" id="item-assign-table" data-barcode="{{ cached.barcode }}">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Source</th>
+                    <th>Match</th>
+                    <th class="w-1"></th>
+                </tr>
+            </thead>
+            <tbody id="item-assign-tbody">
+                {% for c in candidates %}
+                {% if c.item_id != mapped_item.id %}
+                <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
+                    <td><a href="/items/{{ c.item_id }}">{{ c.item_name }}</a></td>
+                    <td class="text-secondary">{{ 'Mealie' if c.source == 'mealie' else 'Custom' }}</td>
+                    <td>
+                        <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}%</span>
+                    </td>
+                    <td>
+                        <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/map" class="d-inline">
+                            <input type="hidden" name="item_id" value="{{ c.item_id }}">
+                            <button type="submit" class="btn btn-icon btn-primary" title="Link">
+                                <i class="ti ti-link icon"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% elif mapping and not mapped_item %}
+{# Mapped to a deleted item — full width #}
+<div class="card mb-3">
+    <div class="card-header"><h3 class="card-title">Linked Item</h3></div>
+    <div class="card-body">
+        <p class="text-secondary mb-1">Mapped to a deleted item</p>
+        <code class="small">{{ mapping.item_id }}</code>
+    </div>
+    <div class="card-footer d-flex justify-content-end">
+        <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/unmap">
+            <button type="submit" class="btn btn-outline-danger">
+                <i class="ti ti-unlink icon"></i> Unlink
+            </button>
+        </form>
+    </div>
+</div>
+
+{% elif not mapping %}
+{# ── STATE 3: Unmapped — full width below ── #}
+<div class="card mb-3">
+    <div class="card-header">
+        <div class="row w-100 align-items-center">
+            <div class="col">
+                <h3 class="card-title mb-0">Link to Item</h3>
+                <p class="card-subtitle">Search existing items or create a new one to map this barcode</p>
+            </div>
+            <div class="col-auto">
+                <div class="input-icon">
+                    <span class="input-icon-addon">
+                        <i class="ti ti-search icon" aria-hidden="true"></i>
+                    </span>
+                    <input type="text" id="item-search" class="form-control" placeholder="Find or create…" autocomplete="off">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table" id="item-assign-table" data-barcode="{{ cached.barcode }}">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Source</th>
+                    <th>Match</th>
+                    <th class="w-1"></th>
+                </tr>
+            </thead>
+            <tbody id="item-assign-tbody">
+                {% if candidates %}
+                {% for c in candidates %}
+                <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
+                    <td><a href="/items/{{ c.item_id }}">{{ c.item_name }}</a></td>
+                    <td class="text-secondary">{{ 'Mealie' if c.source == 'mealie' else 'Custom' }}</td>
+                    <td>
+                        <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}%</span>
+                    </td>
+                    <td>
+                        <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/map" class="d-inline">
+                            <input type="hidden" name="item_id" value="{{ c.item_id }}">
+                            <button type="submit" class="btn btn-icon btn-primary" title="Link">
+                                <i class="ti ti-link icon"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr class="empty-row"><td colspan="4" class="text-center text-secondary">Type to search or create a new item</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
 
 {% endif %}
 {% endblock %}

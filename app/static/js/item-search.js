@@ -32,7 +32,7 @@
             '<td>' +
             '<form method="post" action="/barcodes/' + encodeURIComponent(barcode) + '/create-and-map" class="d-inline">' +
             '<input type="hidden" name="name" value="' + esc(query) + '">' +
-            '<button type="submit" class="btn btn-sm btn-success">Create &amp; Link</button>' +
+            '<button type="submit" class="btn btn-success"><i class="ti ti-plus icon"></i> Create &amp; Link</button>' +
             '</form></td>';
         return tr;
     }
@@ -55,7 +55,7 @@
         var tdAction = document.createElement('td');
         tdAction.innerHTML = '<form method="post" action="/barcodes/' + encodeURIComponent(barcode) + '/map" class="d-inline">' +
             '<input type="hidden" name="item_id" value="' + item.id + '">' +
-            '<button type="submit" class="btn btn-sm btn-primary">Link</button></form>';
+            '<button type="submit" class="btn btn-icon btn-primary" title="Link"><i class="ti ti-link icon"></i></button></form>';
 
         tr.appendChild(tdName);
         tr.appendChild(tdSource);
