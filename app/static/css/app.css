@@ -94,23 +94,33 @@
     justify-content: center;
 }
 .label-preview-cell {
+    width: var(--preview-size, 60px);
+    height: var(--preview-size, 60px);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: start;
+    justify-content: center;
+    padding: 5%;
+    box-sizing: border-box;
 }
 .label-preview-cell img {
-    width: var(--preview-size, 60px);
-    height: var(--preview-size, 60px);
+    flex: 1 1 auto;
+    width: 100%;
+    height: auto;
+    max-height: 100%;
+    object-fit: contain;
 }
 .label-preview-cell .label-preview-text {
+    flex: 0 0 auto;
     font-size: var(--preview-font-size, 6px);
     margin-top: 1px;
     text-align: center;
-    max-width: var(--preview-size, 60px);
+    width: 100%;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.2;
 }
 .label-preview-empty {
     grid-column: 1 / -1;
@@ -119,7 +129,6 @@
 .label-cell.has-border {
     border: 1px solid #dee2e6;
     border-radius: 2px;
-    padding: 2px;
 }
 
 /* Qty picker in label queue cards */
@@ -168,24 +177,34 @@
         justify-content: center;
     }
     .label-cell {
+        width: var(--label-size, 35mm);
+        height: var(--label-size, 35mm);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        padding: 5%;
+        box-sizing: border-box;
         page-break-inside: avoid;
         break-inside: avoid;
     }
     .label-cell img {
-        width: var(--label-size, 35mm);
-        height: var(--label-size, 35mm);
+        flex: 1 1 auto;
+        width: 100%;
+        height: auto;
+        max-height: 100%;
+        object-fit: contain;
     }
     .label-cell .label-text {
+        flex: 0 0 auto;
         font-size: var(--label-font-size, 8pt);
         margin-top: 1mm;
         text-align: center;
-        max-width: var(--label-size, 35mm);
+        width: 100%;
         overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-height: 1.2;
     }
 }

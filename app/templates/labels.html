@@ -57,22 +57,14 @@
                         <button type="button" class="btn btn-outline-secondary label-preset" data-size="60" data-gap="6" data-margin="10" data-font="12">Large</button>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Page format</label>
-                    <select class="form-select" id="label-page-format">
-                        <option value="auto">Auto (browser default)</option>
-                        <option value="A4" selected>A4</option>
-                        <option value="Letter">Letter</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">QR code size: <strong id="label-size-value">35</strong> mm</label>
-                    <input type="range" class="form-range" id="label-size" min="15" max="80" step="5" value="35">
-                </div>
                 <div class="row">
                     <div class="col-6 mb-3">
-                        <label class="form-label">Gap: <strong id="label-gap-value">4</strong> mm</label>
-                        <input type="range" class="form-range" id="label-gap" min="0" max="10" step="1" value="4">
+                        <label class="form-label">Page format</label>
+                        <select class="form-select" id="label-page-format">
+                            <option value="auto">Auto (browser default)</option>
+                            <option value="A4" selected>A4</option>
+                            <option value="Letter">Letter</option>
+                        </select>
                     </div>
                     <div class="col-6 mb-3">
                         <label class="form-label">Page margin: <strong id="label-margin-value">5</strong> mm</label>
@@ -81,16 +73,12 @@
                 </div>
                 <div class="row">
                     <div class="col-6 mb-3">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="label-show-text" checked>
-                            <span class="form-check-label">Show text below QR</span>
-                        </label>
+                        <label class="form-label">Label size: <strong id="label-size-value">35</strong> mm</label>
+                        <input type="range" class="form-range" id="label-size" min="15" max="80" step="5" value="35">
                     </div>
                     <div class="col-6 mb-3">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="label-show-border">
-                            <span class="form-check-label">Show cut border</span>
-                        </label>
+                        <label class="form-label">Gap: <strong id="label-gap-value">4</strong> mm</label>
+                        <input type="range" class="form-range" id="label-gap" min="0" max="10" step="1" value="4">
                     </div>
                 </div>
                 <div class="mb-3">
@@ -103,6 +91,20 @@
                         <option value="14">14pt</option>
                         <option value="16">16pt</option>
                     </select>
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="label-show-text" checked>
+                            <span class="form-check-label">Show text</span>
+                        </label>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="label-show-border">
+                            <span class="form-check-label">Cut border</span>
+                        </label>
+                    </div>
                 </div>
             </div>
             <div class="card-footer d-flex justify-content-between">

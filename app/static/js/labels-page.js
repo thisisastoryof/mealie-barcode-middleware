@@ -363,10 +363,9 @@
         previewGrid.style.setProperty("--preview-margin", previewMargin + "px");
         previewGrid.style.setProperty("--preview-font-size", Math.max(5, previewFontSize) + "px");
 
-        // Compute how many rows fit
+        // Compute how many rows fit (cell is a square: sizeMm × sizeMm)
         const printableH = pageH - 2 * marginMm;
-        const cellH = sizeMm + (showText ? 3 : 0); // rough text height ~3mm
-        const rows = Math.max(1, Math.floor((printableH + gapMm) / (cellH + gapMm)));
+        const rows = Math.max(1, Math.floor((printableH + gapMm) / (sizeMm + gapMm)));
         const perPage = cols * rows;
 
         // Total labels (with copies)
