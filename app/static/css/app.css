@@ -47,8 +47,8 @@
 /* Doc scrollspy sidebar */
 .doc-toc-sidebar {
     position: sticky;
-    top: 5rem;
-    max-height: calc(100vh - 7rem);
+    top: 4rem;
+    max-height: calc(100vh - 5rem);
     overflow-y: auto;
 }
 

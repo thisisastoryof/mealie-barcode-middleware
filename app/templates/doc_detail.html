@@ -2,8 +2,8 @@
 {% block title %}{{ doc_title }} — Docs — Barcode Middleware{% endblock %}
 
 {% block content %}
-<!-- BEGIN PAGE HEADER -->
-<div class="page-header d-print-none mb-3">
+<!-- Page header (mobile only when TOC exists, always when no TOC) -->
+<div class="page-header d-print-none mb-3{{ ' d-md-none' if toc }}">
     <div class="row g-2 align-items-center">
         <div class="col-auto">
             <a href="/docs" class="btn btn-ghost-secondary btn-icon" title="Back to Documentation">
@@ -23,6 +23,11 @@
     {% if toc %}
     <div class="col-md-3 d-none d-md-block">
         <div class="doc-toc-sidebar">
+            <a href="/docs" class="btn btn-ghost-secondary btn-icon mb-2" title="Back to Documentation">
+                <i class="ti ti-arrow-left icon"></i>
+            </a>
+            <div class="page-pretitle">Documentation</div>
+            <h2 class="page-title mb-3">{{ doc_title }}</h2>
             <div class="card">
                 <div class="card-body">
                     <nav id="doc-toc" class="nav nav-pills flex-column">
