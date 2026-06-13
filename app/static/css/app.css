@@ -58,6 +58,19 @@
     height: 80px;
     object-fit: contain;
 }
+.label-card {
+    position: relative;
+}
+.label-card .label-remove {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+.label-card:hover .label-remove {
+    opacity: 1;
+}
 
 /* Print styles for label sheets */
 @media print {
