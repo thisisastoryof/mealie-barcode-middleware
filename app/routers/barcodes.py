@@ -112,10 +112,16 @@ def barcode_detail(
         .first()
     )
 
+    # Determine confirmation state
+    is_confirmed = False
+    if mapping:
+        is_confirmed = mapping.mapped_by in ("manual", "auto_confirmed")
+
     return templates.TemplateResponse(request, "barcode_detail.html", {
         "cached": cached,
         "mapping": mapping,
         "mapped_item": mapped_item,
+        "is_confirmed": is_confirmed,
         "candidates": candidates,
         "next_unmapped": next_unmapped,
         "threshold": settings.fuzzy_match_threshold,
@@ -168,6 +174,17 @@ def barcode_create_and_map(
     _dismiss_notifications(barcode, db)
 
     db.commit()
+    return RedirectResponse(f"/barcodes/{quote(barcode, safe='')}", status_code=303)
+
+
+@router.post("/barcodes/{barcode:path}/confirm")
+def barcode_confirm(barcode: str, db: Session = Depends(get_db)):
+    """Confirm an auto-mapped barcode."""
+    existing = db.get(BarcodeMapping, barcode)
+    if existing and existing.mapped_by == "auto":
+        existing.mapped_by = "auto_confirmed"
+        _dismiss_notifications(barcode, db)
+        db.commit()
     return RedirectResponse(f"/barcodes/{quote(barcode, safe='')}", status_code=303)
 
 

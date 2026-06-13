@@ -22,9 +22,9 @@
 <div class="alert alert-warning">This barcode is not in the cache.</div>
 {% else %}
 
-<div class="row row-deck row-cards mb-3">
+<div class="row row-cards mb-3">
     <!-- Product info -->
-    <div class="col-lg-8">
+    <div class="col-lg-7">
         <div class="card">
             <div class="card-header"><h3 class="card-title">Product Information</h3></div>
             <div class="card-body">
@@ -86,12 +86,20 @@
         </div>
     </div>
 
-    <!-- Linked Item -->
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header"><h3 class="card-title">Linked Item</h3></div>
-            {% if mapping and mapped_item %}
+    <!-- Right column: mapping state -->
+    <div class="col-lg-5">
+
+        {% if mapping and mapping.mapped_by == 'auto' and mapped_item %}
+        {# ── STATE 1: Auto-mapped, unverified ── #}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">Suggested Match</h3>
+            </div>
             <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="status-dot status-dot-animated bg-yellow me-2"></span>
+                    <span class="text-secondary">Auto-matched · not yet confirmed</span>
+                </div>
                 <div class="datagrid">
                     <div class="datagrid-item">
                         <div class="datagrid-title">Item</div>
@@ -100,7 +108,107 @@
                         </div>
                     </div>
                     <div class="datagrid-item">
-                        <div class="datagrid-title">Type</div>
+                        <div class="datagrid-title">Source</div>
+                        <div class="datagrid-content">
+                            <span class="badge bg-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }} text-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }}-fg">{{ 'Mealie' if mapped_item.source == 'mealie' else 'Custom' }}</span>
+                        </div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Date</div>
+                        <div class="datagrid-content">{{ mapping.created_at|localtime }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col">
+                        <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/confirm">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="ti ti-check icon"></i> Confirm
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col">
+                        <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/unmap">
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="ti ti-x icon"></i> Wrong
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Candidates below the suggestion card #}
+        {% if candidates %}
+        <div class="card">
+            <div class="card-header">
+                <div class="row w-100 align-items-center">
+                    <div class="col">
+                        <h3 class="card-title mb-0">Other Candidates</h3>
+                    </div>
+                    <div class="col-auto">
+                        <div class="input-icon">
+                            <span class="input-icon-addon">
+                                <i class="ti ti-search icon" aria-hidden="true"></i>
+                            </span>
+                            <input type="text" id="item-search" class="form-control" placeholder="Find or create…" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table" id="item-assign-table" data-barcode="{{ cached.barcode }}">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Source</th>
+                            <th>Match</th>
+                            <th class="w-1"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="item-assign-tbody">
+                        {% for c in candidates %}
+                        {% if c.item_id != mapped_item.id %}
+                        <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
+                            <td><a href="/items/{{ c.item_id }}">{{ c.item_name }}</a></td>
+                            <td class="text-secondary">{{ 'Mealie' if c.source == 'mealie' else 'Custom' }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}%</span>
+                            </td>
+                            <td>
+                                <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/map" class="d-inline">
+                                    <input type="hidden" name="item_id" value="{{ c.item_id }}">
+                                    <button type="submit" class="btn btn-primary">Link</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% elif mapping and is_confirmed and mapped_item %}
+        {# ── STATE 2: Confirmed mapping ── #}
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Linked Item</h3></div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="status-dot status-dot-animated bg-green me-2"></span>
+                    <span class="text-secondary">Confirmed</span>
+                </div>
+                <div class="datagrid">
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Item</div>
+                        <div class="datagrid-content">
+                            <a href="/items/{{ mapped_item.id }}">{{ mapped_item.name }}</a>
+                        </div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Source</div>
                         <div class="datagrid-content">
                             <span class="badge bg-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }} text-{{ 'blue' if mapped_item.source == 'mealie' else 'purple' }}-fg">{{ 'Mealie' if mapped_item.source == 'mealie' else 'Custom' }}</span>
                         </div>
@@ -108,7 +216,7 @@
                     <div class="datagrid-item">
                         <div class="datagrid-title">Linked</div>
                         <div class="datagrid-content">
-                            {% if mapping.mapped_by == 'auto' %}Automatic{% elif mapping.mapped_by == 'manual' %}Manual{% else %}{{ mapping.mapped_by }}{% endif %}
+                            {% if mapping.mapped_by == 'auto_confirmed' %}Auto (confirmed){% elif mapping.mapped_by == 'manual' %}Manual{% else %}{{ mapping.mapped_by }}{% endif %}
                         </div>
                     </div>
                     <div class="datagrid-item">
@@ -122,7 +230,12 @@
                     <button type="submit" class="btn btn-outline-danger">Unlink</button>
                 </form>
             </div>
-            {% elif mapping %}
+        </div>
+
+        {% elif mapping and not mapped_item %}
+        {# Mapped to a deleted item #}
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">Linked Item</h3></div>
             <div class="card-body">
                 <p class="text-secondary mb-1">Mapped to a deleted item</p>
                 <code class="small">{{ mapping.item_id }}</code>
@@ -132,64 +245,62 @@
                     <button type="submit" class="btn btn-outline-danger">Unlink</button>
                 </form>
             </div>
-            {% else %}
-            <div class="card-body">
-                <p class="text-secondary mb-0">Not linked to any item yet.<br><small>Use the search below to find or create one.</small></p>
-            </div>
-            {% endif %}
         </div>
-    </div>
-</div>
 
-<!-- Search or Create Item -->
-<div class="card mb-3">
-    <div class="card-header">
-        <div class="row w-100 align-items-center">
-            <div class="col">
-                <h3 class="card-title mb-0">Search or Create Item</h3>
-            </div>
-            <div class="col-auto">
-                <div class="input-icon">
-                    <span class="input-icon-addon">
-                        <i class="ti ti-search icon" aria-hidden="true"></i>
-                    </span>
-                    <input type="text" id="item-search" class="form-control" placeholder="Find or create…" autocomplete="off">
+        {% else %}
+        {# ── STATE 3: Unmapped ── #}
+        <div class="card">
+            <div class="card-header">
+                <div class="row w-100 align-items-center">
+                    <div class="col">
+                        <h3 class="card-title mb-0">Search or Create Item</h3>
+                    </div>
+                    <div class="col-auto">
+                        <div class="input-icon">
+                            <span class="input-icon-addon">
+                                <i class="ti ti-search icon" aria-hidden="true"></i>
+                            </span>
+                            <input type="text" id="item-search" class="form-control" placeholder="Find or create…" autocomplete="off">
+                        </div>
+                    </div>
                 </div>
             </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table" id="item-assign-table" data-barcode="{{ cached.barcode }}">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Source</th>
+                            <th>Match</th>
+                            <th class="w-1"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="item-assign-tbody">
+                        {% if candidates %}
+                        {% for c in candidates %}
+                        <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
+                            <td><a href="/items/{{ c.item_id }}">{{ c.item_name }}</a></td>
+                            <td class="text-secondary">{{ 'Mealie' if c.source == 'mealie' else 'Custom' }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}%</span>
+                            </td>
+                            <td>
+                                <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/map" class="d-inline">
+                                    <input type="hidden" name="item_id" value="{{ c.item_id }}">
+                                    <button type="submit" class="btn btn-primary">Link</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr class="empty-row"><td colspan="4" class="text-center text-secondary">Type to search or create a new item</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-    <div class="table-responsive">
-        <table class="table table-vcenter card-table" id="item-assign-table" data-barcode="{{ cached.barcode }}">
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Source</th>
-                    <th data-bs-toggle="tooltip" title="Fuzzy name similarity between the barcode product and the item">Match</th>
-                    <th class="w-1"></th>
-                </tr>
-            </thead>
-            <tbody id="item-assign-tbody">
-                {% if candidates %}
-                {% for c in candidates %}
-                <tr class="{{ 'table-success' if c.score >= threshold else '' }}">
-                    <td><a href="/items/{{ c.item_id }}">{{ c.item_name }}</a></td>
-                    <td class="text-secondary">{{ 'Mealie' if c.source == 'mealie' else 'Custom' }}</td>
-                    <td>
-                        <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}%</span>
-                    </td>
-                    <td>
-                        <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/map" class="d-inline">
-                            <input type="hidden" name="item_id" value="{{ c.item_id }}">
-                            <button type="submit" class="btn btn-sm btn-primary">Link</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-                {% else %}
-                <tr class="empty-row"><td colspan="4" class="text-center text-secondary">Type to search or create a new item</td></tr>
-                {% endif %}
-            </tbody>
-        </table>
+        {% endif %}
+
     </div>
 </div>
 
