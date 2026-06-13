@@ -52,11 +52,11 @@
                 <div class="mb-3">
                     <label class="form-label">Presets</label>
                     <div class="btn-group w-100 flex-wrap" role="group">
-                        <button type="button" class="btn btn-outline-secondary label-preset active" data-format="1:1" data-size="35" data-gap="4" data-margin="5" data-font="8">35×35</button>
-                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="1:1" data-size="60" data-gap="6" data-margin="10" data-font="12">60×60</button>
-                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="2:1" data-size="50" data-gap="3" data-margin="5" data-font="8">50×25</button>
-                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="3:2" data-size="60" data-gap="4" data-margin="5" data-font="8">60×40</button>
-                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="2:1" data-size="89" data-gap="4" data-margin="5" data-font="14">89×45</button>
+                        <button type="button" class="btn btn-outline-secondary label-preset active" data-format="1:1" data-size="35" data-gap="4" data-padding="1.5" data-margin="5" data-font="8">35×35</button>
+                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="1:1" data-size="60" data-gap="6" data-padding="2" data-margin="10" data-font="12">60×60</button>
+                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="2:1" data-size="50" data-gap="3" data-padding="2.5" data-margin="5" data-font="8">50×25</button>
+                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="3:2" data-size="60" data-gap="4" data-padding="2" data-margin="5" data-font="8">60×40</button>
+                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="2:1" data-size="89" data-gap="4" data-padding="3" data-margin="5" data-font="14">89×45</button>
                     </div>
                 </div>
                 <div class="row">
@@ -82,13 +82,17 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-6 mb-2">
+                    <div class="col-4 mb-2">
                         <label class="form-label">Width: <strong id="label-size-value">35</strong> mm</label>
                         <input type="range" class="form-range" id="label-size" min="15" max="100" step="1" value="35">
                     </div>
-                    <div class="col-6 mb-2">
+                    <div class="col-4 mb-2">
                         <label class="form-label">Gap: <strong id="label-gap-value">4</strong> mm</label>
                         <input type="range" class="form-range" id="label-gap" min="0" max="10" step="1" value="4">
+                    </div>
+                    <div class="col-4 mb-2">
+                        <label class="form-label">Padding: <strong id="label-padding-value">1.5</strong> mm</label>
+                        <input type="range" class="form-range" id="label-padding" min="0" max="5" step="0.5" value="1.5">
                     </div>
                 </div>
                 <div class="row">

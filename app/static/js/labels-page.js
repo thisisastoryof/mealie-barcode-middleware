@@ -16,6 +16,8 @@
     const sizeValue = document.getElementById("label-size-value");
     const gapRange = document.getElementById("label-gap");
     const gapValue = document.getElementById("label-gap-value");
+    const paddingRange = document.getElementById("label-padding");
+    const paddingValue = document.getElementById("label-padding-value");
     const marginRange = document.getElementById("label-margin");
     const marginValue = document.getElementById("label-margin-value");
     const pageFormatSelect = document.getElementById("label-page-format");
@@ -43,6 +45,7 @@
     // --- Range slider live value display ---
     sizeRange.addEventListener("input", () => { sizeValue.textContent = sizeRange.value; updatePreview(); });
     gapRange.addEventListener("input", () => { gapValue.textContent = gapRange.value; updatePreview(); });
+    paddingRange.addEventListener("input", () => { paddingValue.textContent = paddingRange.value; updatePreview(); });
     marginRange.addEventListener("input", () => { marginValue.textContent = marginRange.value; updatePreview(); });
     formatSelect.addEventListener("change", updatePreview);
     pageFormatSelect.addEventListener("change", updatePreview);
@@ -60,6 +63,10 @@
             sizeValue.textContent = btn.dataset.size;
             gapRange.value = btn.dataset.gap;
             gapValue.textContent = btn.dataset.gap;
+            if (btn.dataset.padding) {
+                paddingRange.value = btn.dataset.padding;
+                paddingValue.textContent = btn.dataset.padding;
+            }
             marginRange.value = btn.dataset.margin;
             marginValue.textContent = btn.dataset.margin;
             fontSizeSelect.value = btn.dataset.font;
@@ -67,7 +74,7 @@
         });
     });
     // Deactivate preset active state when user manually adjusts
-    [sizeRange, gapRange, marginRange].forEach(el => {
+    [sizeRange, gapRange, paddingRange, marginRange].forEach(el => {
         el.addEventListener("input", () => {
             document.querySelectorAll(".label-preset").forEach(b => b.classList.remove("active"));
         });
@@ -315,22 +322,21 @@
         printGrid.style.setProperty("--label-width", sizeMm);
         printGrid.style.setProperty("--label-height", heightMm);
         printGrid.style.setProperty("--label-gap", gapMm);
+        printGrid.style.setProperty("--label-padding", paddingRange.value + "mm");
         printGrid.style.setProperty("--label-font-size", fontSize);
 
         // Cap image size for consistent QR sizing in print
+        const paddingMmVal = parseFloat(paddingRange.value);
         if (showText && !landscape) {
             const sizeVal = getHeightMm(parseInt(sizeRange.value));
-            const paddingMm = Math.max(sizeVal * 0.05, 1.5);
             const fontPt = parseInt(fontSizeSelect.value);
             const fontMm = fontPt * 0.353; // 1pt ≈ 0.353mm
             const textReserveMm = 2.4 * fontMm + 1; // 2 lines + 1mm margin
-            const imgMaxMm = sizeVal - 2 * paddingMm - textReserveMm;
+            const imgMaxMm = sizeVal - 2 * paddingMmVal - textReserveMm;
             printGrid.style.setProperty("--label-img-max", Math.max(0, imgMaxMm.toFixed(1)) + "mm");
         } else if (landscape && showText) {
-            // Landscape: QR height is cell height minus padding
             const hVal = getHeightMm(parseInt(sizeRange.value));
-            const paddingMm = Math.max(hVal * 0.05, 1.5);
-            const imgMaxMm = hVal - 2 * paddingMm;
+            const imgMaxMm = hVal - 2 * paddingMmVal;
             printGrid.style.setProperty("--label-img-max", Math.max(0, imgMaxMm.toFixed(1)) + "mm");
         } else {
             printGrid.style.removeProperty("--label-img-max");
@@ -408,16 +414,19 @@
         previewGrid.style.setProperty("--preview-margin", previewMargin + "px");
         previewGrid.style.setProperty("--preview-font-size", Math.max(5, previewFontSize) + "px");
 
+        // Padding in px (from mm slider, scaled)
+        const paddingMmVal = parseFloat(paddingRange.value);
+        const previewPadding = Math.max(2, Math.round(paddingMmVal * scale));
+        previewGrid.style.setProperty("--preview-padding", previewPadding + "px");
+
         // Cap image size for consistent QR sizing
         if (showText && !landscape) {
-            const previewPadding = Math.max(previewHeight * 0.05, 2);
             const actualFontSize = Math.max(5, previewFontSize);
             const textReserve = 2.4 * actualFontSize + 1;
             const imgMax = previewHeight - 2 * previewPadding - textReserve;
             previewGrid.style.setProperty("--preview-img-max", Math.max(0, Math.round(imgMax)) + "px");
         } else if (landscape && showText) {
-            // Landscape: QR constrained to height, text beside it
-            const previewPadding = Math.max(previewHeight * 0.05, 2);
+            const imgMax = previewHeight - 2 * previewPadding;
             const imgMax = previewHeight - 2 * previewPadding;
             previewGrid.style.setProperty("--preview-img-max", Math.max(0, Math.round(imgMax)) + "px");
         } else {
