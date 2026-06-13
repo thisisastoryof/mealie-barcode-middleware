@@ -138,6 +138,9 @@ class LoginRequiredMiddleware(BaseHTTPMiddleware):
     """Redirect unauthenticated users to /login for UI routes.
 
     Exempt: scanner API (/scan), static files, health check, login/setup pages.
+
+    On every authenticated request, re-validates the user from the database
+    to detect deleted accounts and privilege changes (admin demotion).
     """
 
     async def dispatch(self, request: Request, call_next):
@@ -148,9 +151,29 @@ class LoginRequiredMiddleware(BaseHTTPMiddleware):
             if path.startswith(prefix):
                 return await call_next(request)
 
-        # Check if any users exist — if not, redirect to setup
         from app.database import SessionLocal
         from app.models import User
+
+        user_id = request.session.get("user_id")
+
+        if user_id:
+            # Re-validate: ensure user still exists and sync privileges
+            db = SessionLocal()
+            try:
+                user = db.get(User, user_id)
+            finally:
+                db.close()
+
+            if user:
+                # Sync admin flag in case another admin changed it
+                if request.session.get("is_admin") != user.is_admin:
+                    request.session["is_admin"] = user.is_admin
+                return await call_next(request)
+
+            # User was deleted — clear stale session
+            request.session.clear()
+
+        # No valid session — check if first-run setup is needed
         db = SessionLocal()
         try:
             has_users = db.query(User.id).first() is not None
@@ -160,13 +183,9 @@ class LoginRequiredMiddleware(BaseHTTPMiddleware):
         if not has_users:
             return RedirectResponse("/setup", status_code=303)
 
-        # Check session
-        user_id = request.session.get("user_id")
-        if not user_id:
-            next_url = quote(str(request.url.path), safe="/:@!$&'()*+,;=-._~")
-            qs = str(request.url.query)
-            if qs:
-                next_url += "?" + qs
-            return RedirectResponse(f"/login?next={quote(next_url, safe='')}", status_code=303)
-
-        return await call_next(request)
+        # Redirect to login with return URL
+        next_url = quote(str(request.url.path), safe="/:@!$&'()*+,;=-._~")
+        qs = str(request.url.query)
+        if qs:
+            next_url += "?" + qs
+        return RedirectResponse(f"/login?next={quote(next_url, safe='')}", status_code=303)

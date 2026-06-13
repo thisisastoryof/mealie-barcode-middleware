@@ -147,8 +147,12 @@ _SIDEBAR_GROUPS = {
     "Administration": ["admin"],
 }
 
-# Tabs that require admin privileges
-_ADMIN_ONLY_TABS = {"users", "admin"}
+
+def _require_admin(request: Request) -> RedirectResponse | None:
+    """Return a redirect if the current user is not an admin, else None."""
+    if not request.session.get("is_admin", False):
+        return RedirectResponse("/", status_code=303)
+    return None
 
 # Which config groups map to which tab
 _TAB_GROUPS = {
@@ -162,20 +166,8 @@ _TAB_GROUPS = {
 
 @router.get("/settings", response_class=HTMLResponse)
 def settings_page(request: Request, tab: str = Query("mealie"), db: Session = Depends(get_db)):
-    is_admin = request.session.get("is_admin", False)
-
-    # Non-admins cannot access restricted tabs
-    if tab in _ADMIN_ONLY_TABS and not is_admin:
-        return RedirectResponse("/settings?tab=mealie", status_code=303)
-
-    # Filter sidebar for non-admins
-    if is_admin:
-        visible_tabs = _TABS
-        visible_sidebar = _SIDEBAR_GROUPS
-    else:
-        visible_tabs = [(tid, lbl, ico) for tid, lbl, ico in _TABS if tid not in _ADMIN_ONLY_TABS]
-        visible_sidebar = {k: [t for t in v if t not in _ADMIN_ONLY_TABS] for k, v in _SIDEBAR_GROUPS.items()}
-        visible_sidebar = {k: v for k, v in visible_sidebar.items() if v}
+    if redirect := _require_admin(request):
+        return redirect
 
     all_groups = _build_config_groups()
     # Filter groups for the active tab
@@ -200,8 +192,8 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
     tab_label = next((label for tid, label, _ in _TABS if tid == tab), tab.title())
 
     return templates.TemplateResponse(request, "settings.html", {
-        "tabs": visible_tabs,
-        "sidebar_groups": visible_sidebar,
+        "tabs": _TABS,
+        "sidebar_groups": _SIDEBAR_GROUPS,
         "current_tab": tab,
         "current_tab_label": tab_label,
         "tab_description": _TAB_DESCRIPTIONS.get(tab, ""),
@@ -219,7 +211,9 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
 
 @router.post("/settings/configuration", response_class=HTMLResponse)
 async def save_settings(request: Request, db: Session = Depends(get_db)):
-    """Save editable settings from the form."""
+    """Save editable settings from the form. Admin only."""
+    if redirect := _require_admin(request):
+        return redirect
     form_data = await request.form()
     tab = form_data.get("_tab", "mealie")
 
@@ -256,8 +250,10 @@ async def save_settings(request: Request, db: Session = Depends(get_db)):
 
 
 @router.post("/settings/configuration/{field}/reset")
-def reset_setting(field: str, db: Session = Depends(get_db)):
-    """Reset a single setting to its env/default value."""
+def reset_setting(field: str, request: Request, db: Session = Depends(get_db)):
+    """Reset a single setting to its env/default value. Admin only."""
+    if redirect := _require_admin(request):
+        return redirect
     if field not in EDITABLE_SETTINGS:
         return RedirectResponse("/settings?tab=mealie", status_code=303)
 
@@ -276,6 +272,9 @@ def reset_setting(field: str, db: Session = Depends(get_db)):
 
 @router.post("/settings/tokens/create", response_class=HTMLResponse)
 def create_token(request: Request, name: str = Form(...), db: Session = Depends(get_db)):
+    """Create a new API token. Admin only."""
+    if redirect := _require_admin(request):
+        return redirect
     raw = generate_token()
     hashed = hash_token(raw)
     token = ApiToken(name=name, token_hash=hashed, token_prefix=raw[:8])
@@ -301,7 +300,10 @@ def create_token(request: Request, name: str = Form(...), db: Session = Depends(
 
 
 @router.post("/settings/tokens/{token_id}/delete")
-def delete_token(token_id: str, db: Session = Depends(get_db)):
+def delete_token(token_id: str, request: Request, db: Session = Depends(get_db)):
+    """Delete an API token. Admin only."""
+    if redirect := _require_admin(request):
+        return redirect
     token = db.get(ApiToken, token_id)
     if token:
         db.delete(token)
@@ -340,7 +342,9 @@ async def api_set_theme_mode(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/settings/theme")
 async def save_theme_settings(request: Request, db: Session = Depends(get_db)):
-    """Save theme settings from the appearance tab form."""
+    """Save theme settings from the appearance tab form. Admin only."""
+    if redirect := _require_admin(request):
+        return redirect
     form_data = await request.form()
     values = {
         "mode": form_data.get("theme_mode", THEME_DEFAULTS["mode"]),
