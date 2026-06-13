@@ -20,6 +20,7 @@
     const pageFormatSelect = document.getElementById("label-page-format");
     const fontSizeSelect = document.getElementById("label-font-size");
     const showTextCheck = document.getElementById("label-show-text");
+    const showBorderCheck = document.getElementById("label-show-border");
     const printArea = document.getElementById("print-area");
     const printGrid = document.getElementById("print-grid");
     const previewPage = document.getElementById("preview-page");
@@ -33,6 +34,7 @@
     pageFormatSelect.addEventListener("change", updatePreview);
     fontSizeSelect.addEventListener("change", updatePreview);
     showTextCheck.addEventListener("change", updatePreview);
+    showBorderCheck.addEventListener("change", updatePreview);
 
     // --- Preset buttons ---
     document.querySelectorAll(".label-preset").forEach(btn => {
@@ -310,9 +312,10 @@
         }
 
         // Build grid cells — repeat per qty
+        const showBorder = showBorderCheck.checked;
         printGrid.innerHTML = queue.map(label => {
             const qty = label.qty || 1;
-            const cell = `<div class="label-cell">
+            const cell = `<div class="label-cell${showBorder ? ' has-border' : ''}">
                 <img src="/labels/qr.svg?text=${encodeURIComponent(label.text)}" alt="${escapeAttr(label.text)}">
                 ${showText ? `<span class="label-text">${escapeHtml(label.itemName || label.text)}</span>` : ""}
             </div>`;
@@ -378,9 +381,10 @@
         }
 
         let cells = "";
+        const borderClass = showBorderCheck.checked ? " has-border" : "";
         queue.forEach(label => {
             const qty = label.qty || 1;
-            const cell = `<div class="label-preview-cell">
+            const cell = `<div class="label-preview-cell${borderClass}">
                 <img src="/labels/qr.svg?text=${encodeURIComponent(label.text)}" alt="">
                 ${showText ? `<span class="label-preview-text">${escapeHtml(label.itemName || label.text)}</span>` : ""}
             </div>`;

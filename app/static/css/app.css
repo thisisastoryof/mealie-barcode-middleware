@@ -75,7 +75,6 @@
 
 /* Preview page simulation */
 .label-preview-page {
-    width: 100%;
     aspect-ratio: 210 / 297;
     border: 1px solid var(--tblr-border-color);
     border-radius: var(--tblr-border-radius);
@@ -115,6 +114,12 @@
 }
 .label-preview-empty {
     grid-column: 1 / -1;
+}
+.label-preview-cell.has-border,
+.label-cell.has-border {
+    border: 1px solid #dee2e6;
+    border-radius: 2px;
+    padding: 2px;
 }
 
 /* Qty picker in label queue cards */

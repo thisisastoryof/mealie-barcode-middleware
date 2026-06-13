@@ -87,16 +87,22 @@
                         </label>
                     </div>
                     <div class="col-6 mb-3">
-                        <label class="form-label">Text size</label>
-                        <select class="form-select" id="label-font-size">
-                            <option value="6">6pt</option>
-                            <option value="8" selected>8pt</option>
-                            <option value="10">10pt</option>
-                            <option value="12">12pt</option>
-                            <option value="14">14pt</option>
-                            <option value="16">16pt</option>
-                        </select>
+                        <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="label-show-border">
+                            <span class="form-check-label">Show cut border</span>
+                        </label>
                     </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Text size</label>
+                    <select class="form-select" id="label-font-size">
+                        <option value="6">6pt</option>
+                        <option value="8" selected>8pt</option>
+                        <option value="10">10pt</option>
+                        <option value="12">12pt</option>
+                        <option value="14">14pt</option>
+                        <option value="16">16pt</option>
+                    </select>
                 </div>
             </div>
             <div class="card-footer d-flex justify-content-between">
@@ -142,7 +148,7 @@
                 <div class="tab-pane" id="tab-preview" role="tabpanel">
                     <div class="card">
                         <div class="card-body p-3">
-                            <div id="preview-page" class="label-preview-page">
+                            <div id="preview-page" class="label-preview-page w-100">
                                 <div id="preview-grid" class="label-preview-grid"></div>
                             </div>
                             <div class="text-center text-secondary mt-2 small" id="preview-summary"></div>
