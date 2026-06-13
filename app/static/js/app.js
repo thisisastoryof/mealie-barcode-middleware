@@ -315,8 +315,7 @@
                 if (showMapped) {
                     rows += '<td class="sort-mapped">';
                     if (item.item_name) {
-                        rows += '<a href="/items/' + esc(item.item_id) + '">' + esc(item.item_name) + '</a>'
-                            + ' <span class="badge bg-azure text-azure-fg ms-1">' + esc(item.mapped_by) + '</span>';
+                        rows += '<a href="/items/' + esc(item.item_id) + '">' + esc(item.item_name) + '</a>';
                     } else {
                         rows += '<span class="text-secondary">\u2014</span>';
                     }
