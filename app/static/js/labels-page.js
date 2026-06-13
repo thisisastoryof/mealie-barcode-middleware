@@ -467,11 +467,11 @@
 
     // --- Clear All ---
     clearBtn.addEventListener("click", () => {
-        if (confirm("Remove all labels from the queue?")) {
+        window.showConfirm("Remove all labels from the queue?", "", () => {
             localStorage.removeItem(STORAGE_KEY);
             renderQueue();
             updatePreview();
-        }
+        });
     });
 
     // --- Helpers ---

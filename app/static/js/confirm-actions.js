@@ -44,6 +44,9 @@
         trigger.click();
     }
 
+    // Expose for use by other page scripts
+    window.showConfirm = showConfirm;
+
     // Confirm before submit — any form with [data-confirm]
     document.querySelectorAll('form[data-confirm]').forEach(function(form) {
         form.addEventListener('submit', function(e) {
