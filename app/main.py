@@ -4,11 +4,12 @@ from pathlib import Path
 
 from fastapi.applications import FastAPI
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 from app.database import init_db
-from app.middleware import CSRFOriginMiddleware, SecurityHeadersMiddleware
-from app.routers import barcodes, dashboard, docs, items, health, labels, notifications, scan, settings as settings_router
+from app.middleware import CSRFOriginMiddleware, LoginRequiredMiddleware, SecurityHeadersMiddleware, get_session_secret
+from app.routers import barcodes, dashboard, docs, items, health, labels, login, notifications, scan, settings as settings_router
 from app.services.scheduler import start_scheduler, stop_scheduler
 
 # Configure logging
@@ -78,9 +79,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Barcode-Mealie Middleware", lifespan=lifespan, docs_url="/api/docs", redoc_url="/api/redoc")
 
-# Security middleware (order matters: outermost runs first)
+# Security middleware (order matters: outermost runs first, last added = outermost)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CSRFOriginMiddleware)
+app.add_middleware(LoginRequiredMiddleware)
+app.add_middleware(SessionMiddleware, secret_key=get_session_secret(), max_age=7 * 24 * 3600)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
@@ -90,6 +93,7 @@ app.include_router(dashboard.router, tags=["dashboard"])
 app.include_router(docs.router, tags=["docs"])
 app.include_router(scan.router, tags=["scan"])
 app.include_router(health.router, tags=["health"])
+app.include_router(login.router, tags=["auth"])
 app.include_router(barcodes.router, tags=["barcodes"])
 app.include_router(items.router, tags=["items"])
 app.include_router(labels.router, tags=["labels"])

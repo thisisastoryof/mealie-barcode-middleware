@@ -3,6 +3,7 @@ import os
 import shutil
 from datetime import datetime
 
+import bcrypt
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from sqlalchemy.orm import Session
@@ -10,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.auth import generate_token, hash_token
 from app.config import settings, EDITABLE_SETTINGS, READONLY_SETTINGS
 from app.database import get_db
-from app.models import ApiToken, BarcodeCache, BarcodeMapping, Item, Notification, RetryQueue
+from app.models import ApiToken, BarcodeCache, BarcodeMapping, Item, Notification, RetryQueue, User
 from app.templating import templates, set_cached_theme, get_cached_theme_css
 from app.theme import THEME_CHOICES, THEME_DEFAULTS, get_theme, save_theme
 
@@ -35,6 +36,7 @@ _TAB_DESCRIPTIONS = {
     "system": "Timezone, logging, and other system-level settings.",
     "appearance": "Customize the look and feel of the web dashboard.",
     "tokens": "API tokens for authenticating barcode scanners.",
+    "users": "Manage user accounts for the web dashboard.",
     "admin": "Backup, purge, or reset the application database.",
 }
 
@@ -132,6 +134,7 @@ _TABS = [
     ("system",        "System",             "ti-settings"),
     ("appearance",    "Appearance",         "ti-palette"),
     ("tokens",        "API Tokens",         "ti-key"),
+    ("users",         "Users",              "ti-users"),
     ("admin",         "Database",           "ti-database"),
 ]
 
@@ -140,7 +143,7 @@ _SIDEBAR_GROUPS = {
     "Integrations": ["mealie", "homeassistant"],
     "Configuration": ["lookup", "matching", "system"],
     "Personalization": ["appearance"],
-    "Security": ["tokens"],
+    "Security": ["tokens", "users"],
     "Administration": ["admin"],
 }
 
@@ -168,6 +171,7 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
     )
     tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all() if tab == "tokens" else []
     theme = get_theme(db) if tab == "appearance" else {}
+    users = db.query(User).order_by(User.created_at).all() if tab == "users" else []
 
     # Admin tab: gather row counts and DB info
     admin_info = {}
@@ -188,6 +192,7 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
         "has_editable": has_editable,
         "tokens": tokens,
         "new_token": None,
+        "users": users,
         "theme": theme,
         "theme_choices": THEME_CHOICES,
         "admin_info": admin_info,
@@ -423,3 +428,78 @@ def admin_factory_reset(db: Session = Depends(get_db)):
     db.commit()
     logger.info("Admin: factory reset — all data deleted")
     return RedirectResponse("/settings?tab=admin", status_code=303)
+
+
+# ── User management ─────────────────────────────────────────────────
+
+
+def _hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
+@router.post("/settings/users/add")
+def add_user(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    is_admin: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    """Create a new user account."""
+    username = username.strip()
+    if len(username) < 3 or len(password) < 8:
+        return RedirectResponse("/settings?tab=users", status_code=303)
+
+    # Check for duplicates
+    if db.query(User).filter(User.username == username).first():
+        return RedirectResponse("/settings?tab=users", status_code=303)
+
+    db.add(User(
+        username=username,
+        password_hash=_hash_password(password),
+        is_admin=bool(is_admin),
+    ))
+    db.commit()
+    logger.info("User created: %s (admin=%s)", username, bool(is_admin))
+    return RedirectResponse("/settings?tab=users", status_code=303)
+
+
+@router.post("/settings/users/{user_id}/delete")
+def delete_user(user_id: int, request: Request, db: Session = Depends(get_db)):
+    """Delete a user account. Cannot delete yourself."""
+    current_user_id = request.session.get("user_id")
+    if user_id == current_user_id:
+        return RedirectResponse("/settings?tab=users", status_code=303)
+
+    user = db.get(User, user_id)
+    if user:
+        logger.info("User deleted: %s", user.username)
+        db.delete(user)
+        db.commit()
+    return RedirectResponse("/settings?tab=users", status_code=303)
+
+
+@router.post("/settings/users/{user_id}/password")
+def change_password(
+    user_id: int,
+    request: Request,
+    password: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    """Change a user's password. Admins can change any, users only their own."""
+    current_user_id = request.session.get("user_id")
+    is_admin = request.session.get("is_admin", False)
+
+    # Non-admins can only change their own password
+    if not is_admin and user_id != current_user_id:
+        return RedirectResponse("/settings?tab=users", status_code=303)
+
+    if len(password) < 8:
+        return RedirectResponse("/settings?tab=users", status_code=303)
+
+    user = db.get(User, user_id)
+    if user:
+        user.password_hash = _hash_password(password)
+        db.commit()
+        logger.info("Password changed for user: %s", user.username)
+    return RedirectResponse("/settings?tab=users", status_code=303)

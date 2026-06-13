@@ -59,6 +59,14 @@
                                 <a class="dropdown-item{{ ' active' if request.url.path.startswith('/settings') }}" href="/settings">
                                     <i class="ti ti-settings icon dropdown-item-icon"></i> Settings
                                 </a>
+                                {% if request.session.get('username') %}
+                                <div class="dropdown-divider"></div>
+                                <form action="/logout" method="post">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="ti ti-logout icon dropdown-item-icon"></i> Logout ({{ request.session.get('username') }})
+                                    </button>
+                                </form>
+                                {% endif %}
                             </div>
                         </li>
                     </div>
@@ -146,6 +154,16 @@
                                 <span class="nav-link-title">Light mode</span>
                             </a>
                         </li>
+                        {% if request.session.get('username') %}
+                        <li class="nav-item d-md-none">
+                            <form action="/logout" method="post" class="d-inline">
+                                <button type="submit" class="nav-link w-100 text-start border-0 bg-transparent">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-logout icon icon-1"></i></span>
+                                    <span class="nav-link-title">Logout ({{ request.session.get('username') }})</span>
+                                </button>
+                            </form>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
