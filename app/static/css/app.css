@@ -75,29 +75,30 @@
 
 /* Preview page simulation */
 .label-preview-page {
+    width: 100%;
     aspect-ratio: 210 / 297;
     border: 1px solid var(--tblr-border-color);
     border-radius: var(--tblr-border-radius);
     background: white;
     overflow: hidden;
-    max-height: 500px;
 }
 .label-preview-page.landscape {
     aspect-ratio: 297 / 210;
 }
 .label-preview-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(var(--preview-size, 60px), 1fr));
+    grid-template-columns: repeat(auto-fill, var(--preview-size, 60px));
     gap: var(--preview-gap, 3px);
     padding: var(--preview-margin, 4px);
     height: 100%;
     align-content: start;
+    justify-content: center;
 }
 .label-preview-cell {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: start;
 }
 .label-preview-cell img {
     width: var(--preview-size, 60px);
@@ -116,6 +117,35 @@
     grid-column: 1 / -1;
 }
 
+/* Qty picker in label queue cards */
+.label-qty {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: var(--tblr-border-radius);
+    padding: 0 0.25rem;
+    height: 1.5rem;
+}
+.label-qty button {
+    background: none;
+    border: none;
+    padding: 0 0.15rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--tblr-secondary);
+    font-size: 0.75rem;
+}
+.label-qty button:hover {
+    color: var(--tblr-primary);
+}
+.label-qty span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 1rem;
+    text-align: center;
+}
+
 /* Print styles for label sheets */
 @media print {
     .d-print-none { display: none !important; }
@@ -130,6 +160,7 @@
         grid-template-columns: repeat(auto-fill, var(--label-size, 35mm));
         gap: var(--label-gap, 4mm);
         padding: var(--label-margin, 5mm);
+        justify-content: center;
     }
     .label-cell {
         display: flex;

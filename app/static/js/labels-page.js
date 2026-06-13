@@ -34,6 +34,28 @@
     fontSizeSelect.addEventListener("change", updatePreview);
     showTextCheck.addEventListener("change", updatePreview);
 
+    // --- Preset buttons ---
+    document.querySelectorAll(".label-preset").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".label-preset").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            sizeRange.value = btn.dataset.size;
+            sizeValue.textContent = btn.dataset.size;
+            gapRange.value = btn.dataset.gap;
+            gapValue.textContent = btn.dataset.gap;
+            marginRange.value = btn.dataset.margin;
+            marginValue.textContent = btn.dataset.margin;
+            fontSizeSelect.value = btn.dataset.font;
+            updatePreview();
+        });
+    });
+    // Deactivate preset active state when user manually adjusts a slider
+    [sizeRange, gapRange, marginRange].forEach(el => {
+        el.addEventListener("input", () => {
+            document.querySelectorAll(".label-preset").forEach(b => b.classList.remove("active"));
+        });
+    });
+
     // --- Queue Management (localStorage) ---
     function getQueue() {
         try {
@@ -98,10 +120,12 @@
                         <img src="/labels/qr.svg?text=${encodeURIComponent(label.text)}" alt="QR" class="label-qr-preview mb-1">
                         <div class="text-truncate small">${escapeHtml(label.itemName || label.text)}</div>
                         <div class="mt-1 d-flex align-items-center justify-content-center">${statusHtml}</div>
-                        <div class="mt-1 d-flex align-items-center justify-content-center gap-1">
-                            <button type="button" class="btn btn-icon btn-sm btn-ghost-secondary label-qty-minus" data-text="${escapeAttr(label.text)}"><i class="ti ti-minus icon"></i></button>
-                            <span class="small fw-bold label-qty-display">${qty}</span>
-                            <button type="button" class="btn btn-icon btn-sm btn-ghost-secondary label-qty-plus" data-text="${escapeAttr(label.text)}"><i class="ti ti-plus icon"></i></button>
+                        <div class="mt-1 d-flex align-items-center justify-content-center">
+                            <div class="label-qty">
+                                <button type="button" class="label-qty-minus" data-text="${escapeAttr(label.text)}">−</button>
+                                <span>${qty}</span>
+                                <button type="button" class="label-qty-plus" data-text="${escapeAttr(label.text)}">+</button>
+                            </div>
                         </div>
                     </div>
                 </div>

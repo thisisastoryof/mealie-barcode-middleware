@@ -48,6 +48,15 @@
                 <h3 class="card-title">Layout</h3>
             </div>
             <div class="card-body">
+                <!-- Preset buttons -->
+                <div class="mb-3">
+                    <label class="form-label">Presets</label>
+                    <div class="btn-group w-100" role="group">
+                        <button type="button" class="btn btn-outline-secondary label-preset" data-size="20" data-gap="2" data-margin="5" data-font="6">Small</button>
+                        <button type="button" class="btn btn-outline-secondary label-preset active" data-size="35" data-gap="4" data-margin="5" data-font="8">Medium</button>
+                        <button type="button" class="btn btn-outline-secondary label-preset" data-size="60" data-gap="6" data-margin="10" data-font="12">Large</button>
+                    </div>
+                </div>
                 <div class="mb-3">
                     <label class="form-label">Page format</label>
                     <select class="form-select" id="label-page-format">
@@ -80,9 +89,12 @@
                     <div class="col-6 mb-3">
                         <label class="form-label">Text size</label>
                         <select class="form-select" id="label-font-size">
-                            <option value="6">Small (6pt)</option>
-                            <option value="8" selected>Medium (8pt)</option>
-                            <option value="10">Large (10pt)</option>
+                            <option value="6">6pt</option>
+                            <option value="8" selected>8pt</option>
+                            <option value="10">10pt</option>
+                            <option value="12">12pt</option>
+                            <option value="14">14pt</option>
+                            <option value="16">16pt</option>
                         </select>
                     </div>
                 </div>
