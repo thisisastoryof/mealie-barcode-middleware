@@ -51,3 +51,43 @@
     max-height: calc(100vh - 7rem);
     overflow-y: auto;
 }
+
+/* --- Labels / QR ---*/
+.label-qr-preview {
+    width: 80px;
+    height: 80px;
+}
+
+/* Print styles for label sheets */
+@media print {
+    .d-print-none { display: none !important; }
+    .d-print-block { display: block !important; }
+
+    .label-print-grid {
+        display: grid;
+        grid-template-columns: repeat(var(--label-columns, 4), 1fr);
+        gap: 4mm;
+        padding: 5mm;
+    }
+    .label-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    .label-cell img {
+        width: var(--label-size, 35mm);
+        height: var(--label-size, 35mm);
+    }
+    .label-cell .label-text {
+        font-size: 8pt;
+        margin-top: 1mm;
+        text-align: center;
+        max-width: var(--label-size, 35mm);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
