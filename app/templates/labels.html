@@ -2,21 +2,16 @@
 {% block title %}Labels – Barcode Middleware{% endblock %}
 
 {% block content %}
-<div class="page-header d-print-none">
-    <div class="container-xl">
-        <div class="row align-items-center">
-            <div class="col">
-                <h2 class="page-title">
-                    <i class="ti ti-qrcode icon me-1"></i> QR Label Generator
-                </h2>
-                <div class="text-secondary mt-1">Create printable QR code labels for your pantry items</div>
-            </div>
+<div class="page-header d-print-none mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <h2 class="page-title">QR Label Generator</h2>
+            <div class="text-secondary mt-1">Create printable QR code labels for your pantry items</div>
         </div>
     </div>
 </div>
 
-<div class="container-xl mt-3 d-print-none">
-    <div class="row row-deck row-cards">
+<div class="row row-deck row-cards d-print-none">
         <!-- Add Label Section -->
         <div class="col-lg-5">
             <div class="card">
@@ -107,7 +102,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <!-- Print area (hidden on screen, visible in print) -->
 <div id="print-area" class="d-none d-print-block">
@@ -115,6 +109,7 @@
 </div>
 
 <!-- Fuzzy match modal -->
+<button type="button" class="d-none" id="fuzzy-modal-trigger" data-bs-toggle="modal" data-bs-target="#modal-fuzzy"></button>
 <div class="modal modal-blur fade" id="modal-fuzzy" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">

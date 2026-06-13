@@ -28,7 +28,7 @@ def generate_qr_svg(text: str = Query(..., min_length=1)):
     content = f"GENERIC:{text}"
     qr = segno.make(content, error="m")
     buf = io.BytesIO()
-    qr.save(buf, kind="svg", scale=4, border=2, xmldecl=False, svgns=False)
+    qr.save(buf, kind="svg", scale=4, border=2, xmldecl=False)
     return Response(content=buf.getvalue(), media_type="image/svg+xml")
 
 

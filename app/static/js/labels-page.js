@@ -188,24 +188,21 @@
                 e.preventDefault();
                 const id = el.dataset.id;
                 const name = el.dataset.name;
-                // Re-register with the item_id
                 registerLabel(text, id);
                 addToQueue(text, id, name);
-                bootstrap.Modal.getInstance(document.getElementById("modal-fuzzy")).hide();
+                fuzzyModalEl.querySelector("[data-bs-dismiss='modal']").click();
             });
         });
 
         // Show modal — also allow skip (just adds without mapping)
-        const modal = new bootstrap.Modal(document.getElementById("modal-fuzzy"));
-        const modalEl = document.getElementById("modal-fuzzy");
-        modalEl.addEventListener("hidden.bs.modal", function handler() {
-            modalEl.removeEventListener("hidden.bs.modal", handler);
-            // If nothing was picked, add without mapping
+        const fuzzyModalEl = document.getElementById("modal-fuzzy");
+        fuzzyModalEl.addEventListener("hidden.bs.modal", function handler() {
+            fuzzyModalEl.removeEventListener("hidden.bs.modal", handler);
             if (!getQueue().some(l => l.text === text)) {
                 addToQueue(text, null, text);
             }
         });
-        modal.show();
+        document.getElementById("fuzzy-modal-trigger").click();
     }
 
     // --- Print ---
