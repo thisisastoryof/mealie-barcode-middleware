@@ -40,7 +40,7 @@
         <div class="col-12 col-md-9 d-flex flex-column">
 
             {# ──────────── Config tabs (mealie, lookup, matching, system) ──────────── #}
-            {% if current_tab not in ('tokens', 'appearance') %}
+            {% if current_tab not in ('tokens', 'appearance', 'admin') %}
 
             <form method="post" action="/settings/configuration">
                 <input type="hidden" name="_tab" value="{{ current_tab }}">
@@ -365,7 +365,7 @@
             </form>
 
             {# ──────────── Tokens tab ──────────── #}
-            {% else %}
+            {% elif current_tab == 'tokens' %}
 
             <div class="card-body">
                 <h2 class="mb-4">API Tokens</h2>
@@ -436,6 +436,138 @@
                             {% endif %}
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            {# ──────────── Admin / Database tab ──────────── #}
+            {% elif current_tab == 'admin' %}
+
+            <div class="card-body">
+                <h2 class="mb-4">{{ current_tab_label }}</h2>
+                {% if tab_description %}
+                <p class="card-subtitle">{{ tab_description }}</p>
+                {% endif %}
+
+                {# ── Backup ── #}
+                <div class="card mt-3">
+                    <div class="card-header card-header-light">
+                        <div>
+                            <h3 class="card-title">Backup</h3>
+                            <p class="card-subtitle">Download the SQLite database file.</p>
+                        </div>
+                        <div class="card-actions">
+                            <form method="post" action="/settings/admin/backup">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ti ti-download icon"></i> Download Backup
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="datagrid">
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">File size</div>
+                                <div class="datagrid-content">{{ (admin_info.file_size / 1024)|round(1) }} KB</div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Last modified</div>
+                                <div class="datagrid-content">{{ admin_info.modified_at|localtime if admin_info.modified_at else '—' }}</div>
+                            </div>
+                            <div class="datagrid-item">
+                                <div class="datagrid-title">Path</div>
+                                <div class="datagrid-content"><code>{{ admin_info.db_path }}</code></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# ── Selective Purge ── #}
+                <div class="card mt-3">
+                    <div class="card-header card-header-light">
+                        <h3 class="card-title">Selective Purge</h3>
+                        <p class="card-subtitle">Clear individual tables. This cannot be undone.</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-vcenter">
+                                <thead>
+                                    <tr>
+                                        <th>Table</th>
+                                        <th>Rows</th>
+                                        <th class="w-1"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set purge_tables = [
+                                        ("barcode_cache", "Barcode Cache", "Cached product lookups from OpenFoodFacts / UPCDatabase"),
+                                        ("barcode_mappings", "Barcode Mappings", "Links between barcodes and Mealie food items"),
+                                        ("items", "Items", "Synced Mealie food catalog (also removes mappings)"),
+                                        ("notifications", "Notifications", "Activity log and notification history"),
+                                        ("retry_queue", "Retry Queue", "Failed requests waiting to be retried"),
+                                    ] %}
+                                    {% for key, label, desc in purge_tables %}
+                                    <tr>
+                                        <td>
+                                            <div>{{ label }}</div>
+                                            <div class="text-secondary small">{{ desc }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary-lt">{{ admin_info.tables[key] }}</span>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-icon btn-outline-warning"
+                                                data-confirm-post="/settings/admin/purge/{{ key }}"
+                                                data-confirm-msg="Purge {{ label }}?"
+                                                data-confirm-detail="This will delete all {{ admin_info.tables[key] }} rows from {{ label }}. This cannot be undone."
+                                                {% if admin_info.tables[key] == 0 %}disabled{% endif %}>
+                                                <i class="ti ti-eraser icon"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {# ── Danger Zone ── #}
+                <div class="card mt-3 border-danger">
+                    <div class="card-header card-header-light">
+                        <div>
+                            <h3 class="card-title text-danger">Danger Zone</h3>
+                            <p class="card-subtitle">Irreversible actions that affect all data.</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12 d-flex align-items-center justify-content-between">
+                                <div>
+                                    <strong>Reset Data</strong>
+                                    <p class="text-secondary mb-0 small">Delete all barcodes, items, mappings, notifications, and retry queue. Keeps API tokens.</p>
+                                </div>
+                                <button type="button" class="btn btn-outline-danger ms-3"
+                                    data-confirm-post="/settings/admin/reset"
+                                    data-confirm-msg="Reset all data?"
+                                    data-confirm-detail="This will delete all application data. API tokens will be preserved. This cannot be undone.">
+                                    <i class="ti ti-trash icon"></i> Reset Data
+                                </button>
+                            </div>
+                            <div class="col-12"><hr class="my-0"></div>
+                            <div class="col-12 d-flex align-items-center justify-content-between">
+                                <div>
+                                    <strong>Factory Reset</strong>
+                                    <p class="text-secondary mb-0 small">Delete everything including API tokens. Scanners will need to be re-authenticated.</p>
+                                </div>
+                                <button type="button" class="btn btn-danger ms-3"
+                                    data-confirm-post="/settings/admin/factory-reset"
+                                    data-confirm-msg="Factory reset?"
+                                    data-confirm-detail="This will delete ALL data including API tokens. Any connected scanners will stop working. This cannot be undone.">
+                                    <i class="ti ti-alert-triangle icon"></i> Factory Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

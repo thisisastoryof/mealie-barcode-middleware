@@ -1,13 +1,16 @@
 import logging
+import os
+import shutil
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, Form, Query, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from sqlalchemy.orm import Session
 
 from app.auth import generate_token, hash_token
 from app.config import settings, EDITABLE_SETTINGS, READONLY_SETTINGS
 from app.database import get_db
-from app.models import ApiToken
+from app.models import ApiToken, BarcodeCache, BarcodeMapping, Item, Notification, RetryQueue
 from app.templating import templates, set_cached_theme, get_cached_theme_css
 from app.theme import THEME_CHOICES, THEME_DEFAULTS, get_theme, save_theme
 
@@ -30,6 +33,7 @@ _TAB_DESCRIPTIONS = {
     "system": "Timezone, logging, and other system-level settings.",
     "appearance": "Customize the look and feel of the web dashboard.",
     "tokens": "API tokens for authenticating barcode scanners.",
+    "admin": "Backup, purge, or reset the application database.",
 }
 
 # Section-level descriptions shown below section headings
@@ -123,6 +127,7 @@ _TABS = [
     ("system",     "System",             "ti-settings"),
     ("appearance", "Appearance",         "ti-palette"),
     ("tokens",     "API Tokens",         "ti-key"),
+    ("admin",      "Database",           "ti-database"),
 ]
 
 # Sidebar grouping: which tabs go under which subheader
@@ -130,6 +135,7 @@ _SIDEBAR_GROUPS = {
     "Configuration": ["mealie", "lookup", "matching", "system"],
     "Personalization": ["appearance"],
     "Security": ["tokens"],
+    "Administration": ["admin"],
 }
 
 # Which config groups map to which tab
@@ -156,6 +162,11 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
     tokens = db.query(ApiToken).order_by(ApiToken.created_at.desc()).all() if tab == "tokens" else []
     theme = get_theme(db) if tab == "appearance" else {}
 
+    # Admin tab: gather row counts and DB info
+    admin_info = {}
+    if tab == "admin":
+        admin_info = _get_admin_info(db)
+
     # Resolve the current tab label for the content heading
     tab_label = next((label for tid, label, _ in _TABS if tid == tab), tab.title())
 
@@ -172,6 +183,7 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
         "new_token": None,
         "theme": theme,
         "theme_choices": THEME_CHOICES,
+        "admin_info": admin_info,
     })
 
 
@@ -310,3 +322,97 @@ async def save_theme_settings(request: Request, db: Session = Depends(get_db)):
     save_theme(db, values)
     set_cached_theme(get_theme(db))
     return RedirectResponse("/settings?tab=appearance&saved=1", status_code=303)
+
+
+# ── Admin / Database ─────────────────────────────────────────────────
+
+def _get_admin_info(db: Session) -> dict:
+    """Gather DB stats for the admin tab."""
+    db_path = settings.db_path
+    try:
+        file_size = os.path.getsize(db_path)
+        modified_at = datetime.fromtimestamp(os.path.getmtime(db_path))
+    except OSError:
+        file_size = 0
+        modified_at = None
+
+    return {
+        "db_path": db_path,
+        "file_size": file_size,
+        "modified_at": modified_at,
+        "tables": {
+            "barcode_cache": db.query(BarcodeCache).count(),
+            "barcode_mappings": db.query(BarcodeMapping).count(),
+            "items": db.query(Item).count(),
+            "notifications": db.query(Notification).count(),
+            "retry_queue": db.query(RetryQueue).count(),
+            "api_tokens": db.query(ApiToken).count(),
+        },
+    }
+
+
+@router.post("/settings/admin/backup")
+def admin_backup():
+    """Download the SQLite database file."""
+    db_path = settings.db_path
+    if not os.path.isfile(db_path):
+        return RedirectResponse("/settings?tab=admin", status_code=303)
+
+    # Create a safe copy to avoid locking issues
+    backup_path = db_path + ".backup"
+    shutil.copy2(db_path, backup_path)
+    return FileResponse(
+        backup_path,
+        media_type="application/octet-stream",
+        filename="barcode.db",
+    )
+
+
+@router.post("/settings/admin/purge/{table}")
+def admin_purge_table(table: str, db: Session = Depends(get_db)):
+    """Purge all rows from a specific table."""
+    table_map = {
+        "barcode_cache": BarcodeCache,
+        "barcode_mappings": BarcodeMapping,
+        "items": Item,
+        "notifications": Notification,
+        "retry_queue": RetryQueue,
+    }
+    model = table_map.get(table)
+    if not model:
+        return RedirectResponse("/settings?tab=admin", status_code=303)
+
+    # If purging items, also remove mappings that reference them
+    if model is Item:
+        db.query(BarcodeMapping).delete()
+    db.query(model).delete()
+    db.commit()
+    logger.info("Admin: purged table '%s'", table)
+    return RedirectResponse("/settings?tab=admin", status_code=303)
+
+
+@router.post("/settings/admin/reset")
+def admin_reset(db: Session = Depends(get_db)):
+    """Delete all data but keep tokens and schema intact."""
+    db.query(BarcodeMapping).delete()
+    db.query(BarcodeCache).delete()
+    db.query(Item).delete()
+    db.query(Notification).delete()
+    db.query(RetryQueue).delete()
+    db.commit()
+    logger.info("Admin: full data reset (tokens preserved)")
+    return RedirectResponse("/settings?tab=admin", status_code=303)
+
+
+@router.post("/settings/admin/factory-reset")
+def admin_factory_reset(db: Session = Depends(get_db)):
+    """Delete ALL data including tokens."""
+    db.query(BarcodeMapping).delete()
+    db.query(BarcodeCache).delete()
+    db.query(Item).delete()
+    db.query(Notification).delete()
+    db.query(RetryQueue).delete()
+    db.query(ApiToken).delete()
+    db.commit()
+    logger.info("Admin: factory reset — all data deleted")
+    return RedirectResponse("/settings?tab=admin", status_code=303)
