@@ -21,9 +21,35 @@
 </div>
 <!-- END PAGE HEADER -->
 
-<div class="card">
-    <div class="card-body markdown">
-        {{ doc_html | safe }}
+<div class="row">
+    {# ── Scrollspy sidebar (desktop only) ── #}
+    {% if toc %}
+    <div class="col-md-3 d-none d-md-block">
+        <div class="doc-toc-sidebar">
+            <nav id="doc-toc">
+                <nav class="nav nav-pills flex-column">
+                    {% for entry in toc %}
+                    <a class="nav-link" href="#{{ entry.id }}">{{ entry.text }}</a>
+                    {% endfor %}
+                </nav>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Article content ── #}
+    <div class="{{ 'col-md-9' if toc else 'col-12' }}">
+        <div class="card" id="doc-content">
+            <div class="card-body markdown">
+                {{ doc_html | safe }}
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if toc %}
+<script src="/static/js/doc-scrollspy.js"></script>
+{% endif %}
 {% endblock %}
