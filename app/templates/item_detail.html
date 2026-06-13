@@ -13,7 +13,9 @@
             <form method="post" action="/items/{{ item.id }}/delete"
                 data-confirm="Delete &quot;{{ item.name }}&quot;?"
                 data-confirm-detail="This item and all its barcode mappings will be permanently removed.">
-                <button type="submit" class="btn btn-outline-danger">Delete Item</button>
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="ti ti-trash icon"></i> Delete Item
+                </button>
             </form>
         </div>
         {% endif %}
@@ -37,9 +39,9 @@
                 <div class="datagrid-title">Source</div>
                 <div class="datagrid-content">
                     {% if item.source == 'mealie' %}
-                    <span class="badge bg-blue text-blue-fg">mealie</span>
+                    <span class="badge bg-blue text-blue-fg">Mealie</span>
                     {% else %}
-                    <span class="badge bg-purple text-purple-fg">manual</span>
+                    <span class="badge bg-purple text-purple-fg">Custom</span>
                     {% endif %}
                 </div>
             </div>
@@ -86,10 +88,20 @@
                     <td><a href="/barcodes/{{ entry.mapping.barcode|urlencode }}">{{ entry.mapping.barcode }}</a></td>
                     <td>{{ entry.barcode.title if entry.barcode else "—" }}</td>
                     <td>{{ entry.barcode.source if entry.barcode else "—" }}</td>
-                    <td><span class="badge bg-azure text-azure-fg">{{ entry.mapping.mapped_by }}</span></td>
+                    <td>
+                        {% if entry.mapping.mapped_by == 'auto' %}
+                        <span class="badge bg-yellow text-yellow-fg">Auto</span>
+                        {% elif entry.mapping.mapped_by == 'manual' %}
+                        <span class="badge bg-blue text-blue-fg">Manual</span>
+                        {% elif entry.mapping.mapped_by == 'auto_confirmed' %}
+                        <span class="badge bg-green text-green-fg">Confirmed</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ entry.mapping.mapped_by }}</span>
+                        {% endif %}
+                    </td>
                     <td>
                         <form method="post" action="/items/{{ item.id }}/remove-mapping/{{ entry.mapping.barcode }}">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                            <button type="submit" class="btn btn-outline-danger">Remove</button>
                         </form>
                     </td>
                 </tr>

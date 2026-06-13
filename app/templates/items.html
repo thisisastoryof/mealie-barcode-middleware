@@ -97,9 +97,9 @@
                         <td class="sort-name"><a href="/items/{{ entry.item.id }}">{{ entry.item.name }}</a></td>
                         <td class="sort-source">
                             {% if entry.item.source == 'mealie' %}
-                            <span class="badge bg-blue text-blue-fg">mealie</span>
+                            <span class="badge bg-blue text-blue-fg">Mealie</span>
                             {% else %}
-                            <span class="badge bg-purple text-purple-fg">manual</span>
+                            <span class="badge bg-purple text-purple-fg">Custom</span>
                             {% endif %}
                         </td>
                         <td class="sort-aliases text-secondary">{{ entry.item.aliases | fromjson | join(', ') if entry.item.aliases else '' }}</td>
