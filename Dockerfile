@@ -9,6 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ ./app/
+COPY docs/ ./docs/
 COPY entrypoint.sh /entrypoint.sh
 
 RUN adduser --system --no-create-home appuser \
