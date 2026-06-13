@@ -112,6 +112,7 @@
 }
 .label-preview-cell .label-preview-text {
     flex: 0 0 auto;
+    height: 2.4em;
     font-size: var(--preview-font-size, 6px);
     margin-top: 1px;
     text-align: center;
@@ -197,6 +198,7 @@
     }
     .label-cell .label-text {
         flex: 0 0 auto;
+        height: 2.4em;
         font-size: var(--label-font-size, 8pt);
         margin-top: 1mm;
         text-align: center;
