@@ -375,7 +375,7 @@
 
                 {% if new_token %}
                 {# Token created — shown in a modal (auto-opened via JS below) #}
-                <div class="modal modal-blur" id="token-created-modal" tabindex="-1"
+                <div class="modal" id="token-created-modal" tabindex="-1"
                      data-bs-backdrop="static" data-bs-keyboard="false">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
@@ -390,9 +390,8 @@
                             <div class="modal-body">
                                 <p class="mb-2">Copy this token now — it will <strong>not</strong> be shown again.</p>
                                 <div class="input-group">
-                                    <input type="text" class="form-control font-monospace user-select-all"
-                                           value="{{ new_token }}" id="new-token-value" readonly
-                                           style="font-size: 0.8rem; word-break: break-all;">
+                                    <input type="text" class="form-control font-monospace user-select-all token-value"
+                                           value="{{ new_token }}" id="new-token-value" readonly>
                                     <button class="btn btn-primary flex-shrink-0" type="button" data-copy-target="new-token-value">
                                         <i class="ti ti-copy icon"></i> Copy
                                     </button>
