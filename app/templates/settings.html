@@ -477,91 +477,91 @@
             {# ──────────── Users tab ──────────── #}
             {% elif current_tab == 'users' %}
 
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h3 class="card-title">Add User</h3>
-                </div>
-                <div class="card-body">
-                    <form action="/settings/users/add" method="post">
-                        <div class="row g-3 align-items-end">
-                            <div class="col-md-3">
-                                <label class="form-label">Username</label>
-                                <input type="text" name="username" class="form-control" placeholder="Username" required minlength="3">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Password</label>
-                                <input type="password" name="password" class="form-control" placeholder="Min. 8 characters" required minlength="8">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">&nbsp;</label>
-                                <label class="form-check">
-                                    <input type="checkbox" name="is_admin" value="1" class="form-check-input">
-                                    <span class="form-check-label">Administrator</span>
-                                </label>
-                            </div>
-                            <div class="col-md-3">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="ti ti-plus icon"></i> Add user
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            <div class="card-body">
+                <h2 class="mb-4">Users</h2>
+                {% if tab_description %}
+                <p class="card-subtitle">{{ tab_description }}</p>
+                {% endif %}
 
-            <div class="card">
-                <div class="table-responsive">
-                    <table class="table table-vcenter card-table">
-                        <thead>
-                            <tr>
-                                <th>Username</th>
-                                <th>Role</th>
-                                <th>Created</th>
-                                <th>Password</th>
-                                <th class="w-1"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for user in users %}
-                            <tr>
-                                <td>{{ user.username }}</td>
-                                <td>
-                                    {% if user.is_admin %}
-                                    <span class="badge bg-purple text-purple-fg">Admin</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">User</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-secondary">{{ user.created_at | localtime }}</td>
-                                <td>
-                                    <form action="/settings/users/{{ user.id }}/password" method="post" class="d-flex gap-2">
-                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="New password" minlength="8" required>
-                                        <button type="submit" class="btn btn-sm btn-ghost-primary text-nowrap">
-                                            <i class="ti ti-key icon"></i> Set
-                                        </button>
-                                    </form>
-                                </td>
-                                <td>
-                                    {% if user.id != request.session.get('user_id') %}
-                                    <form action="/settings/users/{{ user.id }}/delete" method="post"
-                                        data-confirm="Delete user &quot;{{ user.username }}&quot;?"
-                                        data-confirm-detail="This user will no longer be able to log in.">
-                                        <button type="submit" class="btn btn-sm btn-ghost-danger btn-icon" title="Delete user">
-                                            <i class="ti ti-trash icon"></i>
-                                        </button>
-                                    </form>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                            {% if not users %}
-                            <tr>
-                                <td colspan="5" class="text-center text-secondary">No users</td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
-                </div>
+                <h3 class="card-title mt-4">Add User</h3>
+                <form action="/settings/users/add" method="post">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-12 col-sm">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" class="form-control" placeholder="Username" required minlength="3">
+                        </div>
+                        <div class="col-12 col-sm">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" placeholder="Min. 8 characters" required minlength="8">
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label d-none d-sm-block">&nbsp;</label>
+                            <label class="form-check mb-0">
+                                <input type="checkbox" name="is_admin" value="1" class="form-check-input">
+                                <span class="form-check-label">Admin</span>
+                            </label>
+                        </div>
+                        <div class="col-12 col-sm-auto">
+                            <button type="submit" class="btn btn-primary w-100 w-sm-auto">
+                                <i class="ti ti-plus icon"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <h3 class="card-title mt-4">Existing Users</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Created</th>
+                            <th>Password</th>
+                            <th class="w-1"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>
+                                {% if user.is_admin %}
+                                <span class="badge bg-purple text-purple-fg">Admin</span>
+                                {% else %}
+                                <span class="badge bg-secondary">User</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-secondary">{{ user.created_at | localtime }}</td>
+                            <td>
+                                <form action="/settings/users/{{ user.id }}/password" method="post" class="d-flex gap-2">
+                                    <input type="password" name="password" class="form-control form-control-sm" placeholder="New password" minlength="8" required>
+                                    <button type="submit" class="btn btn-sm btn-ghost-primary text-nowrap">
+                                        <i class="ti ti-key icon"></i> Set
+                                    </button>
+                                </form>
+                            </td>
+                            <td>
+                                {% if user.id != request.session.get('user_id') %}
+                                <form action="/settings/users/{{ user.id }}/delete" method="post"
+                                    data-confirm="Delete user &quot;{{ user.username }}&quot;?"
+                                    data-confirm-detail="This user will no longer be able to log in.">
+                                    <button type="submit" class="btn btn-sm btn-ghost-danger btn-icon" title="Delete user">
+                                        <i class="ti ti-trash icon"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not users %}
+                        <tr>
+                            <td colspan="5" class="text-center text-secondary">No users</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
 
             {# ──────────── Admin / Database tab ──────────── #}
