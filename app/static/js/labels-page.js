@@ -11,6 +11,7 @@
     const labelCount = document.getElementById("label-count");
     const printBtn = document.getElementById("label-print");
     const clearBtn = document.getElementById("label-clear");
+    const formatSelect = document.getElementById("label-format");
     const sizeRange = document.getElementById("label-size");
     const sizeValue = document.getElementById("label-size-value");
     const gapRange = document.getElementById("label-gap");
@@ -27,10 +28,22 @@
     const previewGrid = document.getElementById("preview-grid");
     const previewSummary = document.getElementById("preview-summary");
 
+    // Format ratio lookup: width:height → multiplier for height = width * (1/ratio)
+    const FORMAT_RATIOS = { "1:1": 1, "3:2": 2/3, "2:1": 1/2, "2:3": 3/2 };
+    function getHeightMm(widthMm) {
+        const ratio = FORMAT_RATIOS[formatSelect.value] || 1;
+        return Math.round(widthMm * ratio);
+    }
+    function isLandscape() {
+        const ratio = FORMAT_RATIOS[formatSelect.value] || 1;
+        return ratio < 1;
+    }
+
     // --- Range slider live value display ---
     sizeRange.addEventListener("input", () => { sizeValue.textContent = sizeRange.value; updatePreview(); });
     gapRange.addEventListener("input", () => { gapValue.textContent = gapRange.value; updatePreview(); });
     marginRange.addEventListener("input", () => { marginValue.textContent = marginRange.value; updatePreview(); });
+    formatSelect.addEventListener("change", updatePreview);
     pageFormatSelect.addEventListener("change", updatePreview);
     fontSizeSelect.addEventListener("change", updatePreview);
     showTextCheck.addEventListener("change", updatePreview);
@@ -41,6 +54,7 @@
         btn.addEventListener("click", () => {
             document.querySelectorAll(".label-preset").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
+            if (btn.dataset.format) formatSelect.value = btn.dataset.format;
             sizeRange.value = btn.dataset.size;
             sizeValue.textContent = btn.dataset.size;
             gapRange.value = btn.dataset.gap;
@@ -51,11 +65,14 @@
             updatePreview();
         });
     });
-    // Deactivate preset active state when user manually adjusts a slider
+    // Deactivate preset active state when user manually adjusts
     [sizeRange, gapRange, marginRange].forEach(el => {
         el.addEventListener("input", () => {
             document.querySelectorAll(".label-preset").forEach(b => b.classList.remove("active"));
         });
+    });
+    formatSelect.addEventListener("change", () => {
+        document.querySelectorAll(".label-preset").forEach(b => b.classList.remove("active"));
     });
 
     // --- Queue Management (localStorage) ---
@@ -286,25 +303,33 @@
         printBtn.disabled = false;
 
         const sizeMm = sizeRange.value + "mm";
+        const heightMm = getHeightMm(parseInt(sizeRange.value)) + "mm";
         const gapMm = gapRange.value + "mm";
-        const marginMm = marginRange.value + "mm";
         const fontSize = fontSizeSelect.value + "pt";
         const showText = showTextCheck.checked;
         const pageFormat = pageFormatSelect.value;
+        const landscape = isLandscape();
 
         // Set CSS variables for print
-        printGrid.style.setProperty("--label-size", sizeMm);
+        printGrid.style.setProperty("--label-width", sizeMm);
+        printGrid.style.setProperty("--label-height", heightMm);
         printGrid.style.setProperty("--label-gap", gapMm);
         printGrid.style.setProperty("--label-font-size", fontSize);
 
-        // Cap image height for consistent QR sizing in print
-        if (showText) {
-            const sizeVal = parseInt(sizeRange.value);
+        // Cap image size for consistent QR sizing in print
+        if (showText && !landscape) {
+            const sizeVal = getHeightMm(parseInt(sizeRange.value));
             const paddingMm = Math.max(sizeVal * 0.05, 1.5);
             const fontPt = parseInt(fontSizeSelect.value);
             const fontMm = fontPt * 0.353; // 1pt ≈ 0.353mm
             const textReserveMm = 2.4 * fontMm + 1; // 2 lines + 1mm margin
             const imgMaxMm = sizeVal - 2 * paddingMm - textReserveMm;
+            printGrid.style.setProperty("--label-img-max", Math.max(0, imgMaxMm.toFixed(1)) + "mm");
+        } else if (landscape && showText) {
+            // Landscape: QR height is cell height minus padding
+            const hVal = getHeightMm(parseInt(sizeRange.value));
+            const paddingMm = Math.max(hVal * 0.05, 1.5);
+            const imgMaxMm = hVal - 2 * paddingMm;
             printGrid.style.setProperty("--label-img-max", Math.max(0, imgMaxMm.toFixed(1)) + "mm");
         } else {
             printGrid.style.removeProperty("--label-img-max");
@@ -326,9 +351,10 @@
 
         // Build grid cells — repeat per qty
         const showBorder = showBorderCheck.checked;
+        const layoutClass = landscape ? " landscape" : "";
         printGrid.innerHTML = queue.map(label => {
             const qty = label.qty || 1;
-            const cell = `<div class="label-cell${showBorder ? ' has-border' : ''}">
+            const cell = `<div class="label-cell${showBorder ? ' has-border' : ''}${layoutClass}">
                 <img src="/labels/qr.svg?text=${encodeURIComponent(label.text)}" alt="${escapeAttr(label.text)}">
                 ${showText ? `<span class="label-text">${escapeHtml(label.itemName || label.text)}</span>` : ""}
             </div>`;
@@ -342,55 +368,60 @@
     // --- Preview ---
     function updatePreview() {
         const queue = getQueue();
-        const sizeMm = parseInt(sizeRange.value);
+        const widthMm = parseInt(sizeRange.value);
+        const heightMm = getHeightMm(widthMm);
         const gapMm = parseInt(gapRange.value);
         const marginMm = parseInt(marginRange.value);
         const showText = showTextCheck.checked;
         const pageFormat = pageFormatSelect.value;
+        const landscape = isLandscape();
 
         // Page dimensions in mm
         let pageW = 210, pageH = 297; // A4 default
         if (pageFormat === "Letter") { pageW = 216; pageH = 279; }
 
         // Scale: fit the preview container width
-        // The preview-page element has a fixed aspect-ratio via CSS
-        // We compute a px-per-mm scale based on the container width
         const containerWidth = previewPage.clientWidth || 400;
         const scale = containerWidth / pageW;
 
-        // Set landscape class
+        // Set landscape class on page
         previewPage.classList.remove("landscape");
 
-        // Compute columns that fit
+        // Compute columns and rows that fit
         const printableW = pageW - 2 * marginMm;
-        const cols = Math.max(1, Math.floor((printableW + gapMm) / (sizeMm + gapMm)));
+        const printableH = pageH - 2 * marginMm;
+        const cols = Math.max(1, Math.floor((printableW + gapMm) / (widthMm + gapMm)));
+        const rows = Math.max(1, Math.floor((printableH + gapMm) / (heightMm + gapMm)));
+        const perPage = cols * rows;
 
         // Set CSS variables for preview (in px)
-        const previewSize = Math.round(sizeMm * scale);
+        const previewWidth = Math.round(widthMm * scale);
+        const previewHeight = Math.round(heightMm * scale);
         const previewGap = Math.round(gapMm * scale);
         const previewMargin = Math.round(marginMm * scale);
         const previewFontSize = Math.round(parseInt(fontSizeSelect.value) * scale * 0.4);
 
-        previewGrid.style.setProperty("--preview-size", previewSize + "px");
+        previewGrid.style.setProperty("--preview-width", previewWidth + "px");
+        previewGrid.style.setProperty("--preview-height", previewHeight + "px");
         previewGrid.style.setProperty("--preview-gap", previewGap + "px");
         previewGrid.style.setProperty("--preview-margin", previewMargin + "px");
         previewGrid.style.setProperty("--preview-font-size", Math.max(5, previewFontSize) + "px");
 
-        // Cap image height so QR is consistent (always sized as if 2-line text)
-        if (showText) {
-            const previewPadding = Math.max(previewSize * 0.05, 2);
+        // Cap image size for consistent QR sizing
+        if (showText && !landscape) {
+            const previewPadding = Math.max(previewHeight * 0.05, 2);
             const actualFontSize = Math.max(5, previewFontSize);
-            const textReserve = 2.4 * actualFontSize + 1; // 2 lines + margin
-            const imgMax = previewSize - 2 * previewPadding - textReserve;
+            const textReserve = 2.4 * actualFontSize + 1;
+            const imgMax = previewHeight - 2 * previewPadding - textReserve;
+            previewGrid.style.setProperty("--preview-img-max", Math.max(0, Math.round(imgMax)) + "px");
+        } else if (landscape && showText) {
+            // Landscape: QR constrained to height, text beside it
+            const previewPadding = Math.max(previewHeight * 0.05, 2);
+            const imgMax = previewHeight - 2 * previewPadding;
             previewGrid.style.setProperty("--preview-img-max", Math.max(0, Math.round(imgMax)) + "px");
         } else {
             previewGrid.style.removeProperty("--preview-img-max");
         }
-
-        // Compute how many rows fit (cell is a square: sizeMm × sizeMm)
-        const printableH = pageH - 2 * marginMm;
-        const rows = Math.max(1, Math.floor((printableH + gapMm) / (sizeMm + gapMm)));
-        const perPage = cols * rows;
 
         // Total labels (with copies)
         const totalLabels = queue.reduce((sum, l) => sum + (l.qty || 1), 0);
@@ -405,9 +436,10 @@
 
         let cells = "";
         const borderClass = showBorderCheck.checked ? " has-border" : "";
+        const layoutClass = landscape ? " landscape" : "";
         queue.forEach(label => {
             const qty = label.qty || 1;
-            const cell = `<div class="label-preview-cell${borderClass}">
+            const cell = `<div class="label-preview-cell${borderClass}${layoutClass}">
                 <img src="/labels/qr.svg?text=${encodeURIComponent(label.text)}" alt="">
                 ${showText ? `<span class="label-preview-text">${escapeHtml(label.itemName || label.text)}</span>` : ""}
             </div>`;
@@ -416,7 +448,7 @@
         previewGrid.innerHTML = cells;
 
         // Summary
-        previewSummary.textContent = `${cols} columns × ${rows} rows — ${totalLabels} label${totalLabels !== 1 ? "s" : ""}${pages > 1 ? ` (${pages} pages)` : ""}`;
+        previewSummary.textContent = `${cols} × ${rows} — ${totalLabels} label${totalLabels !== 1 ? "s" : ""} (${widthMm}×${heightMm}mm)${pages > 1 ? ` — ${pages} pages` : ""}`;
     }
 
     // Update preview when switching to preview tab

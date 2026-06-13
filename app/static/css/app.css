@@ -86,7 +86,7 @@
 }
 .label-preview-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, var(--preview-size, 60px));
+    grid-template-columns: repeat(auto-fill, var(--preview-width, 60px));
     gap: var(--preview-gap, 3px);
     padding: var(--preview-margin, 4px);
     height: 100%;
@@ -94,8 +94,8 @@
     justify-content: center;
 }
 .label-preview-cell {
-    width: var(--preview-size, 60px);
-    height: var(--preview-size, 60px);
+    width: var(--preview-width, 60px);
+    height: var(--preview-height, 60px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -122,6 +122,27 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     line-height: 1.2;
+}
+/* Landscape: QR left, text right */
+.label-preview-cell.landscape {
+    flex-direction: row;
+}
+.label-preview-cell.landscape img {
+    flex: 0 0 auto;
+    width: auto;
+    height: 100%;
+    min-height: unset;
+    max-width: var(--preview-img-max, 50%);
+    max-height: none;
+}
+.label-preview-cell.landscape .label-preview-text {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    height: auto;
+    margin-top: 0;
+    margin-left: 2px;
+    -webkit-line-clamp: 3;
 }
 .label-preview-empty {
     grid-column: 1 / -1;
@@ -174,13 +195,13 @@
 
     .label-print-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, var(--label-size, 35mm));
+        grid-template-columns: repeat(auto-fill, var(--label-width, 35mm));
         gap: var(--label-gap, 4mm);
         justify-content: center;
     }
     .label-cell {
-        width: var(--label-size, 35mm);
-        height: var(--label-size, 35mm);
+        width: var(--label-width, 35mm);
+        height: var(--label-height, 35mm);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -209,5 +230,26 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         line-height: 1.2;
+    }
+    /* Landscape: QR left, text right */
+    .label-cell.landscape {
+        flex-direction: row;
+    }
+    .label-cell.landscape img {
+        flex: 0 0 auto;
+        width: auto;
+        height: 100%;
+        min-height: unset;
+        max-width: var(--label-img-max, 50%);
+        max-height: none;
+    }
+    .label-cell.landscape .label-text {
+        flex: 1 1 0;
+        min-width: 0;
+        width: auto;
+        height: auto;
+        margin-top: 0;
+        margin-left: 1mm;
+        -webkit-line-clamp: 3;
     }
 }

@@ -51,32 +51,44 @@
                 <!-- Preset buttons -->
                 <div class="mb-3">
                     <label class="form-label">Presets</label>
-                    <div class="btn-group w-100" role="group">
-                        <button type="button" class="btn btn-outline-secondary label-preset" data-size="20" data-gap="2" data-margin="5" data-font="6">Small</button>
-                        <button type="button" class="btn btn-outline-secondary label-preset active" data-size="35" data-gap="4" data-margin="5" data-font="8">Medium</button>
-                        <button type="button" class="btn btn-outline-secondary label-preset" data-size="60" data-gap="6" data-margin="10" data-font="12">Large</button>
+                    <div class="btn-group w-100 flex-wrap" role="group">
+                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="1:1" data-size="20" data-gap="2" data-margin="5" data-font="6">Small</button>
+                        <button type="button" class="btn btn-outline-secondary label-preset active" data-format="1:1" data-size="35" data-gap="4" data-margin="5" data-font="8">Medium</button>
+                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="1:1" data-size="60" data-gap="6" data-margin="10" data-font="12">Large</button>
+                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="2:1" data-size="50" data-gap="3" data-margin="5" data-font="7">50×25</button>
+                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="2:1" data-size="89" data-gap="4" data-margin="5" data-font="8">89×45</button>
+                        <button type="button" class="btn btn-outline-secondary label-preset" data-format="3:2" data-size="60" data-gap="4" data-margin="5" data-font="8">60×40</button>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-6 mb-3">
+                        <label class="form-label">Label format</label>
+                        <select class="form-select" id="label-format">
+                            <option value="1:1" selected>Square (1:1)</option>
+                            <option value="3:2">Landscape 3:2</option>
+                            <option value="2:1">Landscape 2:1</option>
+                            <option value="2:3">Portrait 2:3</option>
+                        </select>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Label width: <strong id="label-size-value">35</strong> mm</label>
+                        <input type="range" class="form-range" id="label-size" min="15" max="100" step="1" value="35">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4 mb-3">
                         <label class="form-label">Page format</label>
                         <select class="form-select" id="label-page-format">
-                            <option value="auto">Auto (browser default)</option>
+                            <option value="auto">Auto</option>
                             <option value="A4" selected>A4</option>
                             <option value="Letter">Letter</option>
                         </select>
                     </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label">Page margin: <strong id="label-margin-value">5</strong> mm</label>
+                    <div class="col-4 mb-3">
+                        <label class="form-label">Margin: <strong id="label-margin-value">5</strong> mm</label>
                         <input type="range" class="form-range" id="label-margin" min="0" max="15" step="1" value="5">
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-6 mb-3">
-                        <label class="form-label">Label size: <strong id="label-size-value">35</strong> mm</label>
-                        <input type="range" class="form-range" id="label-size" min="15" max="80" step="5" value="35">
-                    </div>
-                    <div class="col-6 mb-3">
+                    <div class="col-4 mb-3">
                         <label class="form-label">Gap: <strong id="label-gap-value">4</strong> mm</label>
                         <input type="range" class="form-range" id="label-gap" min="0" max="10" step="1" value="4">
                     </div>
