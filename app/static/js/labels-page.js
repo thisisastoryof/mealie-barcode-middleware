@@ -56,21 +56,18 @@
         }
         queueEmpty.classList.add("d-none");
         queueContainer.innerHTML = queue.map(label => {
-            const nameHtml = label.itemId
-                ? `<a href="/items/${encodeURIComponent(label.itemId)}" class="text-reset text-truncate small d-block">${escapeHtml(label.itemName)}</a>`
-                : `<div class="text-truncate small">${escapeHtml(label.itemName || label.text)}</div>`;
             const statusHtml = label.itemId
                 ? '<span class="status-dot status-dot-animated bg-green me-1"></span><span class="small text-secondary">Mapped</span>'
                 : '<span class="status-dot bg-azure me-1"></span><span class="small text-secondary">Generic</span>';
             return `
             <div class="col-6 col-sm-4 col-md-3">
-                <div class="card card-sm label-card">
-                    <button class="btn btn-icon btn-ghost-danger label-remove" data-text="${escapeAttr(label.text)}" title="Remove">
+                <div class="card card-sm label-card${label.itemId ? ' cursor-pointer' : ''}"${label.itemId ? ` data-href="/items/${encodeURIComponent(label.itemId)}"` : ''}>
+                    <button type="button" class="btn btn-icon btn-ghost-danger label-remove" data-text="${escapeAttr(label.text)}" title="Remove">
                         <i class="ti ti-x icon"></i>
                     </button>
                     <div class="card-body text-center p-2">
                         <img src="/labels/qr.svg?text=${encodeURIComponent(label.text)}" alt="QR" class="label-qr-preview mb-1">
-                        ${nameHtml}
+                        <div class="text-truncate small">${escapeHtml(label.itemName || label.text)}</div>
                         <div class="mt-1 d-flex align-items-center justify-content-center">${statusHtml}</div>
                     </div>
                 </div>
@@ -79,7 +76,17 @@
 
         // Attach remove handlers
         queueContainer.querySelectorAll(".label-remove").forEach(btn => {
-            btn.addEventListener("click", () => removeFromQueue(btn.dataset.text));
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                removeFromQueue(btn.dataset.text);
+            });
+        });
+        // Attach card click → navigate to item
+        queueContainer.querySelectorAll(".label-card[data-href]").forEach(card => {
+            card.addEventListener("click", () => {
+                window.location.href = card.dataset.href;
+            });
         });
     }
 
