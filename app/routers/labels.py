@@ -25,11 +25,19 @@ def labels_page(request: Request):
 @router.get("/labels/qr.svg")
 def generate_qr_svg(text: str = Query(..., min_length=1)):
     """Generate a QR code SVG for GENERIC:{text}."""
+    import re
+
     content = f"GENERIC:{text}"
     qr = segno.make(content, error="m")
     buf = io.BytesIO()
-    qr.save(buf, kind="svg", scale=4, border=2, xmldecl=False)
-    return Response(content=buf.getvalue(), media_type="image/svg+xml")
+    qr.save(buf, kind="svg", scale=1, border=2, xmldecl=False)
+    svg = buf.getvalue().decode()
+    # Replace fixed width/height with viewBox so SVG scales to its container
+    def _to_viewbox(m):
+        w, h = m.group(1), m.group(2)
+        return f'viewBox="0 0 {w} {h}"'
+    svg = re.sub(r'width="(\d+)" height="(\d+)"', _to_viewbox, svg, count=1)
+    return Response(content=svg.encode(), media_type="image/svg+xml")
 
 
 @router.get("/labels/search")
