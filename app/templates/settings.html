@@ -510,58 +510,58 @@
                 </form>
 
                 <h3 class="card-title mt-4">Existing Users</h3>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-vcenter">
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Role</th>
-                            <th>Created</th>
-                            <th>Password</th>
-                            <th class="w-1"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>{{ user.username }}</td>
-                            <td>
-                                {% if user.is_admin %}
-                                <span class="badge bg-purple text-purple-fg">Admin</span>
-                                {% else %}
-                                <span class="badge bg-secondary">User</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-secondary">{{ user.created_at | localtime }}</td>
-                            <td>
-                                <form action="/settings/users/{{ user.id }}/password" method="post" class="d-flex gap-2">
-                                    <input type="password" name="password" class="form-control form-control-sm" placeholder="New password" minlength="8" required>
-                                    <button type="submit" class="btn btn-sm btn-ghost-primary text-nowrap">
-                                        <i class="ti ti-key icon"></i> Set
-                                    </button>
-                                </form>
-                            </td>
-                            <td>
-                                {% if user.id != request.session.get('user_id') %}
-                                <form action="/settings/users/{{ user.id }}/delete" method="post"
-                                    data-confirm="Delete user &quot;{{ user.username }}&quot;?"
-                                    data-confirm-detail="This user will no longer be able to log in.">
-                                    <button type="submit" class="btn btn-sm btn-ghost-danger btn-icon" title="Delete user">
-                                        <i class="ti ti-trash icon"></i>
-                                    </button>
-                                </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        {% if not users %}
-                        <tr>
-                            <td colspan="5" class="text-center text-secondary">No users</td>
-                        </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-vcenter">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Created</th>
+                                <th>Password</th>
+                                <th class="w-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>
+                                    {% if user.is_admin %}
+                                    <span class="badge bg-purple text-purple-fg">Admin</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">User</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-secondary">{{ user.created_at | localtime }}</td>
+                                <td>
+                                    <form action="/settings/users/{{ user.id }}/password" method="post" class="d-flex gap-2">
+                                        <input type="password" name="password" class="form-control form-control-sm" placeholder="New password" minlength="8" required>
+                                        <button type="submit" class="btn btn-sm btn-ghost-primary text-nowrap">
+                                            <i class="ti ti-key icon"></i> Set
+                                        </button>
+                                    </form>
+                                </td>
+                                <td>
+                                    {% if user.id != request.session.get('user_id') %}
+                                    <form action="/settings/users/{{ user.id }}/delete" method="post"
+                                        data-confirm="Delete user &quot;{{ user.username }}&quot;?"
+                                        data-confirm-detail="This user will no longer be able to log in.">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="ti ti-trash icon"></i> Delete
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if not users %}
+                            <tr>
+                                <td colspan="5" class="text-center text-secondary">No users yet</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {# ──────────── Admin / Database tab ──────────── #}
