@@ -40,7 +40,7 @@
         <div class="col-12 col-md-9 d-flex flex-column">
 
             {# ──────────── Config tabs (mealie, lookup, matching, system) ──────────── #}
-            {% if current_tab not in ('tokens', 'appearance', 'admin') %}
+            {% if current_tab not in ('tokens', 'appearance', 'users', 'admin') %}
 
             <form method="post" action="/settings/configuration">
                 <input type="hidden" name="_tab" value="{{ current_tab }}">
