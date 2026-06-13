@@ -46,9 +46,11 @@
             <div class="datagrid-item">
                 <div class="datagrid-title">Aliases</div>
                 <div class="datagrid-content">
-                    {% set aliases = item.aliases | default('[]') %}
-                    {% if aliases and aliases != '[]' %}
-                        {{ aliases }}
+                    {% set alias_list = item.aliases | default('[]') | fromjson %}
+                    {% if alias_list %}
+                        {% for a in alias_list %}
+                        <span class="badge bg-muted-lt me-1">{{ a }}</span>
+                        {% endfor %}
                     {% else %}
                         <span class="text-secondary">None</span>
                     {% endif %}
