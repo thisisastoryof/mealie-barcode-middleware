@@ -142,6 +142,8 @@
     height: auto;
     margin-top: 0;
     margin-left: 2px;
+    text-align: left;
+    overflow-wrap: anywhere;
     -webkit-line-clamp: 3;
 }
 .label-preview-empty {
@@ -250,6 +252,8 @@
         height: auto;
         margin-top: 0;
         margin-left: 1mm;
+        text-align: left;
+        overflow-wrap: anywhere;
         -webkit-line-clamp: 3;
     }
 }

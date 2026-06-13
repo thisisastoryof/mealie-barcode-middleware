@@ -28,15 +28,16 @@
     const previewGrid = document.getElementById("preview-grid");
     const previewSummary = document.getElementById("preview-summary");
 
-    // Format ratio lookup: width:height → multiplier for height = width * (1/ratio)
+    // Format ratio lookup: width:height → multiplier for height = width * ratio
     const FORMAT_RATIOS = { "1:1": 1, "3:2": 2/3, "2:1": 1/2, "2:3": 3/2 };
     function getHeightMm(widthMm) {
         const ratio = FORMAT_RATIOS[formatSelect.value] || 1;
         return Math.round(widthMm * ratio);
     }
     function isLandscape() {
+        // Only use side-by-side layout for very wide ratios (2:1 or wider)
         const ratio = FORMAT_RATIOS[formatSelect.value] || 1;
-        return ratio < 1;
+        return ratio <= 0.5;
     }
 
     // --- Range slider live value display ---
