@@ -23,13 +23,15 @@
     {% if toc %}
     <div class="col-md-3 d-none d-md-block">
         <div class="doc-toc-sidebar">
-            <nav id="doc-toc">
-                <nav class="nav nav-pills flex-column">
-                    {% for entry in toc %}
-                    <a class="nav-link" href="#{{ entry.id }}">{{ entry.text }}</a>
-                    {% endfor %}
-                </nav>
-            </nav>
+            <div class="card">
+                <div class="card-body">
+                    <nav id="doc-toc" class="nav nav-pills flex-column">
+                        {% for entry in toc %}
+                        <a class="nav-link" href="#{{ entry.id }}">{{ entry.text }}</a>
+                        {% endfor %}
+                    </nav>
+                </div>
+            </div>
         </div>
     </div>
     {% endif %}

@@ -51,20 +51,3 @@
     max-height: calc(100vh - 7rem);
     overflow-y: auto;
 }
-.doc-toc-sidebar .nav-link {
-    font-size: 0.8125rem;
-    padding: 0.25rem 0.75rem;
-    color: var(--tblr-secondary);
-    border-left: 2px solid transparent;
-    border-radius: 0;
-}
-.doc-toc-sidebar .nav-link:hover {
-    color: var(--tblr-body-color);
-    border-left-color: var(--tblr-border-color);
-}
-.doc-toc-sidebar .nav-link.active {
-    color: var(--tblr-primary);
-    background: transparent;
-    border-left-color: var(--tblr-primary);
-    font-weight: 600;
-}
