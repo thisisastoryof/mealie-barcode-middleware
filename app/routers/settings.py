@@ -147,6 +147,9 @@ _SIDEBAR_GROUPS = {
     "Administration": ["admin"],
 }
 
+# Tabs that require admin privileges
+_ADMIN_ONLY_TABS = {"users", "admin"}
+
 # Which config groups map to which tab
 _TAB_GROUPS = {
     "mealie":        ["Mealie Connection"],
@@ -159,6 +162,21 @@ _TAB_GROUPS = {
 
 @router.get("/settings", response_class=HTMLResponse)
 def settings_page(request: Request, tab: str = Query("mealie"), db: Session = Depends(get_db)):
+    is_admin = request.session.get("is_admin", False)
+
+    # Non-admins cannot access restricted tabs
+    if tab in _ADMIN_ONLY_TABS and not is_admin:
+        return RedirectResponse("/settings?tab=mealie", status_code=303)
+
+    # Filter sidebar for non-admins
+    if is_admin:
+        visible_tabs = _TABS
+        visible_sidebar = _SIDEBAR_GROUPS
+    else:
+        visible_tabs = [(tid, lbl, ico) for tid, lbl, ico in _TABS if tid not in _ADMIN_ONLY_TABS]
+        visible_sidebar = {k: [t for t in v if t not in _ADMIN_ONLY_TABS] for k, v in _SIDEBAR_GROUPS.items()}
+        visible_sidebar = {k: v for k, v in visible_sidebar.items() if v}
+
     all_groups = _build_config_groups()
     # Filter groups for the active tab
     active_groups = _TAB_GROUPS.get(tab, [])
@@ -182,8 +200,8 @@ def settings_page(request: Request, tab: str = Query("mealie"), db: Session = De
     tab_label = next((label for tid, label, _ in _TABS if tid == tab), tab.title())
 
     return templates.TemplateResponse(request, "settings.html", {
-        "tabs": _TABS,
-        "sidebar_groups": _SIDEBAR_GROUPS,
+        "tabs": visible_tabs,
+        "sidebar_groups": visible_sidebar,
         "current_tab": tab,
         "current_tab_label": tab_label,
         "tab_description": _TAB_DESCRIPTIONS.get(tab, ""),
@@ -364,8 +382,10 @@ def _get_admin_info(db: Session) -> dict:
 
 
 @router.post("/settings/admin/backup")
-def admin_backup():
-    """Download the SQLite database file."""
+def admin_backup(request: Request):
+    """Download the SQLite database file. Admin only."""
+    if not request.session.get("is_admin", False):
+        return RedirectResponse("/settings?tab=mealie", status_code=303)
     db_path = settings.db_path
     if not os.path.isfile(db_path):
         return RedirectResponse("/settings?tab=admin", status_code=303)
@@ -381,8 +401,10 @@ def admin_backup():
 
 
 @router.post("/settings/admin/purge/{table}")
-def admin_purge_table(table: str, db: Session = Depends(get_db)):
-    """Purge all rows from a specific table."""
+def admin_purge_table(table: str, request: Request, db: Session = Depends(get_db)):
+    """Purge all rows from a specific table. Admin only."""
+    if not request.session.get("is_admin", False):
+        return RedirectResponse("/settings?tab=mealie", status_code=303)
     table_map = {
         "barcode_cache": BarcodeCache,
         "barcode_mappings": BarcodeMapping,
@@ -404,8 +426,10 @@ def admin_purge_table(table: str, db: Session = Depends(get_db)):
 
 
 @router.post("/settings/admin/reset")
-def admin_reset(db: Session = Depends(get_db)):
-    """Delete all data but keep tokens and schema intact."""
+def admin_reset(request: Request, db: Session = Depends(get_db)):
+    """Delete all data but keep tokens and schema intact. Admin only."""
+    if not request.session.get("is_admin", False):
+        return RedirectResponse("/settings?tab=mealie", status_code=303)
     db.query(BarcodeMapping).delete()
     db.query(BarcodeCache).delete()
     db.query(Item).delete()
@@ -417,8 +441,10 @@ def admin_reset(db: Session = Depends(get_db)):
 
 
 @router.post("/settings/admin/factory-reset")
-def admin_factory_reset(db: Session = Depends(get_db)):
-    """Delete ALL data including tokens."""
+def admin_factory_reset(request: Request, db: Session = Depends(get_db)):
+    """Delete ALL data including tokens. Admin only."""
+    if not request.session.get("is_admin", False):
+        return RedirectResponse("/settings?tab=mealie", status_code=303)
     db.query(BarcodeMapping).delete()
     db.query(BarcodeCache).delete()
     db.query(Item).delete()
@@ -445,7 +471,9 @@ def add_user(
     is_admin: str = Form(""),
     db: Session = Depends(get_db),
 ):
-    """Create a new user account."""
+    """Create a new user account. Admin only."""
+    if not request.session.get("is_admin", False):
+        return RedirectResponse("/settings?tab=mealie", status_code=303)
     username = username.strip()
     if len(username) < 3 or len(password) < 8:
         return RedirectResponse("/settings?tab=users", status_code=303)
@@ -466,7 +494,9 @@ def add_user(
 
 @router.post("/settings/users/{user_id}/delete")
 def delete_user(user_id: int, request: Request, db: Session = Depends(get_db)):
-    """Delete a user account. Cannot delete yourself."""
+    """Delete a user account. Admin only. Cannot delete yourself."""
+    if not request.session.get("is_admin", False):
+        return RedirectResponse("/settings?tab=mealie", status_code=303)
     current_user_id = request.session.get("user_id")
     if user_id == current_user_id:
         return RedirectResponse("/settings?tab=users", status_code=303)
