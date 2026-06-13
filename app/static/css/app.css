@@ -154,8 +154,6 @@
 .label-cell.has-border {
     border: 1px solid #dee2e6;
     border-radius: 2px;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
 }
 
 /* Qty picker in label queue cards */
