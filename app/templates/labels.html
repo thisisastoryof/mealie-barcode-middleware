@@ -8,6 +8,16 @@
             <h2 class="page-title">QR Label Generator</h2>
             <div class="text-secondary mt-1">Create printable QR code labels for your pantry items</div>
         </div>
+        <div class="col-auto">
+            <div class="btn-list">
+                <button class="btn btn-primary" id="label-print" disabled>
+                    <i class="ti ti-printer icon"></i> Register &amp; Print
+                </button>
+                <button class="btn btn-outline-danger" id="label-clear" disabled>
+                    <i class="ti ti-trash icon"></i> Clear All
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -132,15 +142,6 @@
                     <input type="range" class="form-range" id="label-margin" min="0" max="15" step="1" value="5">
                 </div>
             </div>
-        </div>
-
-        <div class="mt-3 d-flex justify-content-between">
-            <button class="btn btn-primary" id="label-print" disabled>
-                <i class="ti ti-printer icon"></i> Register &amp; Print
-            </button>
-            <button class="btn btn-outline-danger" id="label-clear" disabled>
-                <i class="ti ti-trash icon"></i> Clear All
-            </button>
         </div>
     </div>
 
