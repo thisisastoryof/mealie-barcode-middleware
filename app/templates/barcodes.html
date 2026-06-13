@@ -17,7 +17,7 @@
             <a class="nav-link {{ 'active' if current_status == 'all' }}" href="/barcodes?status=all">All</a>
         </li>
         <li class="nav-item" role="presentation">
-            <a class="nav-link {{ 'active' if current_status == 'mapped' }}" href="/barcodes?status=mapped">Mapped</a>
+            <a class="nav-link {{ 'active' if current_status == 'mapped' }}" href="/barcodes?status=mapped">Linked</a>
         </li>
         <li class="nav-item" role="presentation">
             <a class="nav-link {{ 'active' if current_status == 'pending' }}" href="/barcodes?status=pending">Pending</a>
@@ -62,7 +62,7 @@
                         </th>
                         {% if current_status not in ('pending', 'unknown') %}
                         <th>
-                            <button class="table-sort d-flex justify-content-between" data-sort="sort-mapped">Mapped To</button>
+                            <button class="table-sort d-flex justify-content-between" data-sort="sort-mapped">Linked To</button>
                         </th>
                         {% endif %}
                         <th>
@@ -79,7 +79,7 @@
                         <td class="sort-barcode"><a href="/barcodes/{{ item.barcode.barcode|urlencode }}">{{ item.barcode.barcode }}</a></td>
                         <td class="sort-status">
                             {% if item.status == "mapped" %}
-                            <span class="badge bg-green text-green-fg">Mapped</span>
+                            <span class="badge bg-green text-green-fg">Linked</span>
                             {% elif item.status == "queued" %}
                             <span class="badge bg-orange text-orange-fg">Queued</span>
                             {% elif item.status == "unknown" %}

@@ -8,9 +8,13 @@
 ## Tabler UI Rules (MUST follow)
 
 ### Buttons
-- **NEVER** use `btn-sm` — always default button size.
+- **`btn-sm` only inside `<table>` rows** — table action buttons use `btn-sm` with icon + text. Outside tables (card footers, page headers, modals), always use default size.
 - Icon-only buttons **MUST** have `btn-icon` class: `btn btn-icon btn-primary`, `btn btn-icon btn-ghost-secondary`, etc.
 - Buttons with both icon + text: do NOT add `btn-icon`.
+
+### Terminology
+- Use **"Linked"** (not "Mapped") in all user-visible text: badges, column headers, card titles, tabs.
+- Internal code (variable names, DB columns, URL paths) can still use `mapped`/`mapping`.
 
 ### Page Titles
 - **No icons** in `<h2 class="page-title">` — text only.

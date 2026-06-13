@@ -70,7 +70,7 @@
 
 <!-- Mapped barcodes -->
 <div class="card">
-    <div class="card-header"><h3 class="card-title">Mapped Barcodes</h3></div>
+    <div class="card-header"><h3 class="card-title">Linked Barcodes</h3></div>
     <div class="table-responsive">
         <table class="table table-vcenter card-table">
             <thead>
@@ -78,7 +78,7 @@
                     <th>Barcode</th>
                     <th>Title</th>
                     <th>Source</th>
-                    <th>Mapped By</th>
+                    <th>Link</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -101,13 +101,15 @@
                     </td>
                     <td>
                         <form method="post" action="/items/{{ item.id }}/remove-mapping/{{ entry.mapping.barcode }}">
-                            <button type="submit" class="btn btn-outline-danger">Remove</button>
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="ti ti-unlink icon"></i> Unlink
+                            </button>
                         </form>
                     </td>
                 </tr>
                 {% endfor %}
                 {% if not mapped_items %}
-                <tr><td colspan="5" class="text-center text-secondary">No barcodes mapped to this item</td></tr>
+                <tr><td colspan="5" class="text-center text-secondary">No barcodes linked to this item</td></tr>
                 {% endif %}
             </tbody>
         </table>

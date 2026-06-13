@@ -55,7 +55,7 @@
         var tdAction = document.createElement('td');
         tdAction.innerHTML = '<form method="post" action="/barcodes/' + encodeURIComponent(barcode) + '/map" class="d-inline">' +
             '<input type="hidden" name="item_id" value="' + item.id + '">' +
-            '<button type="submit" class="btn btn-icon btn-primary" title="Link"><i class="ti ti-link icon"></i></button></form>';
+            '<button type="submit" class="btn btn-sm btn-primary"><i class="ti ti-link icon"></i> Link</button></form>';
 
         tr.appendChild(tdName);
         tr.appendChild(tdSource);

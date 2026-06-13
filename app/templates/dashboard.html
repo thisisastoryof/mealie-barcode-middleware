@@ -73,7 +73,7 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div>
-                        <div class="subheader">Mapped</div>
+                        <div class="subheader">Linked</div>
                         <div class="h1 mb-0{{ ' text-green' if mapped_count > 0 else '' }}" id="stat-mapped">{{ mapped_count }}</div>
                     </div>
                 </div>
@@ -139,7 +139,7 @@
                             <td>{{ item.barcode.source or "—" }}</td>
                             <td>
                                 {% if item.status == "mapped" %}
-                                <span class="badge bg-green text-green-fg">Mapped</span>
+                                <span class="badge bg-green text-green-fg">Linked</span>
                                 {% elif item.status == "queued" %}
                                 <span class="badge bg-orange text-orange-fg">Queued</span>
                                 {% elif item.status == "unknown" %}

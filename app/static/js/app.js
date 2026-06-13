@@ -255,7 +255,7 @@
 
             var tbody = document.getElementById('recent-scans-body');
             var badgeMap = {mapped: 'green', queued: 'orange', unknown: 'red', pending: 'yellow'};
-            var labelMap = {mapped: 'Mapped', queued: 'Queued', unknown: 'Unknown', pending: 'Pending'};
+            var labelMap = {mapped: 'Linked', queued: 'Queued', unknown: 'Unknown', pending: 'Pending'};
 
             // Build rows HTML
             var rows = '';
@@ -297,7 +297,7 @@
         var showMapped = (status !== 'pending' && status !== 'unknown');
         var colCount = showMapped ? 7 : 6;
         var statusBadge = {mapped: 'green', queued: 'orange', unknown: 'red', pending: 'yellow'};
-        var statusLabel = {mapped: 'Mapped', queued: 'Queued', unknown: 'Unknown', pending: 'Pending'};
+        var statusLabel = {mapped: 'Linked', queued: 'Queued', unknown: 'Unknown', pending: 'Pending'};
         fetch('/api/barcodes?status=' + encodeURIComponent(status)).then(function(r) { return r.json(); }).then(function(d) {
             var tbody = document.getElementById('barcodes-tbody');
             if (!tbody || !d.items) return;

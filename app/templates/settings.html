@@ -457,8 +457,8 @@
                                     <form method="post" action="/settings/tokens/{{ token.id }}/delete"
                                         data-confirm="Delete token &quot;{{ token.name|e }}&quot;?"
                                         data-confirm-detail="Any scanner using this token will no longer be able to authenticate.">
-                                        <button type="submit" class="btn btn-icon btn-outline-danger">
-                                            <i class="ti ti-trash icon"></i>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="ti ti-trash icon"></i> Delete
                                         </button>
                                     </form>
                                 </td>
@@ -551,12 +551,12 @@
                                         <span class="badge bg-secondary-lt">{{ admin_info.tables[key] }}</span>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-icon btn-outline-warning"
+                                        <button type="button" class="btn btn-sm btn-outline-warning"
                                             data-confirm-post="/settings/admin/purge/{{ key }}"
                                             data-confirm-msg="Purge {{ label }}?"
                                             data-confirm-detail="This will delete all {{ admin_info.tables[key] }} rows from {{ label }}. This cannot be undone."
                                             {% if admin_info.tables[key] == 0 %}disabled{% endif %}>
-                                            <i class="ti ti-eraser icon"></i>
+                                            <i class="ti ti-eraser icon"></i> Purge
                                         </button>
                                     </td>
                                 </tr>
