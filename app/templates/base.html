@@ -39,23 +39,27 @@
                                 <i class="ti ti-sun icon icon-1"></i>
                             </a>
                         </li>
-                        <!-- Settings cog -->
-                        <li class="nav-item{{ ' active' if request.url.path.startswith('/settings') }}">
-                            <a href="/settings" class="nav-link" title="Settings">
-                                <i class="ti ti-settings icon icon-1"></i>
+                        <!-- Tools & settings dropdown -->
+                        <li class="nav-item dropdown{{ ' active' if request.url.path.startswith(('/labels', '/activities', '/docs', '/settings')) }}">
+                            <a href="#" class="nav-link" data-bs-toggle="dropdown" tabindex="-1" aria-label="Tools and settings" title="Tools &amp; settings">
+                                <i class="ti ti-dots-vertical icon icon-1"></i>
                             </a>
-                        </li>
-                        <!-- Help / Docs -->
-                        <li class="nav-item{{ ' active' if request.url.path.startswith('/docs') }}">
-                            <a href="/docs" class="nav-link" title="Documentation">
-                                <i class="ti ti-help icon icon-1"></i>
-                            </a>
-                        </li>
-                        <!-- Activity log -->
-                        <li class="nav-item{{ ' active' if request.url.path.startswith('/activities') }}">
-                            <a href="/activities" class="nav-link" title="Activity">
-                                <i class="ti ti-activity icon icon-1"></i>
-                            </a>
+                            <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end">
+                                <span class="dropdown-header">Tools</span>
+                                <a class="dropdown-item{{ ' active' if request.url.path.startswith('/labels') }}" href="/labels">
+                                    <i class="ti ti-qrcode icon dropdown-item-icon"></i> Labels
+                                </a>
+                                <a class="dropdown-item{{ ' active' if request.url.path.startswith('/activities') }}" href="/activities">
+                                    <i class="ti ti-activity icon dropdown-item-icon"></i> Activity
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item{{ ' active' if request.url.path.startswith('/docs') }}" href="/docs">
+                                    <i class="ti ti-help icon dropdown-item-icon"></i> Documentation
+                                </a>
+                                <a class="dropdown-item{{ ' active' if request.url.path.startswith('/settings') }}" href="/settings">
+                                    <i class="ti ti-settings icon dropdown-item-icon"></i> Settings
+                                </a>
+                            </div>
                         </li>
                     </div>
                     <div class="vr d-none d-md-block mx-2 my-auto navbar-divider"></div>
@@ -108,10 +112,16 @@
                                 <span class="nav-link-title">Items</span>
                             </a>
                         </li>
-                        <li class="nav-item{{ ' active' if request.url.path.startswith('/labels') }}">
+                        <li class="nav-item d-md-none{{ ' active' if request.url.path.startswith('/labels') }}">
                             <a class="nav-link" href="/labels">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-qrcode icon icon-1"></i></span>
                                 <span class="nav-link-title">Labels</span>
+                            </a>
+                        </li>
+                        <li class="nav-item d-md-none{{ ' active' if request.url.path.startswith('/activities') }}">
+                            <a class="nav-link" href="/activities">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-activity icon icon-1"></i></span>
+                                <span class="nav-link-title">Activity</span>
                             </a>
                         </li>
                         <li class="nav-item d-md-none{{ ' active' if request.url.path.startswith('/settings') }}">
