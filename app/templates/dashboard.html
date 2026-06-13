@@ -128,7 +128,7 @@
                     <tbody id="recent-scans-body">
                         {% for item in recent_items %}
                         <tr>
-                            <td><a href="/barcodes/{{ item.barcode.barcode }}">{{ item.barcode.barcode }}</a></td>
+                            <td><a href="/barcodes/{{ item.barcode.barcode|urlencode }}">{{ item.barcode.barcode }}</a></td>
                             <td>
                                 {% if item.item %}
                                 <a href="/items/{{ item.item.id }}">{{ item.item.name }}</a>

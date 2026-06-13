@@ -83,7 +83,7 @@
             <tbody>
                 {% for entry in mapped_items %}
                 <tr>
-                    <td><a href="/barcodes/{{ entry.mapping.barcode }}">{{ entry.mapping.barcode }}</a></td>
+                    <td><a href="/barcodes/{{ entry.mapping.barcode|urlencode }}">{{ entry.mapping.barcode }}</a></td>
                     <td>{{ entry.barcode.title if entry.barcode else "—" }}</td>
                     <td>{{ entry.barcode.source if entry.barcode else "—" }}</td>
                     <td><span class="badge bg-azure text-azure-fg">{{ entry.mapping.mapped_by }}</span></td>

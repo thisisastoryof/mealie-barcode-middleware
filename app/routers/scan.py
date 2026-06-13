@@ -1,5 +1,6 @@
 import json
 import logging
+from urllib.parse import quote
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
@@ -27,10 +28,11 @@ router = APIRouter()
 
 def _build_action_url(barcode: str) -> str:
     """Build a deep link URL for HA notifications."""
+    encoded = quote(barcode, safe='')
     base = settings.middleware_base_url.rstrip("/")
     if base:
-        return f"{base}/barcodes/{barcode}"
-    return f"/barcodes/{barcode}"
+        return f"{base}/barcodes/{encoded}"
+    return f"/barcodes/{encoded}"
 
 
 class ScanRequest(BaseModel):

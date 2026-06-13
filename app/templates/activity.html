@@ -104,7 +104,7 @@
             </thead>
             <tbody class="table-tbody" id="activity-tbody">
                 {% for n in notifications %}
-                <tr class="cursor-pointer {{ '' if n.is_read else 'table-active' }}" data-href="/barcodes/{{ n.barcode }}">
+                <tr class="cursor-pointer {{ '' if n.is_read else 'table-active' }}" data-href="/barcodes/{{ n.barcode|urlencode }}">
                     <td class="sort-status">
                         {% if n.result == 'retry_failed' or n.result == 'broken' %}
                         <span class="badge bg-red text-red-fg">{{ n.result | replace('_', ' ') | title }}</span>

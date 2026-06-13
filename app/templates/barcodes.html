@@ -76,7 +76,7 @@
                 <tbody class="table-tbody" id="barcodes-tbody">
                     {% for item in items %}
                     <tr>
-                        <td class="sort-barcode"><a href="/barcodes/{{ item.barcode.barcode }}">{{ item.barcode.barcode }}</a></td>
+                        <td class="sort-barcode"><a href="/barcodes/{{ item.barcode.barcode|urlencode }}">{{ item.barcode.barcode }}</a></td>
                         <td class="sort-status">
                             {% if item.status == "mapped" %}
                             <span class="badge bg-green text-green-fg">Mapped</span>

@@ -265,7 +265,7 @@
                     ? '<a href="/items/' + esc(item.item_id) + '">' + esc(item.item_name) + '</a>'
                     : esc(item.title);
                 rows += '<tr>'
-                    + '<td><a href="/barcodes/' + esc(item.barcode) + '">' + esc(item.barcode) + '</a></td>'
+                    + '<td><a href="/barcodes/' + encodeURIComponent(item.barcode) + '">' + esc(item.barcode) + '</a></td>'
                     + '<td>' + itemCol + '</td>'
                     + '<td>' + esc(item.source) + '</td>'
                     + '<td><span class="badge bg-' + bg + ' text-' + bg + '-fg">' + labelMap[item.status] + '</span></td>'
@@ -308,7 +308,7 @@
                 var sColor = statusBadge[item.status] || 'yellow';
                 var sText = statusLabel[item.status] || 'Pending';
                 rows += '<tr>'
-                    + '<td class="sort-barcode"><a href="/barcodes/' + esc(item.barcode) + '">' + esc(item.barcode) + '</a></td>'
+                    + '<td class="sort-barcode"><a href="/barcodes/' + encodeURIComponent(item.barcode) + '">' + esc(item.barcode) + '</a></td>'
                     + '<td class="sort-status"><span class="badge bg-' + sColor + ' text-' + sColor + '-fg">' + sText + '</span></td>'
                     + '<td class="sort-title">' + esc(item.title) + '</td>'
                     + '<td class="sort-brand">' + esc(item.brand) + '</td>';
@@ -353,7 +353,7 @@
                 var bg = badgeMap[item.result] || 'secondary';
                 var label = labelMap[item.result] || item.result;
                 var rowClass = item.is_read ? '' : ' table-active';
-                rows += '<tr class="cursor-pointer' + rowClass + '" data-href="/barcodes/' + esc(item.barcode) + '">'
+                rows += '<tr class="cursor-pointer' + rowClass + '" data-href="/barcodes/' + encodeURIComponent(item.barcode) + '">'
                     + '<td class="sort-status"><span class="badge bg-' + bg + ' text-' + bg + '-fg">' + esc(label) + '</span></td>'
                     + '<td class="sort-barcode">' + esc(item.barcode) + '</td>'
                     + '<td class="sort-title">' + esc(item.title) + '</td>'

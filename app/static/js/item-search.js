@@ -30,7 +30,7 @@
             'Create <strong>"' + esc(query) + '"</strong> as new item' +
             '</td>' +
             '<td>' +
-            '<form method="post" action="/barcodes/' + esc(barcode) + '/create-and-map" class="d-inline">' +
+            '<form method="post" action="/barcodes/' + encodeURIComponent(barcode) + '/create-and-map" class="d-inline">' +
             '<input type="hidden" name="name" value="' + esc(query) + '">' +
             '<button type="submit" class="btn btn-sm btn-success">Create &amp; Link</button>' +
             '</form></td>';
@@ -53,7 +53,7 @@
         tdScore.innerHTML = '<span class="text-secondary">—</span>';
 
         var tdAction = document.createElement('td');
-        tdAction.innerHTML = '<form method="post" action="/barcodes/' + barcode + '/map" class="d-inline">' +
+        tdAction.innerHTML = '<form method="post" action="/barcodes/' + encodeURIComponent(barcode) + '/map" class="d-inline">' +
             '<input type="hidden" name="item_id" value="' + item.id + '">' +
             '<button type="submit" class="btn btn-sm btn-primary">Link</button></form>';
 

@@ -1,5 +1,6 @@
 import json
 import logging
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -82,7 +83,7 @@ def barcodes_list(
     })
 
 
-@router.get("/barcodes/{barcode}", response_class=HTMLResponse)
+@router.get("/barcodes/{barcode:path}", response_class=HTMLResponse)
 def barcode_detail(
     request: Request,
     barcode: str,
@@ -121,7 +122,7 @@ def barcode_detail(
     })
 
 
-@router.post("/barcodes/{barcode}/map")
+@router.post("/barcodes/{barcode:path}/map")
 def barcode_map(
     barcode: str,
     item_id: str = Form(...),
@@ -138,10 +139,10 @@ def barcode_map(
     _dismiss_notifications(barcode, db)
 
     db.commit()
-    return RedirectResponse(f"/barcodes/{barcode}", status_code=303)
+    return RedirectResponse(f"/barcodes/{quote(barcode, safe='')}", status_code=303)
 
 
-@router.post("/barcodes/{barcode}/create-and-map")
+@router.post("/barcodes/{barcode:path}/create-and-map")
 def barcode_create_and_map(
     barcode: str,
     name: str = Form(...),
@@ -150,7 +151,7 @@ def barcode_create_and_map(
     """Create a new manual item and map this barcode to it in one step."""
     name = name.strip()
     if not name:
-        return RedirectResponse(f"/barcodes/{barcode}", status_code=303)
+        return RedirectResponse(f"/barcodes/{quote(barcode, safe='')}", status_code=303)
 
     item = Item(name=name, source="manual")
     db.add(item)
@@ -167,25 +168,25 @@ def barcode_create_and_map(
     _dismiss_notifications(barcode, db)
 
     db.commit()
-    return RedirectResponse(f"/barcodes/{barcode}", status_code=303)
+    return RedirectResponse(f"/barcodes/{quote(barcode, safe='')}", status_code=303)
 
 
-@router.post("/barcodes/{barcode}/unmap")
+@router.post("/barcodes/{barcode:path}/unmap")
 def barcode_unmap(barcode: str, db: Session = Depends(get_db)):
     existing = db.get(BarcodeMapping, barcode)
     if existing:
         db.delete(existing)
         db.commit()
-    return RedirectResponse(f"/barcodes/{barcode}", status_code=303)
+    return RedirectResponse(f"/barcodes/{quote(barcode, safe='')}", status_code=303)
 
 
-@router.post("/barcodes/{barcode}/retry-lookup")
+@router.post("/barcodes/{barcode:path}/retry-lookup")
 def barcode_retry_lookup(barcode: str, db: Session = Depends(get_db)):
     perform_lookup(barcode, db)
-    return RedirectResponse(f"/barcodes/{barcode}", status_code=303)
+    return RedirectResponse(f"/barcodes/{quote(barcode, safe='')}", status_code=303)
 
 
-@router.post("/barcodes/{barcode}/delete")
+@router.post("/barcodes/{barcode:path}/delete")
 def barcode_delete(barcode: str, db: Session = Depends(get_db)):
     """Delete cached barcode and its mapping."""
     db.query(RetryQueue).filter(RetryQueue.barcode == barcode).delete()

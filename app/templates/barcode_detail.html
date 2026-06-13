@@ -11,7 +11,7 @@
         <div class="col-auto ms-auto d-print-none">
             <div class="btn-list">
                 {% if next_unmapped %}
-                <a href="/barcodes/{{ next_unmapped.barcode }}" class="btn btn-outline-primary">Next unmapped →</a>
+                <a href="/barcodes/{{ next_unmapped.barcode|urlencode }}" class="btn btn-outline-primary">Next unmapped →</a>
                 {% endif %}
             </div>
         </div>
@@ -71,13 +71,13 @@
             </div>
             <div class="card-footer d-flex justify-content-between">
                 {% if not cached.found %}
-                <form method="post" action="/barcodes/{{ cached.barcode }}/retry-lookup" class="d-inline">
+                <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/retry-lookup" class="d-inline">
                     <button type="submit" class="btn btn-warning">Retry Lookup</button>
                 </form>
                 {% else %}
                 <div></div>
                 {% endif %}
-                <form method="post" action="/barcodes/{{ cached.barcode }}/delete" class="d-inline"
+                <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/delete" class="d-inline"
                     data-confirm="Delete barcode {{ cached.barcode }}?"
                     data-confirm-detail="The barcode entry{% if cached.item_name %} and its link to &quot;{{ cached.item_name }}&quot;{% endif %} will be permanently removed.">
                     <button type="submit" class="btn btn-outline-danger">Delete</button>
@@ -118,7 +118,7 @@
                 </div>
             </div>
             <div class="card-footer d-flex justify-content-end">
-                <form method="post" action="/barcodes/{{ cached.barcode }}/unmap">
+                <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/unmap">
                     <button type="submit" class="btn btn-outline-danger">Unlink</button>
                 </form>
             </div>
@@ -128,7 +128,7 @@
                 <code class="small">{{ mapping.item_id }}</code>
             </div>
             <div class="card-footer d-flex justify-content-end">
-                <form method="post" action="/barcodes/{{ cached.barcode }}/unmap">
+                <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/unmap">
                     <button type="submit" class="btn btn-outline-danger">Unlink</button>
                 </form>
             </div>
@@ -178,7 +178,7 @@
                         <span class="badge bg-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }} text-{{ 'green' if c.score >= threshold else 'yellow' if c.score >= 60 else 'red' }}-fg">{{ c.score }}%</span>
                     </td>
                     <td>
-                        <form method="post" action="/barcodes/{{ cached.barcode }}/map" class="d-inline">
+                        <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/map" class="d-inline">
                             <input type="hidden" name="item_id" value="{{ c.item_id }}">
                             <button type="submit" class="btn btn-sm btn-primary">Link</button>
                         </form>
