@@ -177,7 +177,7 @@ When a barcode scan needs attention (unknown product, auto-linked item to review
 
 The webhook ID (`barcode-scanner`) must match the `webhook_id` in the HA automation. You can change it to anything — just keep them in sync.
 
-> **No HA API key needed.** HA webhooks are accessible by their ID alone. The automation is set to `local_only: true`, so only devices on your local network can trigger it.
+> **No HA API key needed.** HA webhooks are accessible by their ID alone — the webhook ID acts as the secret. Keep it unique and don't share it publicly.
 
 ---
 

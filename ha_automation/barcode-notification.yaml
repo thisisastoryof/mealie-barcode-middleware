@@ -37,7 +37,7 @@ triggers:
     webhook_id: "barcode-scanner"
     allowed_methods:
       - POST
-    local_only: true
+    local_only: false
 
 # No conditions needed — the middleware only sends webhooks
 # for scans that actually need attention (needs_action=true).
