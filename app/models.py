@@ -72,6 +72,7 @@ class Notification(Base):
     message: Mapped[str] = mapped_column(String, nullable=False)
     result: Mapped[str] = mapped_column(String, nullable=False)  # added | queued | unknown | added_as_note
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_dismissed: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 

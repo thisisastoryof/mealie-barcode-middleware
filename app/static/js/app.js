@@ -378,15 +378,17 @@
     var list = document.getElementById('notif-list');
     var empty = document.getElementById('notif-empty');
     var markAllBtn = document.getElementById('notif-mark-all');
-    var count = 0;
+    var clearReadBtn = document.getElementById('notif-clear-read');
+    var unreadCount = 0;
 
     function updateBadge() {
-        if (count > 0) {
+        if (unreadCount > 0) {
             badge.classList.remove('d-none');
         } else {
             badge.classList.add('d-none');
         }
-        empty.style.display = count > 0 ? 'none' : '';
+        var totalItems = list.querySelectorAll('.list-group-item:not(#notif-empty)').length;
+        empty.style.display = totalItems > 0 ? 'none' : '';
     }
 
     function statusDotClass(result) {
@@ -422,8 +424,9 @@
         var dotClass = statusDotClass(n.result);
         var icon = priorityIcon(n.result);
         var timeStr = timeAgo(n.created_at);
+        var isRead = !!n.is_read;
         var item = document.createElement('a');
-        item.className = 'list-group-item list-group-item-action';
+        item.className = 'list-group-item list-group-item-action' + (isRead ? ' text-secondary' : '');
         item.href = link;
         if (n.id) item.dataset.id = n.id;
         item.dataset.barcode = n.barcode;
@@ -431,24 +434,61 @@
             + '<div class="col-auto">' + icon + '</div>'
             + '<div class="col text-truncate">'
             + '<div class="d-flex justify-content-between align-items-center">'
-            + '<span class="text-body fw-medium">' + esc(n.title) + '</span>'
+            + '<span class="' + (isRead ? 'text-secondary' : 'text-body fw-medium') + '">' + esc(n.title) + '</span>'
             + (timeStr ? '<small class="text-secondary ms-2 text-nowrap">' + timeStr + '</small>' : '')
             + '</div>'
             + '<div class="d-block text-secondary text-truncate mt-n1 small">' + esc(n.message) + '</div>'
             + '</div>'
-            + '<div class="col-auto"><span class="status-dot ' + dotClass + ' d-block"></span></div>'
+            + '<div class="col-auto d-flex align-items-center gap-1">'
+            + (isRead ? '' : '<span class="status-dot ' + dotClass + ' d-block"></span>')
+            + '<span class="notif-dismiss" title="Dismiss">'
+            + '<i class="ti ti-x icon icon-sm text-secondary"></i>'
+            + '</span>'
+            + '</div>'
             + '</div>';
+
+        // Click notification → mark as read, navigate
         item.addEventListener('click', function(e) {
+            // Don't navigate if dismiss button was clicked
+            if (e.target.closest('.notif-dismiss')) return;
             e.preventDefault();
-            fetch('/api/notifications/read-barcode/' + encodeURIComponent(n.barcode), { method: 'POST' });
-            item.remove();
-            count--;
-            updateBadge();
+            if (!isRead) {
+                fetch('/api/notifications/read-barcode/' + encodeURIComponent(n.barcode), { method: 'POST' });
+                markItemRead(item);
+                isRead = true;
+                unreadCount--;
+                updateBadge();
+            }
             window.location.href = link;
         });
+
+        // Dismiss button → remove from bell
+        var dismissBtn = item.querySelector('.notif-dismiss');
+        dismissBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (n.id) {
+                fetch('/api/notifications/' + n.id + '/dismiss', { method: 'POST' });
+            }
+            if (!isRead) unreadCount--;
+            item.remove();
+            updateBadge();
+        });
+
         list.insertBefore(item, list.firstChild);
-        count++;
+        if (!isRead) unreadCount++;
         updateBadge();
+    }
+
+    function markItemRead(item) {
+        item.classList.add('text-secondary');
+        var title = item.querySelector('.text-body.fw-medium');
+        if (title) {
+            title.classList.remove('text-body', 'fw-medium');
+            title.classList.add('text-secondary');
+        }
+        var dot = item.querySelector('.status-dot');
+        if (dot) dot.remove();
     }
 
     // Expose for SSE handler
@@ -460,24 +500,36 @@
             // Clear existing
             var existing = list.querySelectorAll('.list-group-item:not(#notif-empty)');
             existing.forEach(function(el) { el.remove(); });
-            count = 0;
+            unreadCount = 0;
             // Repopulate
             items.reverse().forEach(function(n) { addNotifItem(n); });
         });
     }
     window.refreshNotifications = reloadNotifications;
 
-    // Load existing unread notifications
+    // Load existing notifications
     reloadNotifications();
 
-    // Mark all as read
+    // Mark all as read — dim all items but keep them visible
     if (markAllBtn) {
         markAllBtn.addEventListener('click', function(e) {
             e.preventDefault();
             fetch('/api/notifications/read-all', { method: 'POST' }).then(function() {
                 var items = list.querySelectorAll('.list-group-item:not(#notif-empty)');
+                items.forEach(function(el) { markItemRead(el); });
+                unreadCount = 0;
+                updateBadge();
+            });
+        });
+    }
+
+    // Clear read — dismiss all read notifications from bell
+    if (clearReadBtn) {
+        clearReadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetch('/api/notifications/dismiss-read', { method: 'POST' }).then(function() {
+                var items = list.querySelectorAll('.list-group-item.text-secondary:not(#notif-empty)');
                 items.forEach(function(el) { el.remove(); });
-                count = 0;
                 updateBadge();
             });
         });

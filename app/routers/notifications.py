@@ -11,10 +11,10 @@ router = APIRouter()
 
 @router.get("/api/notifications")
 def get_notifications(db: Session = Depends(get_db)):
-    """Return unread notifications as JSON for the bell dropdown."""
+    """Return non-dismissed notifications for the bell dropdown."""
     items = (
         db.query(Notification)
-        .filter(Notification.is_read == False)
+        .filter(Notification.is_dismissed == False)
         .order_by(Notification.created_at.desc())
         .limit(50)
         .all()
@@ -26,6 +26,7 @@ def get_notifications(db: Session = Depends(get_db)):
             "title": n.title,
             "message": n.message,
             "result": n.result,
+            "is_read": n.is_read,
             "created_at": n.created_at.isoformat() if n.created_at else None,
         }
         for n in items
@@ -55,6 +56,28 @@ def mark_read_by_barcode(barcode: str, db: Session = Depends(get_db)):
         Notification.barcode == barcode,
         Notification.is_read == False,
     ).update({"is_read": True})
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/api/notifications/{notification_id}/dismiss")
+def dismiss_notification(notification_id: int, db: Session = Depends(get_db)):
+    """Dismiss a single notification from the bell dropdown."""
+    n = db.get(Notification, notification_id)
+    if n:
+        n.is_dismissed = True
+        n.is_read = True
+        db.commit()
+    return {"ok": True}
+
+
+@router.post("/api/notifications/dismiss-read")
+def dismiss_all_read(db: Session = Depends(get_db)):
+    """Dismiss all read notifications from the bell dropdown."""
+    db.query(Notification).filter(
+        Notification.is_read == True,
+        Notification.is_dismissed == False,
+    ).update({"is_dismissed": True})
     db.commit()
     return {"ok": True}
 

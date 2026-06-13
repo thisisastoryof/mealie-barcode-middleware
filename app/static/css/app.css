@@ -3,6 +3,14 @@
     max-height: 20rem;
     overflow-y: auto;
 }
+.notif-dismiss {
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s;
+}
+.list-group-item:hover .notif-dismiss {
+    opacity: 1;
+}
 .toast-above {
     z-index: 1090;
 }

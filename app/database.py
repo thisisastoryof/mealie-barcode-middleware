@@ -37,3 +37,10 @@ def _migrate():
         if "token_prefix" not in columns:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE api_tokens ADD COLUMN token_prefix VARCHAR(8)"))
+    if "notifications" in insp.get_table_names():
+        columns = {c["name"] for c in insp.get_columns("notifications")}
+        if "is_dismissed" not in columns:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE notifications ADD COLUMN is_dismissed BOOLEAN DEFAULT 0"))
+                # Pre-dismiss activity-only entries and already-read notifications
+                conn.execute(text("UPDATE notifications SET is_dismissed = 1 WHERE is_read = 1"))
