@@ -45,6 +45,12 @@
                                 <i class="ti ti-settings icon icon-1"></i>
                             </a>
                         </li>
+                        <!-- Help / Docs -->
+                        <li class="nav-item{{ ' active' if request.url.path.startswith('/docs') }}">
+                            <a href="/docs" class="nav-link" title="Documentation">
+                                <i class="ti ti-help icon icon-1"></i>
+                            </a>
+                        </li>
                         <!-- Activity log -->
                         <li class="nav-item{{ ' active' if request.url.path.startswith('/activities') }}">
                             <a href="/activities" class="nav-link" title="Activity">
@@ -106,6 +112,12 @@
                             <a class="nav-link" href="/settings">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-settings icon icon-1"></i></span>
                                 <span class="nav-link-title">Settings</span>
+                            </a>
+                        </li>
+                        <li class="nav-item d-md-none{{ ' active' if request.url.path.startswith('/docs') }}">
+                            <a class="nav-link" href="/docs">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-help icon icon-1"></i></span>
+                                <span class="nav-link-title">Documentation</span>
                             </a>
                         </li>
                         <li class="nav-item d-md-none">

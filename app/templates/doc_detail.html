@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ doc_title }} — Docs — Barcode Middleware{% endblock %}
+
+{% block content %}
+<!-- BEGIN PAGE HEADER -->
+<div class="page-header d-print-none mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">
+                <a href="/docs" class="text-reset">Documentation</a>
+            </div>
+            <h2 class="page-title">
+                <i class="ti {{ doc_icon }} icon me-1"></i>
+                {{ doc_title }}
+            </h2>
+        </div>
+    </div>
+</div>
+<!-- END PAGE HEADER -->
+
+<div class="card">
+    <div class="card-body markdown">
+        {{ doc_html | safe }}
+    </div>
+</div>
+{% endblock %}

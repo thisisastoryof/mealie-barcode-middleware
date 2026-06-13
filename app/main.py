@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import init_db
 from app.middleware import CSRFOriginMiddleware, SecurityHeadersMiddleware
-from app.routers import barcodes, dashboard, items, health, notifications, scan, settings as settings_router
+from app.routers import barcodes, dashboard, docs, items, health, notifications, scan, settings as settings_router
 from app.services.scheduler import start_scheduler, stop_scheduler
 
 # Configure logging
@@ -87,6 +87,7 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 
 # Include routers
 app.include_router(dashboard.router, tags=["dashboard"])
+app.include_router(docs.router, tags=["docs"])
 app.include_router(scan.router, tags=["scan"])
 app.include_router(health.router, tags=["health"])
 app.include_router(barcodes.router, tags=["barcodes"])
