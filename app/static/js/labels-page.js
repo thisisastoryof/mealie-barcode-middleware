@@ -471,7 +471,7 @@
             localStorage.removeItem(STORAGE_KEY);
             renderQueue();
             updatePreview();
-        });
+        }, "Clear");
     });
 
     // --- Helpers ---

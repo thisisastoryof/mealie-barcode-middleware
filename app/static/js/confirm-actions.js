@@ -9,6 +9,7 @@
     var titleEl = document.getElementById('modal-confirm-title');
     var msgEl = document.getElementById('modal-confirm-msg');
     var okBtn = document.getElementById('modal-confirm-ok');
+    var dismissBtn = modalEl.querySelector('[data-bs-dismiss="modal"]');
     var pendingAction = null;
 
     // Hidden trigger that Tabler's built-in handler will pick up
@@ -19,27 +20,25 @@
     document.body.appendChild(trigger);
 
     okBtn.addEventListener('click', function() {
-        // Close the modal via the dismiss mechanism
-        okBtn.setAttribute('data-bs-dismiss', 'modal');
-        // Let Tabler close it, then run the action
         if (pendingAction) {
             var action = pendingAction;
             pendingAction = null;
-            // Small delay to let modal close before navigation
+            // Close the modal via existing dismiss button, then run action
+            dismissBtn.click();
             setTimeout(action, 50);
         }
     });
 
-    // Remove the dismiss attribute after modal is hidden so it doesn't
-    // auto-close next time the modal opens
+    // Reset state after modal is hidden
     modalEl.addEventListener('hidden.bs.modal', function() {
-        okBtn.removeAttribute('data-bs-dismiss');
         pendingAction = null;
+        okBtn.textContent = 'Delete';
     });
 
-    function showConfirm(title, detail, onConfirm) {
+    function showConfirm(title, detail, onConfirm, btnLabel) {
         titleEl.textContent = title;
         msgEl.textContent = detail || '';
+        okBtn.textContent = btnLabel || 'Delete';
         pendingAction = onConfirm;
         trigger.click();
     }
