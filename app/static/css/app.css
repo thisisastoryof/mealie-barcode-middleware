@@ -141,7 +141,7 @@
     width: auto;
     height: auto;
     margin-top: 0;
-    margin-left: 2px;
+    margin-left: 4px;
     text-align: left;
     overflow-wrap: anywhere;
     -webkit-line-clamp: 3;
@@ -251,7 +251,7 @@
         width: auto;
         height: auto;
         margin-top: 0;
-        margin-left: 1mm;
+        margin-left: 2mm;
         text-align: left;
         overflow-wrap: anywhere;
         -webkit-line-clamp: 3;
