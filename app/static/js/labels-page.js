@@ -112,8 +112,6 @@
     function selectItem(itemId, itemName) {
         searchResults.classList.remove("show");
         searchInput.value = "";
-        // Pre-register the mapping
-        registerLabel(itemName, itemId);
         addToQueue(itemName, itemId, itemName);
     }
 
@@ -129,8 +127,8 @@
         const text = freeTextInput.value.trim();
         if (!text) return;
         freeTextInput.value = "";
-        // Register and check for fuzzy matches
-        registerAndMaybeMatch(text);
+        // Check for fuzzy matches (read-only) before adding
+        fuzzyCheckAndAdd(text);
     }
 
     addFreeBtn.addEventListener("click", addFreeText);
@@ -138,36 +136,19 @@
         if (e.key === "Enter") { e.preventDefault(); addFreeText(); }
     });
 
-    // --- Server Registration ---
-    async function registerLabel(text, itemId) {
+    // --- Fuzzy Check (read-only, no mutations) ---
+    async function fuzzyCheckAndAdd(text) {
         try {
-            await fetch("/labels/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text, item_id: itemId || undefined }),
-            });
-        } catch (err) {
-            console.error("Failed to register label:", err);
-        }
-    }
-
-    async function registerAndMaybeMatch(text) {
-        try {
-            const res = await fetch("/labels/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text }),
-            });
+            const res = await fetch(`/labels/fuzzy?q=${encodeURIComponent(text)}`);
             const data = await res.json();
 
-            if (data.status === "candidates" && data.candidates.length > 0) {
+            if (data.candidates && data.candidates.length > 0) {
                 showFuzzyModal(text, data.candidates);
             } else {
-                // No match or already added
                 addToQueue(text, null, text);
             }
         } catch (err) {
-            console.error("Failed to register:", err);
+            console.error("Fuzzy check failed:", err);
             addToQueue(text, null, text);
         }
     }
@@ -186,10 +167,7 @@
         container.querySelectorAll(".fuzzy-pick").forEach(el => {
             el.addEventListener("click", (e) => {
                 e.preventDefault();
-                const id = el.dataset.id;
-                const name = el.dataset.name;
-                registerLabel(text, id);
-                addToQueue(text, id, name);
+                addToQueue(text, el.dataset.id, el.dataset.name);
                 fuzzyModalEl.querySelector("[data-bs-dismiss='modal']").click();
             });
         });
@@ -205,10 +183,26 @@
         document.getElementById("fuzzy-modal-trigger").click();
     }
 
-    // --- Print ---
-    printBtn.addEventListener("click", () => {
+    // --- Register & Print ---
+    printBtn.addEventListener("click", async () => {
         const queue = getQueue();
         if (queue.length === 0) return;
+
+        // Batch-register all labels
+        printBtn.disabled = true;
+        printBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Registering…';
+        try {
+            const payload = queue.map(l => ({ text: l.text, item_id: l.itemId || null }));
+            await fetch("/labels/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ labels: payload }),
+            });
+        } catch (err) {
+            console.error("Batch registration failed:", err);
+        }
+        printBtn.innerHTML = '<i class="ti ti-printer icon"></i> Register &amp; Print';
+        printBtn.disabled = false;
 
         const size = sizeSelect.value;
         const columns = parseInt(columnsSelect.value);

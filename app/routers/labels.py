@@ -46,65 +46,70 @@ def labels_search_items(q: str = Query(default=""), db: Session = Depends(get_db
     return [{"id": i.id, "name": i.name, "source": i.source} for i in items]
 
 
-@router.post("/labels/register", response_class=JSONResponse)
-async def register_label(request: Request, db: Session = Depends(get_db)):
-    """Pre-register a GENERIC barcode mapping.
+@router.get("/labels/fuzzy")
+def labels_fuzzy_match(q: str = Query(default=""), db: Session = Depends(get_db)):
+    """Fuzzy-match free text against items. Read-only, no mutations."""
+    q = q.strip()
+    if not q:
+        return {"candidates": []}
+    candidates = fuzzy_match(q, None, db)
+    top = [c for c in candidates[:5] if c["score"] >= 60]
+    return {
+        "candidates": [{"id": c["item_id"], "name": c["item_name"], "score": c["score"]} for c in top],
+    }
 
-    Body JSON: { "text": "Milk", "item_id": "optional-item-id" }
-    - If item_id is provided: directly map to that item.
-    - If item_id is absent: run fuzzy matching and return candidates.
+
+@router.post("/labels/register", response_class=JSONResponse)
+async def register_labels_batch(request: Request, db: Session = Depends(get_db)):
+    """Batch-register labels at print time.
+
+    Body JSON: { "labels": [{"text": "Milk", "item_id": "uuid-or-null"}, ...] }
+    Creates BarcodeCache for all; creates BarcodeMapping only when item_id is set.
     """
     body = await request.json()
-    text = body.get("text", "").strip()
-    item_id = body.get("item_id")
+    labels = body.get("labels", [])
 
-    if not text:
-        return JSONResponse({"error": "text is required"}, status_code=400)
+    if not labels:
+        return JSONResponse({"error": "labels array is required"}, status_code=400)
 
-    barcode = f"GENERIC:{text}"
+    registered = 0
+    mapped = 0
 
-    # Ensure barcode_cache entry exists
-    existing_cache = db.get(BarcodeCache, barcode)
-    if not existing_cache:
-        cache_entry = BarcodeCache(
-            barcode=barcode,
-            source="generic",
-            title=text,
-            found=True,
-            lookup_attempted_at=utcnow(),
-        )
-        db.add(cache_entry)
-        db.flush()
+    for entry in labels:
+        text = entry.get("text", "").strip()
+        item_id = entry.get("item_id")
+        if not text:
+            continue
 
-    # If item_id provided, directly create/update mapping
-    if item_id:
-        item = db.get(Item, item_id)
-        if not item:
-            return JSONResponse({"error": "item not found"}, status_code=404)
+        barcode = f"GENERIC:{text}"
 
-        existing_mapping = db.get(BarcodeMapping, barcode)
-        if existing_mapping:
-            existing_mapping.item_id = item_id
-            existing_mapping.mapped_by = "manual"
-        else:
-            db.add(BarcodeMapping(
+        # Upsert barcode_cache
+        existing_cache = db.get(BarcodeCache, barcode)
+        if not existing_cache:
+            db.add(BarcodeCache(
                 barcode=barcode,
-                item_id=item_id,
-                mapped_by="manual",
+                source="generic",
+                title=text,
+                found=True,
+                lookup_attempted_at=utcnow(),
             ))
-        db.commit()
-        return {"status": "mapped", "item_name": item.name, "item_id": item.id}
+            registered += 1
 
-    # No item_id — run fuzzy matching and return top candidates
-    candidates = fuzzy_match(text, None, db)
-    top = [c for c in candidates[:5] if c["score"] >= 60]
+        # Create mapping only if item_id provided and valid
+        if item_id:
+            item = db.get(Item, item_id)
+            if item:
+                existing_mapping = db.get(BarcodeMapping, barcode)
+                if existing_mapping:
+                    existing_mapping.item_id = item_id
+                    existing_mapping.mapped_by = "manual"
+                else:
+                    db.add(BarcodeMapping(
+                        barcode=barcode,
+                        item_id=item_id,
+                        mapped_by="manual",
+                    ))
+                mapped += 1
 
-    if top:
-        return {
-            "status": "candidates",
-            "candidates": [{"id": c["item_id"], "name": c["item_name"], "score": c["score"]} for c in top],
-        }
-
-    # No match — just confirm the cache entry exists (it does from above)
     db.commit()
-    return {"status": "no_match", "message": f"No matching item. '{text}' will be added as a note when scanned."}
+    return {"registered": registered, "mapped": mapped, "total": len(labels)}
