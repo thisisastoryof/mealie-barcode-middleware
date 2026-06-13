@@ -148,4 +148,8 @@
             }
         });
     }
+
+    // ─── Token created: auto-open modal via hidden trigger ───────────────────
+    var tokenTrigger = document.getElementById('token-modal-trigger');
+    if (tokenTrigger) tokenTrigger.click();
 })();

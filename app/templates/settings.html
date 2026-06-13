@@ -615,13 +615,4 @@
 
 {% block scripts %}
 <script src="/static/js/settings-page.js?v={{ v }}"></script>
-{% if new_token %}
-<script>
-// Auto-open the token modal on page load (hidden trigger pattern for Tabler)
-document.addEventListener('DOMContentLoaded', function() {
-    var trigger = document.getElementById('token-modal-trigger');
-    if (trigger) trigger.click();
-});
-</script>
-{% endif %}
 {% endblock %}
