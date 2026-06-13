@@ -13,10 +13,10 @@ When a barcode is scanned — whether from the ESP32 hardware scanner, a phone a
 └─────────────┘     └──────────────────┘     └────────┬─────────┘
                                                       │
 ┌─────────────┐     ┌──────────────────┐              │
-│  Phone app  │────►│  HTTP POST       │──────────────┘
-│  scans      │     │  /scan or        │
-│  barcode    │     │  /scan/app       │
-└─────────────┘     └──────────────────┘
+│  Phone app  │────►│  HTTP POST       │──────────────┤
+│  scans      │     │  /scan or        │              │
+│  barcode    │     │  /scan/app       │              │
+└─────────────┘     └──────────────────┘              │
                                                       │
                     ┌─────────────────────────────────┘
                     ▼
