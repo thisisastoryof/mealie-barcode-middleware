@@ -75,7 +75,16 @@
     document.querySelectorAll('[data-copy-target]').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var target = document.getElementById(btn.dataset.copyTarget);
-            if (target) navigator.clipboard.writeText(target.value);
+            if (target) {
+                navigator.clipboard.writeText(target.value.trim()).then(function() {
+                    // Brief visual feedback
+                    var icon = btn.querySelector('.ti');
+                    if (icon) {
+                        icon.className = 'ti ti-check icon';
+                        setTimeout(function() { icon.className = 'ti ti-copy icon'; }, 1500);
+                    }
+                });
+            }
         });
     });
 })();

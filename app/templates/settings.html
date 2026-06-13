@@ -374,14 +374,17 @@
                 {% endif %}
 
                 {% if new_token %}
-                <div class="alert alert-success alert-dismissible mt-3 mb-0">
+                <div class="alert alert-success mt-3 mb-0">
                     <h4 class="alert-title">Token created: {{ new_token_name }}</h4>
                     <p>Copy this token now — it will <strong>not</strong> be shown again:</p>
-                    <div class="input-group input-group-narrow">
-                        <input type="text" class="form-control font-monospace" value="{{ new_token }}" id="new-token-value" readonly>
-                        <button class="btn btn-outline-secondary" type="button" data-copy-target="new-token-value">
-                            <i class="ti ti-copy icon"></i> Copy
+                    <div class="input-group">
+                        <input type="text" class="form-control font-monospace text-truncate" value="{{ new_token }}" id="new-token-value" readonly style="min-width: 0;">
+                        <button class="btn btn-outline-secondary flex-shrink-0" type="button" data-copy-target="new-token-value">
+                            <i class="ti ti-copy icon"></i><span class="d-none d-sm-inline ms-1">Copy</span>
                         </button>
+                    </div>
+                    <div class="mt-2 small text-secondary">
+                        <i class="ti ti-info-circle"></i> For mobile apps (BinaryEye): paste this as the <strong>Scanner ID</strong>.
                     </div>
                 </div>
                 {% endif %}
@@ -389,12 +392,12 @@
                 <h3 class="card-title mt-4">Create Token</h3>
                 <form method="post" action="/settings/tokens/create">
                     <div class="row g-2 align-items-end">
-                        <div class="col-auto">
+                        <div class="col-12 col-sm-auto flex-grow-1">
                             <label class="form-label" for="token-name">Token name</label>
-                            <input type="text" name="name" id="token-name" class="form-control" placeholder="e.g. Kitchen scanner" required>
+                            <input type="text" name="name" id="token-name" class="form-control" placeholder="e.g. Kitchen scanner, Phone – BinaryEye" required>
                         </div>
-                        <div class="col-auto">
-                            <button type="submit" class="btn btn-primary">
+                        <div class="col-12 col-sm-auto">
+                            <button type="submit" class="btn btn-primary w-100 w-sm-auto">
                                 <i class="ti ti-plus icon"></i> Create
                             </button>
                         </div>
