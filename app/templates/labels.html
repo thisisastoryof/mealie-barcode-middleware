@@ -11,97 +11,97 @@
     </div>
 </div>
 
-<div class="row row-deck row-cards d-print-none">
-        <!-- Add Label Section -->
-        <div class="col-lg-5">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Add Labels</h3>
-                </div>
-                <div class="card-body">
-                    <!-- Item search autocomplete -->
-                    <div class="mb-3">
-                        <label class="form-label">Search existing items</label>
-                        <div class="position-relative">
-                            <input type="text" class="form-control" id="label-item-search" placeholder="Type to search items..." autocomplete="off">
-                            <div class="dropdown-menu w-100" id="label-search-results"></div>
-                        </div>
-                    </div>
-                    <div class="hr-text">or</div>
-                    <!-- Free text entry -->
-                    <div class="mb-3">
-                        <label class="form-label">Custom label text</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="label-free-text" placeholder="e.g. Milk, Rice, Flour...">
-                            <button class="btn btn-primary" id="label-add-free" type="button">
-                                <i class="ti ti-plus icon"></i>
-                            </button>
-                        </div>
-                        <small class="form-hint">Creates a GENERIC:&lt;text&gt; barcode</small>
-                    </div>
-                </div>
+<div class="row row-cards d-print-none">
+    <!-- Add Label Section -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Add Labels</h3>
             </div>
-
-            <!-- Print Settings -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h3 class="card-title">Print Settings</h3>
+            <div class="card-body">
+                <!-- Item search autocomplete -->
+                <div class="mb-3">
+                    <label class="form-label">Search existing items</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control" id="label-item-search" placeholder="Type to search items..." autocomplete="off">
+                        <div class="dropdown-menu w-100" id="label-search-results"></div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Label size</label>
-                            <select class="form-select" id="label-size">
-                                <option value="small">Small (25mm)</option>
-                                <option value="medium" selected>Medium (35mm)</option>
-                                <option value="large">Large (50mm)</option>
-                            </select>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Columns</label>
-                            <select class="form-select" id="label-columns">
-                                <option value="3">3 columns</option>
-                                <option value="4" selected>4 columns</option>
-                                <option value="5">5 columns</option>
-                                <option value="6">6 columns</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="label-show-text" checked>
-                            <span class="form-check-label">Show text below QR code</span>
-                        </label>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-primary" id="label-print" disabled>
-                            <i class="ti ti-printer icon"></i> Print Labels
-                        </button>
-                        <button class="btn btn-outline-danger" id="label-clear" disabled>
-                            <i class="ti ti-trash icon"></i> Clear All
+                <div class="hr-text">or</div>
+                <!-- Free text entry -->
+                <div class="mb-3">
+                    <label class="form-label">Custom label text</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="label-free-text" placeholder="e.g. Milk, Rice, Flour...">
+                        <button class="btn btn-primary" id="label-add-free" type="button">
+                            <i class="ti ti-plus icon"></i>
                         </button>
                     </div>
+                    <small class="form-hint">Creates a GENERIC:&lt;text&gt; barcode</small>
                 </div>
             </div>
         </div>
 
-        <!-- Label Queue -->
-        <div class="col-lg-7">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Label Queue</h3>
-                    <span class="card-title ms-2 text-secondary" id="label-count">(0 labels)</span>
-                </div>
-                <div class="card-body">
-                    <div id="label-queue-empty" class="text-center text-secondary py-4">
-                        <i class="ti ti-qrcode icon icon-lg mb-2 opacity-50"></i>
-                        <p>No labels in queue. Search for items or type custom text to add labels.</p>
+        <!-- Print Settings -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Print Settings</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Label size</label>
+                        <select class="form-select" id="label-size">
+                            <option value="small">Small (25mm)</option>
+                            <option value="medium" selected>Medium (35mm)</option>
+                            <option value="large">Large (50mm)</option>
+                        </select>
                     </div>
-                    <div id="label-queue" class="row g-2"></div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Columns</label>
+                        <select class="form-select" id="label-columns">
+                            <option value="3">3 columns</option>
+                            <option value="4" selected>4 columns</option>
+                            <option value="5">5 columns</option>
+                            <option value="6">6 columns</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="label-show-text" checked>
+                        <span class="form-check-label">Show text below QR code</span>
+                    </label>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" id="label-print" disabled>
+                        <i class="ti ti-printer icon"></i> Print Labels
+                    </button>
+                    <button class="btn btn-outline-danger" id="label-clear" disabled>
+                        <i class="ti ti-trash icon"></i> Clear All
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Label Queue -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Label Queue</h3>
+                <span class="card-title ms-2 text-secondary" id="label-count">(0 labels)</span>
+            </div>
+            <div class="card-body">
+                <div id="label-queue-empty" class="text-center text-secondary py-4">
+                    <i class="ti ti-qrcode icon icon-lg mb-2 opacity-50"></i>
+                    <p>No labels in queue. Search for items or type custom text to add labels.</p>
+                </div>
+                <div id="label-queue" class="row g-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Print area (hidden on screen, visible in print) -->
 <div id="print-area" class="d-none d-print-block">
