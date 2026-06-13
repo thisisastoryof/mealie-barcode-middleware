@@ -19,3 +19,28 @@
     font-size: 0.8rem;
     word-break: break-all;
 }
+/* Markdown doc tables — Tabler styling */
+.markdown table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.markdown table th,
+.markdown table td {
+    padding: 0.5rem 0.75rem;
+    border: var(--tblr-border-width) solid var(--tblr-border-color);
+    vertical-align: middle;
+}
+.markdown table thead th {
+    background: var(--tblr-bg-surface-secondary);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--tblr-secondary);
+}
+.markdown table tbody tr:hover {
+    background: var(--tblr-bg-surface-secondary);
+}
+.markdown .table-responsive {
+    overflow-x: auto;
+}

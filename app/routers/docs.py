@@ -19,50 +19,67 @@ DOCS_CATALOG = [
         "title": "Middleware Setup",
         "description": "Install, configure, and run the barcode middleware.",
         "icon": "ti-server",
+        "group": "Getting Started",
     },
     {
         "slug": "barcode-workflow",
         "title": "How Barcode Scanning Works",
         "description": "End-to-end flow from scan to shopping list.",
         "icon": "ti-arrows-right-left",
+        "group": "Getting Started",
     },
     {
         "slug": "web-dashboard",
         "title": "Web Dashboard",
         "description": "Navigate the UI: barcodes, items, settings, and activity.",
         "icon": "ti-browser",
+        "group": "Getting Started",
     },
     {
         "slug": "hardware-build",
         "title": "Hardware Build Guide",
         "description": "Assemble the ESP32 + GM67 barcode scanner.",
         "icon": "ti-cpu",
+        "group": "Hardware Scanner",
     },
     {
         "slug": "esphome-firmware",
         "title": "ESPHome Firmware",
         "description": "Flash and configure the ESP32 firmware via ESPHome.",
         "icon": "ti-bolt",
+        "group": "Hardware Scanner",
     },
     {
         "slug": "scanner-configuration",
         "title": "Scanner Configuration (GM67)",
         "description": "Program the GM67 module with setup barcodes.",
         "icon": "ti-qrcode",
+        "group": "Hardware Scanner",
     },
     {
         "slug": "mobile-apps",
         "title": "Mobile App Scanning",
         "description": "Use BinaryEye (Android) or iOS Shortcuts as scanners.",
         "icon": "ti-device-mobile",
+        "group": "Phone Scanning",
     },
     {
         "slug": "troubleshooting",
         "title": "Troubleshooting",
         "description": "Common issues, diagnostics, and fixes.",
         "icon": "ti-lifebuoy",
+        "group": "Reference",
     },
 ]
+
+# Build grouped structure for the index template
+_DOCS_GROUP_ORDER = ["Getting Started", "Hardware Scanner", "Phone Scanning", "Reference"]
+
+def _build_docs_groups():
+    groups = {g: [] for g in _DOCS_GROUP_ORDER}
+    for doc in DOCS_CATALOG:
+        groups[doc["group"]].append(doc)
+    return [(g, groups[g]) for g in _DOCS_GROUP_ORDER if groups[g]]
 
 _slug_to_meta = {d["slug"]: d for d in DOCS_CATALOG}
 
@@ -72,7 +89,7 @@ _md = mistune.create_markdown(escape=False, plugins=["table"])
 @router.get("/docs", response_class=HTMLResponse)
 def docs_index(request: Request):
     return templates.TemplateResponse(request, "docs.html", {
-        "docs": DOCS_CATALOG,
+        "doc_groups": _build_docs_groups(),
     })
 
 
