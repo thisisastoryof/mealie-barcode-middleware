@@ -1,7 +1,7 @@
 """Login, logout, and first-run setup routes."""
 from urllib.parse import unquote
 import bcrypt
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
