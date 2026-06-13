@@ -44,6 +44,14 @@ def login_submit(
     next: str = Form(""),
     db: Session = Depends(get_db),
 ):
+    # Reject oversized passwords early (bcrypt truncates at 72 bytes anyway)
+    if len(password) > _MAX_PASSWORD_LENGTH:
+        return templates.TemplateResponse(
+            request, "login.html",
+            {"error": "Invalid username or password", "next": next},
+            status_code=401,
+        )
+
     user = db.query(User).filter(User.username == username).first()
     if not user:
         # Constant-time: run bcrypt even on unknown usernames to prevent timing enumeration
