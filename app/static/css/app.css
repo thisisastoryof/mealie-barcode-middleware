@@ -174,7 +174,6 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, var(--label-size, 35mm));
         gap: var(--label-gap, 4mm);
-        padding: var(--label-margin, 5mm);
         justify-content: center;
     }
     .label-cell {

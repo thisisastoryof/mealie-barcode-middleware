@@ -295,7 +295,6 @@
         // Set CSS variables for print
         printGrid.style.setProperty("--label-size", sizeMm);
         printGrid.style.setProperty("--label-gap", gapMm);
-        printGrid.style.setProperty("--label-margin", marginMm);
         printGrid.style.setProperty("--label-font-size", fontSize);
 
         // Cap image height for consistent QR sizing in print
@@ -311,17 +310,18 @@
             printGrid.style.removeProperty("--label-img-max");
         }
 
-        // Inject @page rule for page format
+        // Inject @page rule for page format and margin
         let pageStyle = document.getElementById("label-page-style");
         if (!pageStyle) {
             pageStyle = document.createElement("style");
             pageStyle.id = "label-page-style";
             document.head.appendChild(pageStyle);
         }
+        const pageMargin = marginRange.value + "mm";
         if (pageFormat === "auto") {
-            pageStyle.textContent = "";
+            pageStyle.textContent = `@page { margin: ${pageMargin}; }`;
         } else {
-            pageStyle.textContent = `@page { size: ${pageFormat}; }`;
+            pageStyle.textContent = `@page { size: ${pageFormat}; margin: ${pageMargin}; }`;
         }
 
         // Build grid cells — repeat per qty
