@@ -10,9 +10,9 @@ This guide covers two options: **BinaryEye** (Android) and **iOS Shortcuts** (iP
 
 The middleware exposes two scan endpoints:
 
-| Endpoint        | Auth Method                  | Used By                                        |
-| --------------- | ---------------------------- | ---------------------------------------------- |
-| `POST /scan`    | `Authorization: Bearer` header | ESP32 scanner, curl, iOS Shortcuts, scripts    |
+| Endpoint         | Auth Method                    | Used By                                         |
+| ---------------- | ------------------------------ | ----------------------------------------------- |
+| `POST /scan`     | `Authorization: Bearer` header | ESP32 scanner, curl, iOS Shortcuts, scripts     |
 | `POST /scan/app` | Token in `deviceId` JSON field | Android apps (BinaryEye) that can't set headers |
 
 Both endpoints use the **same tokens** from the Settings page. The only difference is where the token travels — in a header or in the request body. The scan pipeline (lookup, fuzzy matching, shopping list) is identical.
@@ -37,17 +37,18 @@ Both endpoints use the **same tokens** from the Settings page. The only differen
 
 Open BinaryEye → ⚙️ Settings → scroll to **Send scan to URL**:
 
-| Setting         | Value                                                      |
-| --------------- | ---------------------------------------------------------- |
-| **URL**         | `http://your-middleware-ip:9930/scan/app`                  |
-| **Content type** | `application/json` (POST JSON)                            |
-| **Scanner ID**  | Paste the raw API token you copied above                   |
+| Setting          | Value                                     |
+| ---------------- | ----------------------------------------- |
+| **URL**          | `http://your-middleware-ip:9930/scan/app` |
+| **Content type** | `application/json` (POST JSON)            |
+| **Scanner ID**   | Paste the raw API token you copied above  |
 
 > ⚠️ **Important:** The Scanner ID field is your authentication secret. Don't share it. If compromised, revoke the token in Settings and create a new one.
 
 #### 3. Enable Forwarding
 
 Still in BinaryEye Settings:
+
 - Toggle **Send scan automatically** ON
 
 That's it. Every barcode you scan will be sent to the middleware and processed exactly like an ESP32 scan.
@@ -79,13 +80,13 @@ The middleware uses `content` as the barcode and `deviceId` for authentication. 
 
 ### Troubleshooting
 
-| Problem                            | Fix                                                                  |
-| ---------------------------------- | -------------------------------------------------------------------- |
-| 401 Unauthorized                   | Check your Scanner ID matches a valid token exactly (no extra spaces) |
-| 422 Unprocessable Entity           | The `content` field is empty — BinaryEye scanned something odd       |
-| Connection refused                 | Check the URL (port, IP). Is the middleware running? (`/health`)     |
-| Nothing happens after scan         | Is "Send scan automatically" enabled? Check the Content type is JSON |
-| Works on WiFi, not on mobile data | Expected — the middleware is on your local network                   |
+| Problem                           | Fix                                                                   |
+| --------------------------------- | --------------------------------------------------------------------- |
+| 401 Unauthorized                  | Check your Scanner ID matches a valid token exactly (no extra spaces) |
+| 422 Unprocessable Entity          | The `content` field is empty — BinaryEye scanned something odd        |
+| Connection refused                | Check the URL (port, IP). Is the middleware running? (`/health`)      |
+| Nothing happens after scan        | Is "Send scan automatically" enabled? Check the Content type is JSON  |
+| Works on WiFi, not on mobile data | Expected — the middleware is on your local network                    |
 
 ### Tips
 
@@ -110,9 +111,11 @@ Same as above: middleware web UI → Settings → Tokens → create one named "i
 Open the **Shortcuts** app and create a new shortcut:
 
 **Step 1 — Scan:**
+
 1. Add action: **Scan QR/Barcode**
 
 **Step 2 — Send to middleware:**
+
 1. Add action: **Get Contents of URL**
 2. URL: `http://your-middleware-ip:9930/scan`
 3. Method: **POST**
@@ -123,6 +126,7 @@ Open the **Shortcuts** app and create a new shortcut:
    - Add field: Key = `barcode`, Value = **QR/Barcode Result** (the variable from Step 1)
 
 **Step 3 — Show result (optional):**
+
 1. Add action: **Get Dictionary Value**
    - Get value for key `item` in **Contents of URL**
 2. Add action: **Show Notification**
@@ -164,27 +168,27 @@ Tap the shortcut name → **Add to Home Screen**. Now you have a one-tap barcode
 
 ### Troubleshooting
 
-| Problem                     | Fix                                                              |
-| --------------------------- | ---------------------------------------------------------------- |
-| "Could not connect"         | Check URL, port, and that phone is on the same network           |
-| 401 Unauthorized            | Check `Bearer ` prefix (with space) and that the token is valid |
-| Camera doesn't open         | Shortcuts needs camera permission — check iOS Settings           |
-| Nothing happens             | Make sure the Shortcut actions are in the right order            |
+| Problem             | Fix                                                             |
+| ------------------- | --------------------------------------------------------------- |
+| "Could not connect" | Check URL, port, and that phone is on the same network          |
+| 401 Unauthorized    | Check `Bearer ` prefix (with space) and that the token is valid |
+| Camera doesn't open | Shortcuts needs camera permission — check iOS Settings          |
+| Nothing happens     | Make sure the Shortcut actions are in the right order           |
 
 ---
 
 ## Comparison
 
-| Feature                  | ESP32 DIY Scanner | BinaryEye (Android) | iOS Shortcuts     |
-| ------------------------ | ----------------- | ------------------- | ----------------- |
-| Dedicated device         | ✅                 | ❌ (it's your phone) | ❌ (it's your phone) |
-| Always-on, grab & scan   | ✅                 | Need to open app    | Need to tap shortcut |
-| OLED feedback            | ✅                 | In-app response     | Notification      |
-| Works without phone      | ✅                 | ❌                   | ❌                 |
-| Zero hardware cost       | ❌ (~€15 parts)    | ✅                   | ✅                 |
-| Bulk rapid scanning      | ✅                 | ✅ (bulk mode)       | One at a time     |
-| Auth method              | Bearer header     | Pre-shared key      | Bearer header     |
-| Setup difficulty         | Medium (solder)   | Easy (5 min)        | Easy (10 min)     |
+| Feature                | ESP32 DIY Scanner | BinaryEye (Android)  | iOS Shortcuts        |
+| ---------------------- | ----------------- | -------------------- | -------------------- |
+| Dedicated device       | ✅                | ❌ (it's your phone) | ❌ (it's your phone) |
+| Always-on, grab & scan | ✅                | Need to open app     | Need to tap shortcut |
+| OLED feedback          | ✅                | In-app response      | Notification         |
+| Works without phone    | ✅                | ❌                   | ❌                   |
+| Zero hardware cost     | ❌ (~€15 parts)   | ✅                   | ✅                   |
+| Bulk rapid scanning    | ✅                | ✅ (bulk mode)       | One at a time        |
+| Auth method            | Bearer header     | Pre-shared key       | Bearer header        |
+| Setup difficulty       | Medium (solder)   | Easy (5 min)         | Easy (10 min)        |
 
 **Recommended combo:** Build the ESP32 scanner for the kitchen (always ready, one-hand operation) and set up BinaryEye/iOS Shortcuts for scanning at the grocery store.
 

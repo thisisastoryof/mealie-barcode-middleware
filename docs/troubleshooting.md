@@ -149,6 +149,7 @@ esp32:
 **Cause:** The Scanner ID in BinaryEye doesn't match any valid token.
 
 **Fix:**
+
 1. Make sure you're using the **raw token** (the long string shown once when you created it), not the token name
 2. Check for leading/trailing spaces — copy-paste carefully
 3. Verify the token still exists: middleware web UI → Settings → Tokens tab
@@ -165,6 +166,7 @@ esp32:
 ### BinaryEye: Connection Refused / Timeout
 
 **Fix:**
+
 1. Is your phone on the same WiFi as the middleware? Mobile data won't reach a local IP.
 2. Check the URL: `http://your-ip:9930/scan/app` — note the port and path.
 3. Test from your phone's browser: open `http://your-ip:9930/health` — you should see a JSON response.
