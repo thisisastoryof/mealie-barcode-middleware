@@ -220,3 +220,63 @@ Many cheap ESP32 devkit boards (especially the 30-pin Dx-labeled ones from AliEx
 - Mount the **button** where it's accessible from outside the enclosure
 - Keep the ESP32's **USB port accessible** for power input and emergency re-flash
 - Consider adding **ventilation holes** to the enclosure — the ESP32 generates heat under sustained WiFi use
+
+---
+
+## 3D-Printed Case
+
+A purpose-built enclosure designed to mount under a kitchen cupboard. The scanner faces straight down — hold a product underneath and press the button.
+
+**Dimensions:** 100 × 36 × 52 mm (100 × 56 mm with mounting ears)
+
+### Printed Parts
+
+Three parts, no multi-material needed:
+
+| Part            | Supports                             | Print orientation               |
+| --------------- | ------------------------------------ | ------------------------------- |
+| Outer case      | Yes — display cutout and USB opening | Upside-down (opening facing up) |
+| Inset (chassis) | None                                 | As-is                           |
+| Button cap      | None                                 | As-is                           |
+
+**Print settings:** PLA or PETG (PETG recommended for kitchen heat), 0.2 mm layer height, 15–20% infill, standard slicer defaults.
+
+> **STL files** are available on [MakerWorld](https://makerworld.com/models/2933189-esp32-barcode-scanner-case-under-cabinet-mount) and [Printables](https://www.printables.com/model/1754381-esp32-barcode-scanner-case-under-cabinet-mount).
+
+### Additional Hardware
+
+| Qty | Part                                | Purpose                                            |
+| --- | ----------------------------------- | -------------------------------------------------- |
+| 8×  | M1.7 × 5 mm screws                  | Scanner (4×), display (2×), ESP32 perfboard (2×)   |
+| 4×  | 3.5 × 18 mm countersunk wood screws | Mounting to cupboard                               |
+| 1×  | Small perfboard 27.5 × 17 mm        | Button carrier (cut from 11 × 7 grid, file to fit) |
+
+**Tools:** PH0 + PH2 screwdrivers, perfboard saw or Dremel, file or sandpaper, safety goggles.
+
+### Before Assembly
+
+All soldering and wiring must be completed first — see the sections above. The scanner module's cable has a plug connector (no soldering needed on that end), but the corresponding wire on the ESP32 perfboard must be soldered in.
+
+Keep cable lengths compact. The case interior is tight — cables that are too long won't fold into the routing gaps. Estimate distances from the wiring diagram and the case dimensions.
+
+Seat the ESP32 DevKit onto the perfboard's female pin headers before inserting the board into the case.
+
+> **All M1.7 screws:** Tighten with caution — these screw into plastic and are easy to overtighten. They don't need to hold much force.
+
+### Assembly Order
+
+The compact design requires this specific sequence. Some components lock against each other and the outer case, so order matters.
+
+**Step 1 — Scanner:** Slide the GM67 module into the inset from the top and secure with 4× M1.7 × 5 mm screws (hole spacing: 24.5 × 26.5 mm). Tolerances are tight — guide it in gently. Leave the plug cable disconnected for now.
+
+**Step 2 — ESP32 perfboard:** Slide the board (with ESP32 already seated) into the inset slots from the top. Secure with 2× M1.7 × 5 mm screws at the top (hole spacing: 55 mm). Connect the scanner's plug cable. Route cables around the left, right, or top sides of the scanner — there are gaps designed for this.
+
+**Step 3 — Display:** Slide the OLED in from the top of the inset. Tilt the top of the display slightly forward during insertion — once past the lip it sits straight. Secure with 2× M1.7 × 5 mm screws at the top (hole spacing: 24 mm).
+
+**Step 4 — Inset into case:** Lower the assembled inset into the outer case. The matching 45° bevels guide alignment. Do this _before_ the button — it must go in after.
+
+**Step 5 — Button cap:** Tilt the assembly 90° forward (open top faces you). The button cap drops in through the top — gravity helps seat it. The flat part rests on small ridges in the inset; the round part protrudes through the front. Check that it has free play and isn't jammed.
+
+**Step 6 — Button perfboard:** Cut a perfboard to exactly 27.5 × 17 mm (11 × 7 grid, 6 × 10 usable holes, file edges to fit). Solder the tactile switch. Slide the board into the slots from the top — friction holds it in place, no screws needed. The button cap should now sit flush and move freely.
+
+**Step 7 — USB and mounting:** Plug the USB cable into the ESP32 — the port is directly at the back opening. Mount the case under the cupboard with 4× 3.5 × 18 mm countersunk wood screws through the ears (hole spacing: 68 × 46 mm). Pre-drill pilot holes to avoid splitting.
