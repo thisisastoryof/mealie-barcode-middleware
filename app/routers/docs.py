@@ -19,7 +19,7 @@ DOCS_CATALOG = [
     {
         "slug": "middleware-setup",
         "title": "Middleware Setup",
-        "description": "Install, configure, and run the barcode middleware.",
+        "description": "Install, configure, and run the Mealie Barcode Middleware.",
         "icon": "ti-server",
         "group": "Getting Started",
     },
