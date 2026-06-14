@@ -160,9 +160,8 @@ Everything here is designed to run locally on your home network. If you find a b
 
 **GNU General Public License v3.0** — see [LICENSE](LICENSE).
 
-Required because the upstream project is GPL-3.0 licensed.
+This is a copyleft license: you're free to use, modify, and distribute this software, but any derivative work must also be released under GPL-3.0 with full source code.
 
 ```
-Copyright (C) 2025 Matt Fryer (original HA-Mealie-Barcode-Scanner)
 Copyright (C) 2026 Contributors (mealie-barcode-middleware)
 ```
