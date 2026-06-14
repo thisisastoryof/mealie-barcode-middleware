@@ -28,7 +28,8 @@ A self-hosted barcode scanning system that adds items to your [Mealie](https://m
 - **Web dashboard** — Tabler-based UI to manage barcodes, review mappings, and monitor the system
 - **Real-time notifications** — SSE-powered live toasts in the web UI, plus optional HA webhook push notifications to your phone (works for all scan sources)
 - **Mobile app support** — Scan from your phone with BinaryEye (Android) or iOS Shortcuts
-- **Token auth** — Bearer tokens for scanners with header support; pre-shared key auth for mobile apps\n- **User accounts** — Login-protected web UI with admin/user roles and configurable session duration
+- **Token auth** — Bearer tokens for scanners with header support; pre-shared key auth for mobile apps
+- **User accounts** — Login-protected web UI with admin/user roles and configurable session duration
 - **Offline-first** — No CDN dependencies; all CSS/JS vendored locally
 
 ## Quick Start
