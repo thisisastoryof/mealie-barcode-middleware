@@ -2,13 +2,13 @@
 
 Common issues and their solutions, organized by component.
 
-| What’s happening? | Jump to |
-|---|---|
-| ESP32 reboots, no scan data, hardware issues | [Hardware / ESP32](#hardware--esp32) |
-| Scans work but items don’t appear on shopping list | [Middleware](#middleware) |
-| Web UI blank, pages not loading, login issues | [Web UI](#web-ui) |
-| ESPHome compile or flash errors | [ESPHome](#esphome) |
-| Phone scanning not working | [Mobile Apps](#mobile-apps-binaryeye--ios) |
+| What’s happening?                                  | Jump to                                    |
+| -------------------------------------------------- | ------------------------------------------ |
+| ESP32 reboots, no scan data, hardware issues       | [Hardware / ESP32](#hardware--esp32)       |
+| Scans work but items don’t appear on shopping list | [Middleware](#middleware)                  |
+| Web UI blank, pages not loading, login issues      | [Web UI](#web-ui)                          |
+| ESPHome compile or flash errors                    | [ESPHome](#esphome)                        |
+| Phone scanning not working                         | [Mobile Apps](#mobile-apps-binaryeye--ios) |
 
 ---
 

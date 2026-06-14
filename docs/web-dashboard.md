@@ -159,15 +159,15 @@ Manage user accounts for the web dashboard:
 
 ### Roles & Permissions
 
-| Capability | Admin | User |
-|---|---|---|
-| View Dashboard, Barcodes, Items, Activity | ✓ | ✓ |
-| Link/unlink barcodes, create items | ✓ | ✓ |
-| Access Settings page | ✓ | ✗ |
-| Create/delete API tokens | ✓ | ✗ |
-| Manage users | ✓ | ✗ |
-| Backup/purge/reset database | ✓ | ✗ |
-| Change own password | ✓ | ✓ |
+| Capability                                | Admin | User |
+| ----------------------------------------- | ----- | ---- |
+| View Dashboard, Barcodes, Items, Activity | ✓     | ✓    |
+| Link/unlink barcodes, create items        | ✓     | ✓    |
+| Access Settings page                      | ✓     | ✗    |
+| Create/delete API tokens                  | ✓     | ✗    |
+| Manage users                              | ✓     | ✗    |
+| Backup/purge/reset database               | ✓     | ✗    |
+| Change own password                       | ✓     | ✓    |
 
 If an admin deletes a user or revokes their admin privileges, the change takes effect on the user’s next request — their active session is revalidated from the database.
 

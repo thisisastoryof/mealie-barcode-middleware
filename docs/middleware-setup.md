@@ -56,6 +56,11 @@ services:
       - ./middleware-data:/data
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
 ```
 
 ### 3. Start the Container
@@ -228,15 +233,15 @@ Status is `"degraded"` if Mealie is unreachable or the database is inaccessible.
 
 The middleware uses a single SQLite file at `/data/barcode.db` (configurable via `DB_PATH`). Tables are created automatically on first start.
 
-| Table              | Purpose                                       |
-| ------------------ | --------------------------------------------- |
-| `items`            | Mealie food items + manually created items    |
-| `barcode_cache`    | Cached lookup results from external APIs      |
-| `barcode_mappings` | Links between barcodes and items              |
-| `api_tokens`       | Scanner authentication tokens (bcrypt hashed) |
-| `retry_queue`      | Failed Mealie requests awaiting retry         |
-| `notifications`    | Activity log and actionable alerts            |
-| `users`            | Web UI user accounts (bcrypt hashed passwords)|
+| Table              | Purpose                                        |
+| ------------------ | ---------------------------------------------- |
+| `items`            | Mealie food items + manually created items     |
+| `barcode_cache`    | Cached lookup results from external APIs       |
+| `barcode_mappings` | Links between barcodes and items               |
+| `api_tokens`       | Scanner authentication tokens (bcrypt hashed)  |
+| `retry_queue`      | Failed Mealie requests awaiting retry          |
+| `notifications`    | Activity log and actionable alerts             |
+| `users`            | Web UI user accounts (bcrypt hashed passwords) |
 
 **Backup:** The database is a single file. Copy `middleware-data/barcode.db` to back up everything. You can also download a backup from the Settings → Database tab.
 

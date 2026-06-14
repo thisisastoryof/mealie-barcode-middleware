@@ -1,5 +1,5 @@
 services:
-  barcode-middleware:
+  mealie-barcode-middleware:
     build: .
     image: mealie-barcode-middleware:latest
     restart: unless-stopped
@@ -9,3 +9,8 @@ services:
       - ./middleware-data:/data
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
