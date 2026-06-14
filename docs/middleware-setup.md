@@ -152,14 +152,15 @@ If `LOOKUP_ENRICH_IN_BACKGROUND=false`, the secondary call is made synchronously
 
 ### System
 
-| Variable              | Default            | Description                                                      |
-| --------------------- | ------------------ | ---------------------------------------------------------------- |
-| `MIDDLEWARE_BASE_URL` | (empty)            | Full URL for deep links in notifications (e.g. `http://ip:9930`) |
-| `HA_WEBHOOK_URL`      | (empty)            | HA webhook URL for push notifications (see below)                |
-| `TIMEZONE`            | `Europe/Berlin`    | IANA timezone for UI timestamps                                  |
-| `DB_PATH`             | `/data/barcode.db` | SQLite database file path                                        |
-| `PORT`                | `8000`             | HTTP listen port (inside container)                              |
-| `LOG_LEVEL`           | `INFO`             | Python log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`)           |
+| Variable               | Default            | Description                                                      |
+| ---------------------- | ------------------ | ---------------------------------------------------------------- |
+| `MIDDLEWARE_BASE_URL`  | (empty)            | Full URL for deep links in notifications (e.g. `http://ip:9930`) |
+| `HA_WEBHOOK_URL`       | (empty)            | HA webhook URL for push notifications (see below)                |
+| `TIMEZONE`             | `Europe/Berlin`    | IANA timezone for UI timestamps                                  |
+| `SESSION_MAX_AGE_DAYS` | `7`                | How long “Stay signed in” sessions last (days)                   |
+| `DB_PATH`              | `/data/barcode.db` | SQLite database file path                                        |
+| `PORT`                 | `8000`             | HTTP listen port (inside container)                              |
+| `LOG_LEVEL`            | `INFO`             | Python log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`)           |
 
 ### Home Assistant Push Notifications (Optional)
 
@@ -257,7 +258,7 @@ The item sync also runs on startup if no items exist in the database.
 ## Security Notes
 
 - **Scanner → middleware:** Authenticated via Bearer token over HTTP. Use HTTPS if the scanner is on an untrusted network.
-- **Web UI:** No authentication — designed for private home networks. Do **not** expose the web UI to the internet.
+- **Web UI:** Protected by username/password login. On first run, you’ll be prompted to create an admin account. The “Stay signed in” checkbox controls whether the session persists across browser restarts (duration set by `SESSION_MAX_AGE_DAYS`). Without it, the session cookie expires when the browser closes.
 - **CSRF protection:** All state-changing web UI requests are protected via Origin/Referer validation. The `/scan` endpoint is exempt (uses token auth instead).
 - **Content Security Policy:** Strict CSP headers are set on all responses.
 - **Mealie API key:** Stored as an environment variable, never exposed in the UI.

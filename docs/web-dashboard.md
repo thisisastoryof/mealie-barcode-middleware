@@ -2,7 +2,7 @@
 
 The middleware includes a full web UI built with [Tabler](https://tabler.io/) (vendored locally — no CDN calls). All pages are server-rendered with Jinja2 templates and enhanced with JavaScript for live updates.
 
-The web UI has **no authentication** — it's designed for private home networks. Do not expose it to the internet.
+The web UI is protected by username/password login. On first run, you'll be prompted to create an admin account. Check **"Stay signed in"** on the login page to keep your session across browser restarts (duration controlled by `SESSION_MAX_AGE_DAYS`, default 7 days).
 
 ---
 
@@ -131,6 +131,20 @@ Manage API tokens for scanner authentication:
 
 - **Create:** Enter a name, click Create. The raw token is shown **once** — copy it immediately. It's stored as a bcrypt hash and cannot be recovered.
 - **Delete:** Revoke a token. The scanner using it will immediately stop being able to submit scans.
+
+### Users Tab _(admin only)_
+
+Manage user accounts for the web dashboard:
+
+- **Add user:** Set username, password, and admin flag.
+- **Change password:** Inline password field per user row.
+- **Delete:** Remove a user. Admins cannot delete themselves.
+
+Non-admin users can see all pages except Settings. Only admins can access Settings, manage users, create/delete tokens, or modify configuration.
+
+### Database Tab _(admin only)_
+
+Backup, purge individual tables, or factory-reset the application data.
 
 ---
 
