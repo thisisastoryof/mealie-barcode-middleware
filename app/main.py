@@ -83,7 +83,7 @@ app = FastAPI(title="Mealie Barcode Middleware", lifespan=lifespan, docs_url="/a
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CSRFOriginMiddleware)
 app.add_middleware(LoginRequiredMiddleware)
-app.add_middleware(SessionMiddleware, secret_key=get_session_secret(), max_age=7 * 24 * 3600)
+app.add_middleware(SessionMiddleware, secret_key=get_session_secret(), max_age=settings.session_max_age_days * 24 * 3600)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")

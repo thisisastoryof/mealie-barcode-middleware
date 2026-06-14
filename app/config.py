@@ -32,6 +32,7 @@ class Settings(BaseSettings):
 
     db_path: str = "/data/barcode.db"
     timezone: str = "Europe/Berlin"
+    session_max_age_days: int = 7
     port: int = 8000
     log_level: str = "INFO"
 
@@ -222,6 +223,13 @@ READONLY_SETTINGS: dict[str, dict[str, Any]] = {
     "db_path": {
         "label": "DB_PATH",
         "description": "Database path",
+        "group": "System",
+        "section": "Infrastructure",
+    },
+    "session_max_age_days": {
+        "label": "SESSION_MAX_AGE_DAYS",
+        "description": "Login session duration (days)",
+        "help": "How long users stay logged in when \u201cRemember me\u201d is checked. Without it, the session expires when the browser closes.",
         "group": "System",
         "section": "Infrastructure",
     },

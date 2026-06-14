@@ -40,7 +40,6 @@ def login_submit(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
-    remember: str = Form(""),
     next: str = Form(""),
     db: Session = Depends(get_db),
 ):
@@ -73,10 +72,6 @@ def login_submit(
     request.session["user_id"] = user.id
     request.session["username"] = user.username
     request.session["is_admin"] = user.is_admin
-
-    # "Remember me" sets a longer max_age via cookie config
-    if remember:
-        request.session["remember"] = True
 
     # Redirect to the original page or home — block protocol-relative URLs (//evil.com)
     redirect_to = unquote(next) if next and next.startswith("/") and not next.startswith("//") else "/"
