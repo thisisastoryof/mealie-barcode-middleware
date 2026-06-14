@@ -57,7 +57,13 @@ services:
     env_file:
       - .env
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
       interval: 30s
       timeout: 5s
       start_period: 15s
@@ -84,7 +90,7 @@ docker compose up -d --build
 
 ```bash
 # Clone the repo
-git clone https://github.com/gunrunner20/mealie-barcode-middleware.git
+git clone https://github.com/thisisastoryof/mealie-barcode-middleware.git
 cd mealie-barcode-middleware
 
 # Create virtual environment
