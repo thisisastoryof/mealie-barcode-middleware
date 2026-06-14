@@ -4,11 +4,10 @@ from pathlib import Path
 
 from fastapi.applications import FastAPI
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 from app.database import init_db
-from app.middleware import CSRFOriginMiddleware, LoginRequiredMiddleware, SecurityHeadersMiddleware, get_session_secret
+from app.middleware import CSRFOriginMiddleware, LoginRequiredMiddleware, RememberMeSessionMiddleware, SecurityHeadersMiddleware, get_session_secret
 from app.routers import barcodes, dashboard, docs, items, health, labels, login, notifications, scan, settings as settings_router
 from app.services.scheduler import start_scheduler, stop_scheduler
 
@@ -83,7 +82,7 @@ app = FastAPI(title="Mealie Barcode Middleware", lifespan=lifespan, docs_url="/a
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CSRFOriginMiddleware)
 app.add_middleware(LoginRequiredMiddleware)
-app.add_middleware(SessionMiddleware, secret_key=get_session_secret(), max_age=settings.session_max_age_days * 24 * 3600)
+app.add_middleware(RememberMeSessionMiddleware, secret_key=get_session_secret(), max_age=settings.session_max_age_days * 24 * 3600)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")

@@ -1,12 +1,18 @@
 """Security middleware — headers, CSRF origin check, and session auth."""
 
+import json
 import logging
 import secrets
+from base64 import b64decode, b64encode
 from urllib.parse import quote, urlparse
 
+from itsdangerous.exc import BadSignature
+from starlette.datastructures import MutableHeaders
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
+from starlette.middleware.sessions import Session, SessionMiddleware
+from starlette.requests import HTTPConnection, Request
 from starlette.responses import RedirectResponse, Response
+from starlette.types import Message, Receive, Scope, Send
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +93,75 @@ class CSRFOriginMiddleware(BaseHTTPMiddleware):
         # Missing headers typically means non-browser client or privacy stripping.
         logger.warning(f"CSRF blocked: no origin/referer on {request.method} {path}")
         return Response("Forbidden — missing origin", status_code=403)
+
+
+# ── Remember-me session middleware ──────────────────────────────────
+
+
+class RememberMeSessionMiddleware(SessionMiddleware):
+    """SessionMiddleware with per-session cookie persistence.
+
+    Without '_remember' in session: session cookie (dies on browser close).
+    With '_remember' in session: persistent cookie (Max-Age from constructor).
+    Signature validation always uses the configured max_age for security.
+    """
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] not in ("http", "websocket"):
+            await self.app(scope, receive, send)
+            return
+
+        connection = HTTPConnection(scope)
+        initial_session_was_empty = True
+
+        if self.session_cookie in connection.cookies:
+            data = connection.cookies[self.session_cookie].encode("utf-8")
+            try:
+                data = self.signer.unsign(data, max_age=self.max_age)
+                scope["session"] = Session(json.loads(b64decode(data)))
+                initial_session_was_empty = False
+            except BadSignature:
+                scope["session"] = Session()
+        else:
+            scope["session"] = Session()
+
+        async def send_wrapper(message: Message) -> None:
+            if message["type"] == "http.response.start":
+                session: Session = scope["session"]
+                headers = MutableHeaders(scope=message)
+                if session.accessed:
+                    headers.add_vary_header("Cookie")
+                if session.modified and session:
+                    data = b64encode(json.dumps(dict(session)).encode("utf-8"))
+                    data = self.signer.sign(data)
+                    # Persistent cookie only if user checked "Remember me"
+                    cookie_max_age = self.max_age if session.get("_remember") else None
+                    header_value = (
+                        "{session_cookie}={data}; path={path}; "
+                        "{max_age}{security_flags}"
+                    ).format(
+                        session_cookie=self.session_cookie,
+                        data=data.decode("utf-8"),
+                        path=self.path,
+                        max_age=f"Max-Age={cookie_max_age}; " if cookie_max_age else "",
+                        security_flags=self.security_flags,
+                    )
+                    headers.append("Set-Cookie", header_value)
+                elif session.modified and not initial_session_was_empty:
+                    header_value = (
+                        "{session_cookie}={data}; path={path}; "
+                        "{expires}{security_flags}"
+                    ).format(
+                        session_cookie=self.session_cookie,
+                        data="null",
+                        path=self.path,
+                        expires="expires=Thu, 01 Jan 1970 00:00:00 GMT; ",
+                        security_flags=self.security_flags,
+                    )
+                    headers.append("Set-Cookie", header_value)
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
 
 
 # ── Session auth — require login for UI pages ───────────────────────

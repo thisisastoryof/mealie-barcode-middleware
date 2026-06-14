@@ -229,7 +229,7 @@ READONLY_SETTINGS: dict[str, dict[str, Any]] = {
     "session_max_age_days": {
         "label": "SESSION_MAX_AGE_DAYS",
         "description": "Login session duration (days)",
-        "help": "How long users stay logged in when \u201cRemember me\u201d is checked. Without it, the session expires when the browser closes.",
+        "help": "How long users stay logged in when \u201cStay signed in\u201d is checked. Without it, the session expires when the browser closes.",
         "group": "System",
         "section": "Infrastructure",
     },
