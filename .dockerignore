@@ -5,7 +5,9 @@ __pycache__/
 *.db
 middleware-data/
 .git/
+.github/
 _project-input/
 esphome/
+ha_automation/
 scripts/
-*.md
+README.md
