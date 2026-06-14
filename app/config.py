@@ -173,7 +173,7 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "label": "MIDDLEWARE_BASE_URL",
         "description": "Middleware URL",
         "help": "Public or local URL of this middleware. Used to build clickable deep links in HA notifications.",
-        "hint": "e.g. http://192.168.1.50:9930",
+        "hint": "e.g. http://your-middleware-ip:9930",
         "wide": True,
         "group": "Home Assistant",
         "section": "Notifications",

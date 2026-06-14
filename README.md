@@ -34,21 +34,7 @@ A self-hosted barcode scanning system that adds items to your [Mealie](https://m
 
 ## Quick Start
 
-### Option A: Build the DIY Scanner (ESP32)
-
-Wire up an ESP32, GM67 barcode scanner module, SSD1306 OLED, and a push button on a perf board. This gives you a dedicated, always-on scanner — grab it, point, done.
-
-→ [**Hardware Build Guide**](docs/hardware-build.md) — parts list, wiring diagram, power design
-
-> **First-time GM67 setup:** The scanner ships in USB mode. Before it will talk to the ESP32, you need to scan a one-time configuration QR code to switch it to UART. See [**Scanner Configuration**](docs/scanner-configuration.md#initial-setup-switching-to-uart-mode).
-
-### Option B: Use Your Phone
-
-No soldering required. Install [BinaryEye](https://github.com/markusfisch/BinaryEye) (Android) or build a quick iOS Shortcut, configure it to point at the middleware, and scan away.
-
-→ [**Mobile Apps Guide**](docs/mobile-apps.md) — BinaryEye setup, iOS Shortcuts walkthrough
-
-### Deploy the Middleware
+### 1. Deploy the Middleware
 
 ```bash
 # Configure
@@ -59,20 +45,34 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Open `http://your-ip:9930` — on first launch you'll create an admin account. Then go to Settings → Tokens to create an API token for the scanner.
+Open `http://your-middleware-ip:9930` — on first launch you'll create an admin account. Then go to Settings → Tokens to create an API token for the scanner.
 
 → [**Middleware Setup**](docs/middleware-setup.md) — Docker, configuration reference, security notes
 
-### Flash the Firmware (ESP32 only)
+### 2. Set Up a Scanner
 
-Copy `esphome/barcode-scanner.yaml` to your ESPHome dashboard, configure `secrets.yaml` with your WiFi and middleware credentials, and flash via USB.
+#### Option A: Build the DIY Scanner (ESP32)
+
+Wire up an ESP32, GM67 barcode scanner module, SSD1306 OLED, and a push button on a perf board. This gives you a dedicated, always-on scanner — grab it, point, done.
+
+→ [**Hardware Build Guide**](docs/hardware-build.md) — parts list, wiring diagram, power design
+
+> **First-time GM67 setup:** The scanner ships in USB mode. Before it will talk to the ESP32, you need to scan a one-time configuration QR code to switch it to UART. See [**Scanner Configuration**](docs/scanner-configuration.md#initial-setup-switching-to-uart-mode).
+
+Then flash the firmware: copy `esphome/barcode-scanner.yaml` to your ESPHome dashboard, configure `secrets.yaml` with your WiFi and middleware credentials, and flash via USB.
 
 → [**ESPHome Firmware**](docs/esphome-firmware.md) — setup, display states, scanner options, HA integration
 → [**Scanner Configuration**](docs/scanner-configuration.md) — trigger modes, buzzer, laser, and the UART protocol explained
 
-### Scan!
+#### Option B: Use Your Phone
 
-Point the scanner at a barcode. The middleware looks it up, matches it to your Mealie catalog, and adds it to your shopping list. The OLED shows the result.
+No soldering required. Install [BinaryEye](https://github.com/markusfisch/BinaryEye) (Android) or build a quick iOS Shortcut, configure it to point at the middleware, and scan away.
+
+→ [**Mobile Apps Guide**](docs/mobile-apps.md) — BinaryEye setup, iOS Shortcuts walkthrough
+
+### 3. Scan!
+
+Point the scanner at a barcode. The middleware looks it up, matches it to your Mealie catalog, and adds it to your shopping list.
 
 → [**How Scanning Works**](docs/barcode-workflow.md) — the full pipeline, fuzzy matching, retry queue
 

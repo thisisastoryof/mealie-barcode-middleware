@@ -22,12 +22,12 @@ The middleware is the only component that talks to Mealie. The ESP32 never conta
 
 ```bash
 # Required
-MEALIE_URL=http://192.168.x.x:9925
+MEALIE_URL=http://your-mealie-ip:9925
 MEALIE_API_KEY=your-mealie-api-token
 MEALIE_SHOPPING_LIST_ID=uuid-of-your-shopping-list
 
 # Optional — see Configuration Reference below
-MIDDLEWARE_BASE_URL=http://192.168.x.x:9930
+MIDDLEWARE_BASE_URL=http://your-middleware-ip:9930
 TIMEZONE=Europe/Berlin
 ```
 
@@ -75,7 +75,7 @@ services:
 docker compose up -d
 ```
 
-The service is available at `http://your-ip:9930`. The SQLite database is persisted in `./middleware-data/barcode.db`.
+The service is available at `http://your-middleware-ip:9930`. The SQLite database is persisted in `./middleware-data/barcode.db`.
 
 ### Updating
 
@@ -163,15 +163,15 @@ If `LOOKUP_ENRICH_IN_BACKGROUND=false`, the secondary call is made synchronously
 
 ### System
 
-| Variable               | Default            | Description                                                      |
-| ---------------------- | ------------------ | ---------------------------------------------------------------- |
-| `MIDDLEWARE_BASE_URL`  | (empty)            | Full URL for deep links in notifications (e.g. `http://ip:9930`) |
-| `HA_WEBHOOK_URL`       | (empty)            | HA webhook URL for push notifications (see below)                |
-| `TIMEZONE`             | `Europe/Berlin`    | IANA timezone for UI timestamps                                  |
-| `SESSION_MAX_AGE_DAYS` | `7`                | How long “Stay signed in” sessions last (days)                   |
-| `DB_PATH`              | `/data/barcode.db` | SQLite database file path                                        |
-| `PORT`                 | `8000`             | HTTP listen port (inside container)                              |
-| `LOG_LEVEL`            | `INFO`             | Python log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`)           |
+| Variable               | Default            | Description                                                                      |
+| ---------------------- | ------------------ | -------------------------------------------------------------------------------- |
+| `MIDDLEWARE_BASE_URL`  | (empty)            | Full URL for deep links in notifications (e.g. `http://your-middleware-ip:9930`) |
+| `HA_WEBHOOK_URL`       | (empty)            | HA webhook URL for push notifications (see below)                                |
+| `TIMEZONE`             | `Europe/Berlin`    | IANA timezone for UI timestamps                                                  |
+| `SESSION_MAX_AGE_DAYS` | `7`                | How long “Stay signed in” sessions last (days)                                   |
+| `DB_PATH`              | `/data/barcode.db` | SQLite database file path                                                        |
+| `PORT`                 | `8000`             | HTTP listen port (inside container)                                              |
+| `LOG_LEVEL`            | `INFO`             | Python log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`)                           |
 
 ### Home Assistant Push Notifications (Optional)
 

@@ -68,7 +68,7 @@ async def lifespan(app: FastAPI):
     if not settings.middleware_base_url:
         logger.info(
             "MIDDLEWARE_BASE_URL not set \u2014 notification action_url will use relative paths. "
-            "Set MIDDLEWARE_BASE_URL=http://your-ip:9930 for full deep links in HA notifications."
+            "Set MIDDLEWARE_BASE_URL=http://your-middleware-ip:9930 for full deep links in HA notifications."
         )
     start_scheduler()
     yield

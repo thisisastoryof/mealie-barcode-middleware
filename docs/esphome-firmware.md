@@ -212,8 +212,8 @@ substitutions:
 Update `secrets.yaml`:
 
 ```yaml
-middleware_url: "http://NEW-IP:PORT/scan"
-middleware_auth_header: "Bearer NEW-TOKEN"
+middleware_url: "http://your-middleware-ip:9930/scan"
+middleware_auth_header: "Bearer your-api-token-here"
 ```
 
 ### Multiple Scanners

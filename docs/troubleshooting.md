@@ -30,7 +30,7 @@ Common issues and their solutions, organized by component.
 
 If the ESPHome log shows a WDT reset, the HTTP request to the middleware took too long. Check:
 
-1. **Is the middleware running?** Open `http://middleware-ip:9930/health` in a browser
+1. **Is the middleware running?** Open `http://your-middleware-ip:9930/health` in a browser
 2. **Are the external APIs slow?** The middleware has 5 s timeouts for OpenFoodFacts and UPCDatabase. In `failover` mode (default), at most two sequential API calls are made if the primary returns nothing — total up to 10 s plus Mealie time. In `complement` mode with `LOOKUP_ENRICH_IN_BACKGROUND=true` (default), only one API call blocks the response — the secondary call runs after the response is sent. If you set `LOOKUP_ENRICH_IN_BACKGROUND=false`, both calls are sequential and total time can approach 13 s. The ESP's HTTP timeout is 14 s, and the WDT is 15 s.
 3. **Is WiFi reception weak?** Check the RSSI value on the status screen (long-press button). Below -80 dBm is unreliable.
 
@@ -72,10 +72,10 @@ NameError: name 'utcnow' is not defined
 
 Check:
 
-1. Is `MEALIE_URL` correct? It should be the URL accessible from the Docker container (e.g. `http://192.168.x.x:9925`, not `localhost`)
+1. Is `MEALIE_URL` correct? It should be the URL accessible from the Docker container (e.g. `http://your-mealie-ip:9925`, not `localhost`)
 2. Is the Mealie API key valid? Test with curl:
    ```bash
-   curl -H "Authorization: Bearer YOUR_KEY" http://mealie-ip:9925/api/app/about
+   curl -H "Authorization: Bearer YOUR_KEY" http://your-mealie-ip:9925/api/app/about
    ```
 3. Are Mealie and the middleware on the same Docker network? If using Docker Compose, they need to be able to reach each other.
 
@@ -176,8 +176,8 @@ esp32:
 **Fix:**
 
 1. Is your phone on the same WiFi as the middleware? Mobile data won't reach a local IP.
-2. Check the URL: `http://your-ip:9930/scan/app` — note the port and path.
-3. Test from your phone's browser: open `http://your-ip:9930/health` — you should see a JSON response.
+2. Check the URL: `http://your-middleware-ip:9930/scan/app` — note the port and path.
+3. Test from your phone's browser: open `http://your-middleware-ip:9930/health` — you should see a JSON response.
 4. Firewall: some routers block inter-device traffic. Check your router's "AP isolation" setting.
 
 ### iOS Shortcut: "The request timed out"
@@ -203,7 +203,7 @@ esp32:
 ```bash
 curl -X POST http://homeassistant.local:8123/api/webhook/barcode-scanner \
   -H "Content-Type: application/json" \
-  -d '{"barcode":"0000000000000","item":"Test Item","result_type":"unknown","action_url":"http://ip:9930/barcodes/0000000000000"}'
+  -d '{"barcode":"0000000000000","item":"Test Item","result_type":"unknown","action_url":"http://your-middleware-ip:9930/barcodes/0000000000000"}'
 ```
 
 If this triggers a notification, the webhook works and the issue is on the middleware side. Check Docker logs for `HA webhook` messages.

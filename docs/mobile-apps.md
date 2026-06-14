@@ -148,7 +148,7 @@ Tap the shortcut name → **Add to Home Screen**. Now you have a one-tap barcode
          ▼
 ┌──────────────────────────────┐
 │  Get Contents of URL         │
-│  POST http://ip:9930/scan    │
+│  POST http://your-middleware-ip:9930/scan │
 │  Header: Authorization:      │
 │    Bearer abc123...          │
 │  Body: {"barcode":           │
