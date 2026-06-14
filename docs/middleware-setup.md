@@ -236,8 +236,11 @@ The middleware uses a single SQLite file at `/data/barcode.db` (configurable via
 | `api_tokens`       | Scanner authentication tokens (bcrypt hashed) |
 | `retry_queue`      | Failed Mealie requests awaiting retry         |
 | `notifications`    | Activity log and actionable alerts            |
+| `users`            | Web UI user accounts (bcrypt hashed passwords)|
 
-**Backup:** The database is a single file. Copy `middleware-data/barcode.db` to back up everything.
+**Backup:** The database is a single file. Copy `middleware-data/barcode.db` to back up everything. You can also download a backup from the Settings → Database tab.
+
+> **Health check:** The Dockerfile includes a `HEALTHCHECK` instruction that polls `GET /health` every 30 seconds. Docker Compose inherits this automatically — no extra config needed.
 
 ---
 

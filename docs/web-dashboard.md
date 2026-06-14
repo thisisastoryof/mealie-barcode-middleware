@@ -72,6 +72,23 @@ Click "Add Item" on the items page. Manual items are useful for products that ex
 
 ---
 
+## Labels (`/labels`)
+
+The QR Label Generator creates printable `GENERIC:<text>` QR code labels for items that don’t have a barcode — produce, bulk goods, homemade items, etc.
+
+**How it works:**
+
+1. **Search** for an existing Mealie item by name, or type custom text (e.g. “Milk”, “Rice”)
+2. **Add** items to the label sheet — each gets a QR code preview
+3. Click **Register & Print** — the middleware registers all `GENERIC:` barcodes in the database (linking them to items if matched), then opens the browser print dialog
+4. **Stick** the printed labels on containers or shelves
+
+When scanned, `GENERIC:Milk` is treated like any other barcode — it fuzzy-matches against your Mealie catalog and adds the item to the shopping list.
+
+> **Tip:** Labels linked to a Mealie item at creation time skip fuzzy matching entirely — they go straight to the shopping list on scan.
+
+---
+
 ## Activity Log (`/activities`)
 
 A chronological log of all scan events and system notifications. Unlike the notification bell (which only shows unread items), the activity log shows everything.
@@ -116,14 +133,14 @@ Notifications are **deduplicated per barcode** — scanning the same unknown bar
 
 ### Configuration Tab
 
-Displays all current configuration values (read-only). Grouped into:
+Displays all current configuration values, grouped into:
 
-- Mealie Connection
-- Barcode Lookup Sources
-- Matching & Sync
-- System
+- Mealie Connection — read-only (set via environment variables)
+- Barcode Lookup Sources — source toggles are editable live
+- Matching & Sync — thresholds and intervals are editable live
+- System — timezone and log level are editable live
 
-These values come from environment variables and can only be changed by editing `.env` and restarting the container.
+Settings marked as editable can be changed directly in the UI without restarting the container. They’re saved to the database and override the env var value. A reset button next to each restores the env/default value. Read-only settings (Mealie URL, API key, DB path, port) can only be changed by editing `.env` and restarting.
 
 ### Tokens Tab
 
@@ -136,11 +153,23 @@ Manage API tokens for scanner authentication:
 
 Manage user accounts for the web dashboard:
 
-- **Add user:** Set username, password, and admin flag.
-- **Change password:** Inline password field per user row.
+- **Add user:** Set username (min 3 chars), password (min 8 chars), and admin flag.
+- **Change password:** Inline password field per user row. Admins can change any user’s password; non-admins can only change their own.
 - **Delete:** Remove a user. Admins cannot delete themselves.
 
-Non-admin users can see all pages except Settings. Only admins can access Settings, manage users, create/delete tokens, or modify configuration.
+### Roles & Permissions
+
+| Capability | Admin | User |
+|---|---|---|
+| View Dashboard, Barcodes, Items, Activity | ✓ | ✓ |
+| Link/unlink barcodes, create items | ✓ | ✓ |
+| Access Settings page | ✓ | ✗ |
+| Create/delete API tokens | ✓ | ✗ |
+| Manage users | ✓ | ✗ |
+| Backup/purge/reset database | ✓ | ✗ |
+| Change own password | ✓ | ✓ |
+
+If an admin deletes a user or revokes their admin privileges, the change takes effect on the user’s next request — their active session is revalidated from the database.
 
 ### Database Tab _(admin only)_
 
@@ -171,12 +200,14 @@ No polling, no page reloads.
 
 For integration with other tools or custom scripts:
 
-| Endpoint                 | Method | Auth   | Returns            |
-| ------------------------ | ------ | ------ | ------------------ |
-| `POST /scan`             | POST   | Bearer | Scan result (JSON) |
-| `GET /health`            | GET    | None   | Health status      |
-| `GET /api/dashboard`     | GET    | None   | Dashboard stats    |
-| `GET /api/barcodes`      | GET    | None   | Barcode list       |
-| `GET /api/notifications` | GET    | None   | Unread alerts      |
-| `GET /api/activities`    | GET    | None   | Activity log       |
-| `GET /events`            | GET    | None   | SSE stream         |
+| Endpoint                 | Method | Auth    | Returns            |
+| ------------------------ | ------ | ------- | ------------------ |
+| `POST /scan`             | POST   | Bearer  | Scan result (JSON) |
+| `GET /health`            | GET    | None    | Health status      |
+| `GET /api/dashboard`     | GET    | Session | Dashboard stats    |
+| `GET /api/barcodes`      | GET    | Session | Barcode list       |
+| `GET /api/notifications` | GET    | Session | Unread alerts      |
+| `GET /api/activities`    | GET    | Session | Activity log       |
+| `GET /events`            | GET    | Session | SSE stream         |
+
+> **Session** = requires a logged-in browser session (cookie). These are not open APIs — calling them with `curl` without a session cookie will redirect to `/login`. Use `POST /scan` with a Bearer token for programmatic access.

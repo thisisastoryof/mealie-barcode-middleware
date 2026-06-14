@@ -58,7 +58,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Open `http://your-ip:9930` → Settings → create an API token for the scanner.
+Open `http://your-ip:9930` — on first launch you'll create an admin account. Then go to Settings → Tokens to create an API token for the scanner.
 
 → [**Middleware Setup**](docs/middleware-setup.md) — Docker, configuration reference, security notes
 
@@ -96,6 +96,9 @@ Point the scanner at a barcode. The middleware looks it up, matches it to your M
 
 All settings via environment variables. See [Middleware Setup](docs/middleware-setup.md) for the full reference.
 
+<details>
+<summary>Key variables (subset — see full reference for all options)</summary>
+
 | Variable                  | Required | Default         | Description                                               |
 | ------------------------- | -------- | --------------- | --------------------------------------------------------- |
 | `MEALIE_URL`              | **Yes**  | —               | Mealie instance URL                                       |
@@ -109,6 +112,8 @@ All settings via environment variables. See [Middleware Setup](docs/middleware-s
 | `MIDDLEWARE_BASE_URL`     | No       | (empty)         | URL for notification deep links                           |
 | `TIMEZONE`                | No       | `Europe/Berlin` | Timezone for UI timestamps                                |
 
+</details>
+
 ## Project Structure
 
 ```
@@ -116,7 +121,7 @@ app/
 ├── main.py                  # FastAPI app + lifespan
 ├── config.py                # Environment variable config
 ├── database.py              # SQLAlchemy + SQLite
-├── models.py                # ORM models (6 tables)
+├── models.py                # ORM models (7 tables)
 ├── auth.py                  # Token auth (Bearer + PSK for mobile apps)
 ├── events.py                # SSE event bus
 ├── routers/

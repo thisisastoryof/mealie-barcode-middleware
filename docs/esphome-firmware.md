@@ -9,7 +9,7 @@ The barcode scanner runs [ESPHome](https://esphome.io/) firmware on an ESP32. Th
 - WiFi credentials for your network
 - A running instance of the middleware (see [middleware-setup.md](middleware-setup.md))
 - An API token from the middleware's Settings page
-
+> **Deploy the middleware first.** You’ll need it running to create an API token (Settings → Tokens) before flashing the ESP32.
 ## First-Time Setup
 
 ### 1. Create a `secrets.yaml`
@@ -165,7 +165,7 @@ The device registers with Home Assistant via the native ESPHome API. All sensors
 | Scanning Light       | Select        | Config     | Illumination LED mode               |
 | Collimation          | Select        | Config     | Aiming laser mode                   |
 | Same Code Delay      | Select        | Config     | Re-scan delay for same barcode      |
-| Collimation Flashing | Switch        | Config     | Laser blink on/off                  |
+| Collimation Flashing | Switch        | Config     | Aiming laser blink on/off           |
 | Scanning Enabled     | Switch        | Config     | Enable/disable scanner              |
 | Display Timeout      | Number        | Config     | Seconds before display standby      |
 | Display Button       | Binary Sensor | —          | Physical button state               |
