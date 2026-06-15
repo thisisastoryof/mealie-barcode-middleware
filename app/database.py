@@ -25,8 +25,8 @@ def get_db():
 
 
 def init_db():
-    Base.metadata.create_all(bind=engine)
     _migrate()
+    Base.metadata.create_all(bind=engine)
 
 
 def _migrate():

@@ -258,7 +258,7 @@
             if (pauseMenuItem) {
                 pauseMenuItem.setAttribute('data-action', 'resume');
                 var icon = pauseMenuItem.querySelector('i');
-                if (icon) { icon.className = 'ti ti-player-play icon dropdown-item-icon'; }
+                if (icon) { icon.className = 'ti ti-player-stop icon dropdown-item-icon'; }
             }
             if (pauseMenuText) pauseMenuText.textContent = 'Stop Scan & Link';
         } else {
