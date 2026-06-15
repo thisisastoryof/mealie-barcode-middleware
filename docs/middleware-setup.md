@@ -160,6 +160,7 @@ If `LOOKUP_ENRICH_IN_BACKGROUND=false`, the secondary call is made synchronously
 | `ITEM_SYNC_INTERVAL_HOURS` | `6`     | How often to re-sync the Mealie food catalog                          |
 | `LOOKUP_TTL_DAYS`          | `30`    | Days before retrying an external lookup for an unresolved barcode     |
 | `MAX_RETRY_ATTEMPTS`       | `10`    | Max retries for failed Mealie shopping list additions                 |
+| `UNKNOWN_BARCODE_ACTION`   | `add_to_list` | What happens when a barcode can't be linked: `add_to_list` (add as note + notify) or `notify_only` (notify only, skip shopping list) |
 
 ### System
 

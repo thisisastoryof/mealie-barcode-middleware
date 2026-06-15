@@ -129,6 +129,10 @@
             color = 'warning';
             title = 'Queued for retry';
             desc = esc(item || barcode);
+        } else if (result === 'needs_mapping') {
+            color = 'warning';
+            title = 'Not linked';
+            desc = (item ? esc(item) + ' (' + esc(barcode) + ')' : esc(barcode)) + ' — tap to link';
         } else if (result === 'retry_failed') {
             color = 'danger';
             title = 'Retry failed';

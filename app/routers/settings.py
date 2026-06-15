@@ -45,6 +45,7 @@ _SECTION_DESCRIPTIONS = {
     "Strategy": "Control how multiple data sources work together.",
     "Fuzzy Matching": "How product names are compared against your Mealie food catalog.",
     "Scheduling & Retry": "How often data is refreshed and how failures are handled.",
+    "Unknown & Unlinked Barcodes": "What happens when a scanned barcode can't be matched to a Mealie item.",
     "Notifications": "Send push notifications to your phone when a scanned item needs attention.",
     "Infrastructure": "Set via environment variables — not editable here.",
 }

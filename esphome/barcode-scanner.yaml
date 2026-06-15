@@ -451,9 +451,9 @@ display:
         } else if (rtype == "queued") {
           it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
           it.printf(22, 2, id(font_heading), "Queued");
-        } else if (rtype == "unknown") {
+        } else if (rtype == "unknown" || rtype == "needs_mapping") {
           it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
-          it.printf(22, 2, id(font_heading), "Needs Mapping");
+          it.printf(22, 2, id(font_heading), rtype == "needs_mapping" ? "Not Linked" : "Needs Mapping");
         } else if (rtype == "timeout") {
           it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
           it.printf(22, 2, id(font_heading), "Timed Out");

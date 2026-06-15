@@ -73,6 +73,7 @@ After flashing, the OLED will show "Connecting..." for up to 30 seconds, then "C
 | --------------- | -------------- | -------------------------------------- |
 | `added`         | ✓ check-circle | Added to shopping list via Mealie item |
 | `added_as_note` | ✓ check-circle | Added as plain note (not linked)       |
+| `needs_mapping` | ⚠ alert        | Not linked — saved for manual linking  |
 | `queued`        | ⚠ alert        | Mealie unreachable, queued for retry   |
 | `unknown`       | ⚠ alert        | Not found in any product database      |
 | `timeout`       | ⚠ alert        | HTTP request timed out                 |
