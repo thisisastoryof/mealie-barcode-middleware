@@ -1,9 +1,4 @@
-Place scanner photos and middleware screenshots here.
+Images for the project documentation and README.
 
-Suggested naming convention:
-
-- scanner-front.jpg, scanner-open.jpg, scanner-mounted.jpg, scanner-oled.jpg
-- dashboard.png, barcode-detail.png, settings.png, notifications.png, items.png
-
-The two hero images for the README top should be clearly identifiable
-(e.g. scanner-hero.jpg and dashboard-hero.png).
+Middleware screenshots use `-light`/`-dark` suffixes for theme-aware rendering via `<picture>`.
+Referenced from `README.md` (hero) and `docs/gallery.md` (full gallery).

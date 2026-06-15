@@ -2,11 +2,14 @@
 
 A self-hosted barcode scanning system that adds items to your [Mealie](https://mealie.io/) shopping list. Scan a product — from a dedicated DIY scanner or your phone — and it gets looked up, matched to your food catalog, and added.
 
-<!-- Hero images: replace filenames once you drop the actual files into docs/images/ -->
 <p align="center">
-  <img src="docs/images/scanner-hero.jpg" width="48%" alt="DIY barcode scanner">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/middleware-dashboard-dark.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/images/middleware-dashboard-light.jpg">
+    <img src="docs/images/middleware-dashboard-light.jpg" width="48%" alt="Web dashboard">
+  </picture>
   &nbsp;
-  <img src="docs/images/dashboard-hero.png" width="48%" alt="Web dashboard">
+  <img src="docs/images/case-mounted-booting.jpg" width="48%" alt="DIY barcode scanner">
 </p>
 
 <p align="center"><a href="docs/gallery.md">More screenshots & photos →</a></p>
