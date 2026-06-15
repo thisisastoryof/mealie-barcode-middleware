@@ -104,7 +104,7 @@ def _process_scan(barcode: str, db: Session, background_tasks: BackgroundTasks) 
                 brand=brand, quantity=quantity, item_source=item_source,
             )
             _emit_scan_event(barcode, resp)
-            _save_activity(barcode, "Scanned (paused)", item_name, resp.result, db)
+            _save_activity(barcode, "Scanned (scan & link)", item_name, resp.result, db)
         else:
             resp = _add_via_item(item, item_name, barcode, db, cached=cached)
             _emit_scan_event(barcode, resp)
@@ -158,7 +158,7 @@ def _process_scan(barcode: str, db: Session, background_tasks: BackgroundTasks) 
         resp.needs_action = True
         resp.action_url = _build_action_url(barcode)
         _emit_scan_event(barcode, resp)
-        title = "Unknown barcode (paused)" if paused else "Unknown barcode"
+        title = "Unknown barcode (scan & link)" if paused else "Unknown barcode"
         _save_notification(barcode, title, "Not found in any product database", "unknown", db)
         return resp
 
@@ -174,7 +174,7 @@ def _process_scan(barcode: str, db: Session, background_tasks: BackgroundTasks) 
                 item_source=item.source if item else None,
                 needs_action=True, action_url=_build_action_url(barcode),
             )
-            _save_activity(barcode, "Scanned (paused)", item_name, resp.result, db)
+            _save_activity(barcode, "Scanned (scan & link)", item_name, resp.result, db)
         else:
             resp = _add_via_item(item, item_name, barcode, db, cached=cached)
             resp.needs_action = True
@@ -194,7 +194,7 @@ def _process_scan(barcode: str, db: Session, background_tasks: BackgroundTasks) 
             brand=cached.brand, quantity=cached.quantity,
             needs_action=True, action_url=_build_action_url(barcode),
         )
-        activity_title = "Not linked (paused)" if paused else "Not linked"
+        activity_title = "Not linked (scan & link)" if paused else "Not linked"
         _save_activity(barcode, activity_title, note, result_type, db)
         _save_notification(barcode, "Not linked", f"{note} — tap to link to a Mealie item", "needs_mapping", db)
     else:
@@ -301,13 +301,13 @@ def _handle_generic(term: str, barcode: str, db: Session, paused: bool = False) 
     if best_item and best_score >= settings.fuzzy_match_threshold:
         if paused:
             resp = ScanResponse(result="added", item=best_item.name, via=None, paused=True)
-            _save_activity(barcode, "Scanned (paused)", best_item.name, resp.result, db)
+            _save_activity(barcode, "Scanned (scan & link)", best_item.name, resp.result, db)
             return resp
         return _add_via_item(best_item, best_item.name, barcode, db)
 
     if paused:
         resp = ScanResponse(result="added_as_note", item=term, via=None, paused=True)
-        _save_activity(barcode, "Scanned (paused)", term, resp.result, db)
+        _save_activity(barcode, "Scanned (scan & link)", term, resp.result, db)
         return resp
 
     # Fallback: add as note

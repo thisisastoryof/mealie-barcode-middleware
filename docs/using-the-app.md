@@ -108,7 +108,7 @@ When the mode ends, a toast confirms: _"Scan & link ended — scans will now add
 
 ### What happens to barcodes scanned during Scan & Link?
 
-They're fully processed. Check the **Barcodes** page afterward — you'll see all the products you scanned, with status badges showing which are linked, which need attention, and which are unknown. The activity log shows every scan with a "(paused)" label so you know it was during Scan & Link mode.
+They're fully processed. Check the **Barcodes** page afterward — you'll see all the products you scanned, with status badges showing which are linked, which need attention, and which are unknown. The activity log shows every scan with a "(scan & link)" label so you know it was during Scan & Link mode.
 
 > **Admin only:** Scan & Link mode can only be started by admin users. Non-admin users see the banner (so they understand why scans aren't adding to the list) but can't toggle it.
 
