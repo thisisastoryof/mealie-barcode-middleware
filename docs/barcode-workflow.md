@@ -49,9 +49,9 @@ When a barcode is scanned — whether from the ESP32 hardware scanner, a phone a
 \* Steps 3 and 5: when `UNKNOWN_BARCODE_ACTION=notify_only`, the shopping list
   addition is skipped — a notification and HA webhook are still sent, but
   the barcode only appears on the Barcodes page for manual linking.
-  When **pause mode** is active (see Settings → Matching & Sync), all
+  When **Scan & Link mode** is active (see Settings → Scanning), all
   shopping list additions are skipped regardless of the setting — scans
-  are still processed, cached, and auto-mapped.
+  are still processed, cached, and auto-linked.
 
 After each scan, if the result needs attention (steps 3–5), two things happen:
 - A **notification** is saved for the web UI bell icon

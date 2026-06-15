@@ -79,7 +79,7 @@ After flashing, the OLED will show "Connecting..." for up to 30 seconds, then "C
 | `timeout`       | ⚠ alert        | HTTP request timed out                 |
 | `error`         | ✕ close-circle | Server error or parse failure          |
 
-When **pause mode** is active, the OLED appends "(paused)" to the result text
+When **Scan & Link mode** is active, the OLED appends "(paused)" to the result text
 (e.g. "Linked (paused)", "Unknown (paused)") so users know the item wasn't added
 to the shopping list.
 

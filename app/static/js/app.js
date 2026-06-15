@@ -260,7 +260,7 @@
                 var icon = pauseMenuItem.querySelector('i');
                 if (icon) { icon.className = 'ti ti-player-play icon dropdown-item-icon'; }
             }
-            if (pauseMenuText) pauseMenuText.textContent = 'Resume Shopping List (' + formatRemaining(data.remaining_seconds) + ')';
+            if (pauseMenuText) pauseMenuText.textContent = 'Stop Scan & Link';
         } else {
             clearInterval(_pauseTimer);
             _pauseTimer = null;
@@ -270,9 +270,9 @@
             if (pauseMenuItem) {
                 pauseMenuItem.setAttribute('data-action', 'pause');
                 var icon = pauseMenuItem.querySelector('i');
-                if (icon) { icon.className = 'ti ti-player-pause icon dropdown-item-icon'; }
+                if (icon) { icon.className = 'ti ti-link icon dropdown-item-icon'; }
             }
-            if (pauseMenuText) pauseMenuText.textContent = 'Pause Shopping List';
+            if (pauseMenuText) pauseMenuText.textContent = 'Scan & Link Mode';
         }
     }
 
@@ -284,14 +284,11 @@
             if (remaining <= 0) {
                 clearInterval(_pauseTimer);
                 updatePauseBanner({ paused: false });
-                showPauseToast('Shopping list resumed — scans will now add to your list.');
+                showPauseToast('Scan & link ended — scans will now add to your list.');
                 return;
             }
             if (pauseCountdown) pauseCountdown.textContent = formatRemaining(remaining);
             if (settingsPauseRemaining) settingsPauseRemaining.textContent = formatRemaining(remaining);
-            if (pauseMenuText && pauseMenuItem && pauseMenuItem.getAttribute('data-action') === 'resume') {
-                pauseMenuText.textContent = 'Resume Shopping List (' + formatRemaining(remaining) + ')';
-            }
         }, 1000);
     }
 
@@ -316,7 +313,7 @@
         updatePauseBanner(data);
         updateSettingsPauseCard(data);
         if (!data.paused) {
-            showPauseToast('Shopping list resumed — scans will now add to your list.');
+            showPauseToast('Scan & link ended \u2014 scans will now add to your list.');
         }
     }
 

@@ -18,14 +18,14 @@
     <div class="page">
         <!-- Pause banner (hidden by default, shown via JS when paused) -->
         <div class="system-banner bg-warning-lt d-none" id="pause-banner">
-            <i class="ti ti-player-pause"></i>
+            <i class="ti ti-link"></i>
             <span>
-                List additions paused — resumes in
+                Scan & link mode — items won't be added to your list. Resumes in
                 <strong id="pause-countdown"></strong>.
             </span>
             {% if request.session.get('is_admin') %}
-            <a href="#" class="text-reset" id="pause-resume-btn">
-                <i class="ti ti-player-play"></i> Resume now
+            <a href="#" class="badge bg-yellow-lt" id="pause-resume-btn">
+                <i class="ti ti-player-play"></i> Stop
             </a>
             {% endif %}
         </div>
@@ -58,20 +58,12 @@
                                 <i class="ti ti-dots-vertical icon icon-1"></i>
                             </a>
                             <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end">
-                                <span class="dropdown-header">Tools</span>
-                                <a class="dropdown-item{{ ' active' if request.url.path.startswith('/labels') }}" href="/labels">
-                                    <i class="ti ti-qrcode icon dropdown-item-icon"></i> Labels
-                                </a>
                                 <a class="dropdown-item{{ ' active' if request.url.path.startswith('/activities') }}" href="/activities">
                                     <i class="ti ti-activity icon dropdown-item-icon"></i> Activity
                                 </a>
-                                {% if request.session.get('is_admin') %}
-                                <a class="dropdown-item" href="#" id="pause-menu-item"
-                                   data-action="pause">
-                                    <i class="ti ti-player-pause icon dropdown-item-icon"></i>
-                                    <span id="pause-menu-text">Pause Shopping List</span>
+                                <a class="dropdown-item{{ ' active' if request.url.path.startswith('/labels') }}" href="/labels">
+                                    <i class="ti ti-qrcode icon dropdown-item-icon"></i> Labels
                                 </a>
-                                {% endif %}
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item{{ ' active' if request.url.path.startswith('/docs') }}" href="/docs">
                                     <i class="ti ti-book icon dropdown-item-icon"></i> Documentation
@@ -79,6 +71,12 @@
                                 {% if request.session.get('is_admin') %}
                                 <a class="dropdown-item{{ ' active' if request.url.path.startswith('/settings') }}" href="/settings">
                                     <i class="ti ti-settings icon dropdown-item-icon"></i> Settings
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#" id="pause-menu-item"
+                                   data-action="pause">
+                                    <i class="ti ti-link icon dropdown-item-icon"></i>
+                                    <span id="pause-menu-text">Scan & Link Mode</span>
                                 </a>
                                 {% endif %}
                                 {% if request.session.get('username') %}
@@ -239,9 +237,9 @@
             <div class="modal-content">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="modal-body text-center py-4">
-                    <i class="ti ti-player-pause icon mb-2 text-warning icon-lg"></i>
-                    <h3>Pause Shopping List</h3>
-                    <p class="text-secondary">Scans will still be processed and mapped, but nothing will be added to your shopping list.</p>
+                    <i class="ti ti-link icon mb-2 text-warning icon-lg"></i>
+                    <h3>Scan & Link Mode</h3>
+                    <p class="text-secondary">Scans will still be processed and linked, but nothing will be added to your shopping list.</p>
                     <div class="d-flex flex-column gap-2">
                         <button type="button" class="btn btn-warning w-100 pause-duration-btn" data-minutes="5">5 minutes</button>
                         <button type="button" class="btn btn-warning w-100 pause-duration-btn" data-minutes="20">20 minutes</button>
