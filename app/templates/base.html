@@ -18,7 +18,7 @@
     <div class="page">
         <!-- Pause banner (hidden by default, shown via JS when paused) -->
         <div class="system-banner bg-warning-lt d-none" id="pause-banner">
-            <i class="ti ti-link"></i>
+            <i class="ti ti-link-plus"></i>
             <span>
                 Scan & link mode — items won't be added to your list. Resumes in
                 <strong id="pause-countdown"></strong>.
@@ -75,7 +75,7 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="#" id="pause-menu-item"
                                    data-action="pause">
-                                    <i class="ti ti-link icon dropdown-item-icon"></i>
+                                    <i class="ti ti-link-plus icon dropdown-item-icon"></i>
                                     <span id="pause-menu-text">Scan & Link Mode</span>
                                 </a>
                                 {% endif %}
@@ -179,7 +179,7 @@
                         {% if request.session.get('is_admin') %}
                         <li class="nav-item d-md-none">
                             <a href="#" class="nav-link" id="pause-menu-item-mobile" data-action="pause">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-link icon icon-1"></i></span>
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-link-plus icon icon-1"></i></span>
                                 <span class="nav-link-title" id="pause-menu-text-mobile">Scan & Link Mode</span>
                             </a>
                         </li>
@@ -245,7 +245,7 @@
             <div class="modal-content">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="modal-body text-center py-4">
-                    <i class="ti ti-link icon mb-2 text-warning icon-lg"></i>
+                    <i class="ti ti-link-plus icon mb-2 text-warning icon-lg"></i>
                     <h3>Scan & Link Mode</h3>
                     <p class="text-secondary">Scans will still be processed and linked, but nothing will be added to your shopping list.</p>
                     <div class="d-flex flex-column gap-2">

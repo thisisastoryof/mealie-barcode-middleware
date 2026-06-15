@@ -279,13 +279,13 @@
             if (pauseMenuItem) {
                 pauseMenuItem.setAttribute('data-action', 'pause');
                 var icon = pauseMenuItem.querySelector('i');
-                if (icon) { icon.className = 'ti ti-link icon dropdown-item-icon'; }
+                if (icon) { icon.className = 'ti ti-link-plus icon dropdown-item-icon'; }
             }
             if (pauseMenuText) pauseMenuText.textContent = 'Scan & Link Mode';
             if (pauseMenuItemMobile) {
                 pauseMenuItemMobile.setAttribute('data-action', 'pause');
                 var mIcon = pauseMenuItemMobile.querySelector('.nav-link-icon i');
-                if (mIcon) { mIcon.className = 'ti ti-link icon icon-1'; }
+                if (mIcon) { mIcon.className = 'ti ti-link-plus icon icon-1'; }
             }
             if (pauseMenuTextMobile) pauseMenuTextMobile.textContent = 'Scan & Link Mode';
         }
@@ -314,7 +314,7 @@
         toast.setAttribute('role', 'alert');
         toast.innerHTML = '<div class="toast-header">'
             + '<span class="avatar avatar-xs me-2 bg-azure">'
-            + '<i class="ti ti-link icon-sm text-white"></i></span>'
+            + '<i class="ti ti-link-plus icon-sm text-white"></i></span>'
             + '<strong class="me-auto">Scan & Link</strong>'
             + '<button type="button" class="ms-2 btn-close" data-bs-dismiss="toast" aria-label="Close"></button>'
             + '</div>'
