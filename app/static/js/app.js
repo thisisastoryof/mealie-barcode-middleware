@@ -313,9 +313,9 @@
         toast.className = 'toast show';
         toast.setAttribute('role', 'alert');
         toast.innerHTML = '<div class="toast-header">'
-            + '<span class="avatar avatar-xs me-2 bg-success">'
-            + '<i class="ti ti-check icon-sm text-white"></i></span>'
-            + '<strong class="me-auto">Shopping List</strong>'
+            + '<span class="avatar avatar-xs me-2 bg-azure">'
+            + '<i class="ti ti-link icon-sm text-white"></i></span>'
+            + '<strong class="me-auto">Scan & Link</strong>'
             + '<button type="button" class="ms-2 btn-close" data-bs-dismiss="toast" aria-label="Close"></button>'
             + '</div>'
             + '<div class="toast-body">' + esc(msg) + '</div>';
