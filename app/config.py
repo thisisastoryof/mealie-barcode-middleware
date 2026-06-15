@@ -149,7 +149,7 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
                 "'Add to list & notify' adds a note to your shopping list and sends a notification. "
                 "'Notify only' skips the shopping list \u2014 unmapped barcodes appear on the Barcodes page for linking later.",
         "choices": [("add_to_list", "Add to list & notify"), ("notify_only", "Notify only")],
-        "group": "Matching & Sync",
+        "group": "Scanning",
         "section": "Unknown & Unlinked Barcodes",
     },
     # System

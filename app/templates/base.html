@@ -18,12 +18,15 @@
     <div class="page">
         <!-- Pause banner (hidden by default, shown via JS when paused) -->
         <div class="system-banner bg-warning-lt d-none" id="pause-banner">
+            <i class="ti ti-player-pause"></i>
             <span>
-                Shopping list paused — scans will not be added to your list. Resumes in
+                List additions paused — resumes in
                 <strong id="pause-countdown"></strong>.
             </span>
             {% if request.session.get('is_admin') %}
-            <button class="btn btn-warning" id="pause-resume-btn">Resume now</button>
+            <a href="#" class="text-reset" id="pause-resume-btn">
+                <i class="ti ti-player-play"></i> Resume now
+            </a>
             {% endif %}
         </div>
         <!-- Navbar -->

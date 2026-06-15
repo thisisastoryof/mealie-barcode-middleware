@@ -24,6 +24,7 @@ _GROUP_ORDER = [
     "Home Assistant",
     "Barcode Lookup Sources",
     "Matching & Sync",
+    "Scanning",
     "System",
 ]
 
@@ -33,6 +34,7 @@ _TAB_DESCRIPTIONS = {
     "homeassistant": "Push notifications and deep links via Home Assistant webhooks.",
     "lookup": "Configure which product databases to query and how they interact.",
     "matching": "Control how scanned products are matched and synced with Mealie.",
+    "scanning": "What happens when a barcode is scanned — unknown barcode handling and list pause controls.",
     "system": "Timezone, logging, and other system-level settings.",
     "appearance": "Customize the look and feel of the web dashboard.",
     "tokens": "API tokens for authenticating barcode scanners.",
@@ -132,6 +134,7 @@ _TABS = [
     ("homeassistant", "Home Assistant",     "ti-home"),
     ("lookup",        "Barcode Lookup",     "ti-barcode"),
     ("matching",      "Matching & Sync",    "ti-arrows-sort"),
+    ("scanning",      "Scanning",           "ti-scan"),
     ("system",        "System",             "ti-settings"),
     ("appearance",    "Appearance",         "ti-palette"),
     ("tokens",        "API Tokens",         "ti-key"),
@@ -142,7 +145,7 @@ _TABS = [
 # Sidebar grouping: which tabs go under which subheader
 _SIDEBAR_GROUPS = {
     "Integrations": ["mealie", "homeassistant"],
-    "Configuration": ["lookup", "matching", "system"],
+    "Configuration": ["lookup", "matching", "scanning", "system"],
     "Personalization": ["appearance"],
     "Security": ["tokens", "users"],
     "Administration": ["admin"],
@@ -161,6 +164,7 @@ _TAB_GROUPS = {
     "homeassistant": ["Home Assistant"],
     "lookup":        ["Barcode Lookup Sources"],
     "matching":      ["Matching & Sync"],
+    "scanning":      ["Scanning"],
     "system":        ["System"],
 }
 

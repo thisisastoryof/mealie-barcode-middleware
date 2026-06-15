@@ -288,6 +288,7 @@
                 return;
             }
             if (pauseCountdown) pauseCountdown.textContent = formatRemaining(remaining);
+            if (settingsPauseRemaining) settingsPauseRemaining.textContent = formatRemaining(remaining);
             if (pauseMenuText && pauseMenuItem && pauseMenuItem.getAttribute('data-action') === 'resume') {
                 pauseMenuText.textContent = 'Resume Shopping List (' + formatRemaining(remaining) + ')';
             }
@@ -319,9 +320,10 @@
         }
     }
 
-    // Resume button in banner
+    // Resume button/link in banner
     if (pauseResumeBtn) {
-        pauseResumeBtn.addEventListener('click', function() {
+        pauseResumeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             fetch('/api/settings/resume', { method: 'POST' });
         });
     }

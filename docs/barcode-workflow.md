@@ -226,13 +226,13 @@ The `/scan` endpoint always returns HTTP 200 with a JSON body:
 }
 ```
 
-| Field          | Values                                        | Description                           |
-| -------------- | --------------------------------------------- | ------------------------------------- |
+| Field          | Values                                                         | Description                           |
+| -------------- | -------------------------------------------------------------- | ------------------------------------- |
 | `result`       | `added`, `added_as_note`, `queued`, `unknown`, `needs_mapping` | What happened                         |
-| `item`         | Product name or barcode string                | What's shown on the OLED              |
-| `via`          | `item_id` or `note`                           | How it was added to the shopping list |
-| `needs_action` | `true` / `false`                              | Should the user review this?          |
-| `action_url`   | URL or `null`                                 | Deep link to barcode detail page      |
-| `brand`        | Brand name or `null`                          | From external lookup                  |
-| `quantity`     | "1L", "500g", etc. or `null`                  | From external lookup                  |
-| `item_source`  | `mealie`, `manual`, or `null`                 | Where the matched item came from      |
+| `item`         | Product name or barcode string                                 | What's shown on the OLED              |
+| `via`          | `item_id` or `note`                                            | How it was added to the shopping list |
+| `needs_action` | `true` / `false`                                               | Should the user review this?          |
+| `action_url`   | URL or `null`                                                  | Deep link to barcode detail page      |
+| `brand`        | Brand name or `null`                                           | From external lookup                  |
+| `quantity`     | "1L", "500g", etc. or `null`                                   | From external lookup                  |
+| `item_source`  | `mealie`, `manual`, or `null`                                  | Where the matched item came from      |
