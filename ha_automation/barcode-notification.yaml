@@ -49,10 +49,13 @@ actions:
       result_type: "{{ trigger.json.result_type }}"
       action_url: "{{ trigger.json.action_url }}"
       added_to_list: "{{ trigger.json.added_to_list | default(true) }}"
+      paused: "{{ trigger.json.paused | default(false) }}"
 
   - variables:
       title: >-
-        {% if result_type == 'unknown' %}
+        {% if paused %}
+          Scanned (paused)
+        {% elif result_type == 'unknown' %}
           Unknown barcode
         {% elif result_type in ['added_as_note', 'needs_mapping'] %}
           Not linked
@@ -62,7 +65,9 @@ actions:
           Barcode scanned
         {% endif %}
       message: >-
-        {% if result_type == 'unknown' %}
+        {% if paused %}
+          {{ item }} — list paused, not added
+        {% elif result_type == 'unknown' %}
           {{ barcode }} — tap to identify
         {% elif result_type in ['added_as_note', 'needs_mapping'] %}
           {% if added_to_list %}

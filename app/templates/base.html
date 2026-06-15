@@ -16,6 +16,16 @@
 </head>
 <body>
     <div class="page">
+        <!-- Pause banner (hidden by default, shown via JS when paused) -->
+        <div class="system-banner bg-warning-lt d-none" id="pause-banner">
+            <span>
+                Shopping list paused — scans will not be added to your list. Resumes in
+                <strong id="pause-countdown"></strong>.
+            </span>
+            {% if request.session.get('is_admin') %}
+            <button class="btn btn-warning" id="pause-resume-btn">Resume now</button>
+            {% endif %}
+        </div>
         <!-- Navbar -->
         <header class="navbar navbar-expand-md d-print-none">
             <div class="container-xl">
@@ -52,6 +62,13 @@
                                 <a class="dropdown-item{{ ' active' if request.url.path.startswith('/activities') }}" href="/activities">
                                     <i class="ti ti-activity icon dropdown-item-icon"></i> Activity
                                 </a>
+                                {% if request.session.get('is_admin') %}
+                                <a class="dropdown-item" href="#" id="pause-menu-item"
+                                   data-action="pause">
+                                    <i class="ti ti-player-pause icon dropdown-item-icon"></i>
+                                    <span id="pause-menu-text">Pause Shopping List</span>
+                                </a>
+                                {% endif %}
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item{{ ' active' if request.url.path.startswith('/docs') }}" href="/docs">
                                     <i class="ti ti-book icon dropdown-item-icon"></i> Documentation
@@ -211,6 +228,29 @@
             </div>
         </div>
     </div>
+
+    <!-- Pause duration modal (admin-only, opened from three-dot menu) -->
+    {% if request.session.get('is_admin') %}
+    <div class="modal modal-blur fade" id="modal-pause" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-body text-center py-4">
+                    <i class="ti ti-player-pause icon mb-2 text-warning icon-lg"></i>
+                    <h3>Pause Shopping List</h3>
+                    <p class="text-secondary">Scans will still be processed and mapped, but nothing will be added to your shopping list.</p>
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button" class="btn btn-warning w-100 pause-duration-btn" data-minutes="5">5 minutes</button>
+                        <button type="button" class="btn btn-warning w-100 pause-duration-btn" data-minutes="20">20 minutes</button>
+                        <button type="button" class="btn btn-warning w-100 pause-duration-btn" data-minutes="60">1 hour</button>
+                        <button type="button" class="btn btn-warning w-100 pause-duration-btn" data-minutes="240">4 hours</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="d-none" id="pause-modal-trigger" data-bs-toggle="modal" data-bs-target="#modal-pause"></button>
+    {% endif %}
 
     <script src="/static/vendor/tabler/js/tabler.min.js"></script>
     <script src="/static/js/app.js?v={{ v }}"></script>

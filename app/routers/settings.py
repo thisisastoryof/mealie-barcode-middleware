@@ -312,6 +312,46 @@ def delete_token(token_id: str, request: Request, db: Session = Depends(get_db))
     return RedirectResponse("/settings?tab=tokens", status_code=303)
 
 
+# ── Pause Mode ───────────────────────────────────────────────────────
+
+@router.get("/api/settings/pause-status")
+def api_pause_status(db: Session = Depends(get_db)):
+    """Return current pause state (used by banner JS + SSE init)."""
+    from app.pause import get_pause_status
+    return JSONResponse(get_pause_status(db))
+
+
+@router.post("/api/settings/pause")
+async def api_pause(request: Request, db: Session = Depends(get_db)):
+    """Activate pause mode for N minutes. Admin-only."""
+    if not request.session.get("is_admin", False):
+        return JSONResponse({"error": "admin required"}, status_code=403)
+    from app.pause import pause_until, get_pause_status
+    from app.events import scan_events
+    body = await request.json()
+    minutes = int(body.get("minutes", 20))
+    if minutes < 1 or minutes > 1440:
+        return JSONResponse({"error": "minutes must be 1–1440"}, status_code=422)
+    pause_until(db, minutes)
+    status = get_pause_status(db)
+    scan_events.publish_threadsafe("pause", status)
+    return JSONResponse(status)
+
+
+@router.post("/api/settings/resume")
+def api_resume(request: Request, db: Session = Depends(get_db)):
+    """Cancel pause mode immediately. Admin-only."""
+    if not request.session.get("is_admin", False):
+        return JSONResponse({"error": "admin required"}, status_code=403)
+    from app.pause import resume_now
+    from app.events import scan_events
+    resume_now(db)
+    scan_events.publish_threadsafe("pause", {
+        "paused": False, "remaining_seconds": None, "resumes_at": None,
+    })
+    return JSONResponse({"paused": False})
+
+
 # ── Theme ────────────────────────────────────────────────────────────
 
 @router.get("/theme.css")

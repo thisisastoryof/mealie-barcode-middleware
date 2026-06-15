@@ -137,7 +137,7 @@ Displays all current configuration values, grouped into:
 
 - Mealie Connection — read-only (set via environment variables)
 - Barcode Lookup Sources — source toggles are editable live
-- Matching & Sync — thresholds, intervals, and unknown barcode behavior are editable live
+- Matching & Sync — thresholds, intervals, unknown barcode behavior, and pause mode controls are editable live
 - System — timezone and log level are editable live
 
 Settings marked as editable can be changed directly in the UI without restarting the container. They’re saved to the database and override the env var value. A reset button next to each restores the env/default value. Read-only settings (Mealie URL, API key, DB path, port) can only be changed by editing `.env` and restarting.

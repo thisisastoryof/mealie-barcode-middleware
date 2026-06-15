@@ -269,3 +269,19 @@
         -webkit-line-clamp: 3;
     }
 }
+
+/* ── System banner (reusable full-width strip above navbar) ── */
+.system-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    color: var(--tblr-body-color);
+    font-size: var(--tblr-body-font-size);
+    font-family: var(--tblr-body-font-family);
+    box-shadow: inset 0 -1px rgba(0, 0, 0, 0.1);
+}
+.system-banner.bg-warning-lt {
+    background: var(--tblr-warning-lt);
+}

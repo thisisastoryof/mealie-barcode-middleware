@@ -105,6 +105,7 @@
             esRetryDelay = Math.min(esRetryDelay * 2, 30000);
         };
         es.addEventListener('scan', onScanEvent);
+        es.addEventListener('pause', onPauseEvent);
     }
     // Close SSE cleanly before page unload to avoid console warnings
     window.addEventListener('beforeunload', function() {
@@ -226,6 +227,166 @@
         }, 2000);
     }
     connectSSE();
+
+    // ─── Pause Mode ─────────────────────────────────────────────────────────────
+    var pauseBanner = document.getElementById('pause-banner');
+    var pauseCountdown = document.getElementById('pause-countdown');
+    var pauseResumeBtn = document.getElementById('pause-resume-btn');
+    var pauseMenuItem = document.getElementById('pause-menu-item');
+    var pauseMenuText = document.getElementById('pause-menu-text');
+    var pauseModalTrigger = document.getElementById('pause-modal-trigger');
+    var _pauseTimer = null;
+    var _pauseResumesAt = null;
+
+    function formatRemaining(secs) {
+        if (secs <= 0) return '0 s';
+        if (secs < 60) return Math.ceil(secs) + ' s';
+        if (secs < 3600) return Math.ceil(secs / 60) + ' min';
+        var h = Math.floor(secs / 3600);
+        var m = Math.ceil((secs % 3600) / 60);
+        return h + ' h ' + m + ' min';
+    }
+
+    function updatePauseBanner(data) {
+        if (!pauseBanner) return;
+        if (data.paused) {
+            _pauseResumesAt = new Date(data.resumes_at);
+            if (pauseCountdown) pauseCountdown.textContent = formatRemaining(data.remaining_seconds);
+            pauseBanner.classList.remove('d-none');
+            startPauseCountdown();
+            // Update menu item to "Resume"
+            if (pauseMenuItem) {
+                pauseMenuItem.setAttribute('data-action', 'resume');
+                var icon = pauseMenuItem.querySelector('i');
+                if (icon) { icon.className = 'ti ti-player-play icon dropdown-item-icon'; }
+            }
+            if (pauseMenuText) pauseMenuText.textContent = 'Resume Shopping List (' + formatRemaining(data.remaining_seconds) + ')';
+        } else {
+            clearInterval(_pauseTimer);
+            _pauseTimer = null;
+            _pauseResumesAt = null;
+            pauseBanner.classList.add('d-none');
+            // Update menu item to "Pause"
+            if (pauseMenuItem) {
+                pauseMenuItem.setAttribute('data-action', 'pause');
+                var icon = pauseMenuItem.querySelector('i');
+                if (icon) { icon.className = 'ti ti-player-pause icon dropdown-item-icon'; }
+            }
+            if (pauseMenuText) pauseMenuText.textContent = 'Pause Shopping List';
+        }
+    }
+
+    function startPauseCountdown() {
+        clearInterval(_pauseTimer);
+        _pauseTimer = setInterval(function() {
+            if (!_pauseResumesAt) { clearInterval(_pauseTimer); return; }
+            var remaining = (_pauseResumesAt.getTime() - Date.now()) / 1000;
+            if (remaining <= 0) {
+                clearInterval(_pauseTimer);
+                updatePauseBanner({ paused: false });
+                showPauseToast('Shopping list resumed — scans will now add to your list.');
+                return;
+            }
+            if (pauseCountdown) pauseCountdown.textContent = formatRemaining(remaining);
+            if (pauseMenuText && pauseMenuItem && pauseMenuItem.getAttribute('data-action') === 'resume') {
+                pauseMenuText.textContent = 'Resume Shopping List (' + formatRemaining(remaining) + ')';
+            }
+        }, 1000);
+    }
+
+    function showPauseToast(msg) {
+        if (!toastContainer) return;
+        var toast = document.createElement('div');
+        toast.className = 'toast show';
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = '<div class="toast-header">'
+            + '<span class="avatar avatar-xs me-2 bg-success">'
+            + '<i class="ti ti-check icon-sm text-white"></i></span>'
+            + '<strong class="me-auto">Shopping List</strong>'
+            + '<button type="button" class="ms-2 btn-close" data-bs-dismiss="toast" aria-label="Close"></button>'
+            + '</div>'
+            + '<div class="toast-body">' + esc(msg) + '</div>';
+        toastContainer.prepend(toast);
+        setTimeout(function() { if (toast.parentNode) toast.remove(); }, 8000);
+    }
+
+    function onPauseEvent(e) {
+        var data = JSON.parse(e.data);
+        updatePauseBanner(data);
+        updateSettingsPauseCard(data);
+        if (!data.paused) {
+            showPauseToast('Shopping list resumed — scans will now add to your list.');
+        }
+    }
+
+    // Resume button in banner
+    if (pauseResumeBtn) {
+        pauseResumeBtn.addEventListener('click', function() {
+            fetch('/api/settings/resume', { method: 'POST' });
+        });
+    }
+
+    // Three-dot menu: pause/resume toggle
+    if (pauseMenuItem) {
+        pauseMenuItem.addEventListener('click', function(e) {
+            e.preventDefault();
+            var action = pauseMenuItem.getAttribute('data-action');
+            if (action === 'resume') {
+                fetch('/api/settings/resume', { method: 'POST' });
+            } else if (pauseModalTrigger) {
+                pauseModalTrigger.click();
+            }
+        });
+    }
+
+    // Duration buttons in pause modal
+    var durationBtns = document.querySelectorAll('.pause-duration-btn');
+    durationBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var minutes = parseInt(btn.getAttribute('data-minutes'), 10);
+            fetch('/api/settings/pause', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ minutes: minutes })
+            });
+            // Close modal via hidden dismiss button
+            var closeBtn = document.querySelector('#modal-pause .btn-close');
+            if (closeBtn) closeBtn.click();
+        });
+    });
+
+    // Fetch initial pause status on page load
+    fetch('/api/settings/pause-status')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            updatePauseBanner(data);
+            updateSettingsPauseCard(data);
+        })
+        .catch(function() {});
+
+    // Settings page pause card (if present)
+    var settingsPauseActive = document.getElementById('settings-pause-active');
+    var settingsPauseInactive = document.getElementById('settings-pause-inactive');
+    var settingsPauseRemaining = document.getElementById('settings-pause-remaining');
+    var settingsResumeBtn = document.getElementById('settings-resume-btn');
+
+    function updateSettingsPauseCard(data) {
+        if (!settingsPauseActive) return;
+        if (data.paused) {
+            settingsPauseActive.classList.remove('d-none');
+            settingsPauseInactive.classList.add('d-none');
+            if (settingsPauseRemaining) settingsPauseRemaining.textContent = formatRemaining(data.remaining_seconds);
+        } else {
+            settingsPauseActive.classList.add('d-none');
+            settingsPauseInactive.classList.remove('d-none');
+        }
+    }
+
+    if (settingsResumeBtn) {
+        settingsResumeBtn.addEventListener('click', function() {
+            fetch('/api/settings/resume', { method: 'POST' });
+        });
+    }
 
     // ─── Dashboard partial refresh ──────────────────────────────────────────────
     function refreshDashboard() {

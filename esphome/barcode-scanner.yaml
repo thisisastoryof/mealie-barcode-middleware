@@ -151,6 +151,11 @@ text_sensor:
     internal: true
 
   - platform: template
+    name: "Last Paused"
+    id: last_paused
+    internal: true
+
+  - platform: template
     name: "Barcode Raw"
     id: barcode_raw
     internal: true
@@ -219,6 +224,10 @@ text_sensor:
                             const char* action_raw = root["action_url"] | (const char*)nullptr;
                             std::string action_url = action_raw ? action_raw : "";
                             id(pending_action_url).publish_state(needs_action ? action_url : "");
+
+                            // Pause state
+                            bool paused = root["paused"] | false;
+                            id(last_paused).publish_state(paused ? "1" : "0");
 
                             return true;
                           });
@@ -445,15 +454,20 @@ display:
         it.fill(COLOR_OFF);
         // Result type header with icon
         auto rtype = id(last_result_type).state;
+        bool is_paused = (id(last_paused).state == "1");
         if (rtype == "added" || rtype == "added_as_note") {
           it.printf(0, 0, id(font_icons), "\U000F05E0");  // check-circle
-          it.printf(22, 2, id(font_heading), "Added");
+          it.printf(22, 2, id(font_heading), is_paused ? "Linked (paused)" : "Added");
         } else if (rtype == "queued") {
           it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
           it.printf(22, 2, id(font_heading), "Queued");
         } else if (rtype == "unknown" || rtype == "needs_mapping") {
           it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
-          it.printf(22, 2, id(font_heading), rtype == "needs_mapping" ? "Not Linked" : "Needs Mapping");
+          if (rtype == "needs_mapping") {
+            it.printf(22, 2, id(font_heading), "Not Linked");
+          } else {
+            it.printf(22, 2, id(font_heading), is_paused ? "Unknown (paused)" : "Needs Mapping");
+          }
         } else if (rtype == "timeout") {
           it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
           it.printf(22, 2, id(font_heading), "Timed Out");

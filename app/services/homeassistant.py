@@ -9,7 +9,7 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 
-def notify_scan(barcode: str, item: str | None, result: str, action_url: str, added_to_list: bool = True) -> None:
+def notify_scan(barcode: str, item: str | None, result: str, action_url: str, added_to_list: bool = True, paused: bool = False) -> None:
     """POST scan data to the HA webhook. Fire-and-forget, never raises."""
     url = settings.ha_webhook_url
     if not url:
@@ -21,6 +21,7 @@ def notify_scan(barcode: str, item: str | None, result: str, action_url: str, ad
         "result_type": result,
         "action_url": action_url,
         "added_to_list": added_to_list,
+        "paused": paused,
     }
 
     try:

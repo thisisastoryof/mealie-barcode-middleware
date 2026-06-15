@@ -30,9 +30,14 @@ def _run_item_sync():
 def _process_retry_queue():
     """Background job: retry failed Mealie shopping list additions."""
     import httpx
+    from app.pause import is_paused
 
     db = SessionLocal()
     try:
+        if is_paused(db):
+            logger.debug("Retry queue skipped — shopping list is paused")
+            return
+
         now = utcnow()
         pending = (
             db.query(RetryQueue)

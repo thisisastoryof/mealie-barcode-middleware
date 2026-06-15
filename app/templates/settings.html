@@ -278,6 +278,39 @@
                 {% endif %}
             </form>
 
+            {# ──────────── Pause card (matching tab, admin-only) ──────────── #}
+            {% if current_tab == 'matching' and request.session.get('is_admin') %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">Pause Shopping List</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-secondary">Temporarily suspend all shopping list additions.
+                        Scans are still processed, cached, and auto-mapped — only the Mealie
+                        shopping list POST is skipped.</p>
+                    <div id="settings-pause-status">
+                        <div id="settings-pause-active" class="d-none">
+                            <div class="mb-3">
+                                <span class="badge bg-warning">Paused</span>
+                                Resumes in <strong id="settings-pause-remaining"></strong>
+                            </div>
+                            <button type="button" class="btn btn-warning" id="settings-resume-btn">
+                                <i class="ti ti-player-play icon"></i> Resume now
+                            </button>
+                        </div>
+                        <div id="settings-pause-inactive">
+                            <div class="btn-list">
+                                <button type="button" class="btn btn-warning pause-duration-btn" data-minutes="5">5 min</button>
+                                <button type="button" class="btn btn-warning pause-duration-btn" data-minutes="20">20 min</button>
+                                <button type="button" class="btn btn-warning pause-duration-btn" data-minutes="60">1 hour</button>
+                                <button type="button" class="btn btn-warning pause-duration-btn" data-minutes="240">4 hours</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             {# ──────────── Appearance tab ──────────── #}
             {% elif current_tab == 'appearance' %}
 
