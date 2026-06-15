@@ -288,6 +288,13 @@
     font-family: var(--tblr-body-font-family);
     box-shadow: inset 0 -1px rgba(0, 0, 0, 0.1);
 }
+.system-banner > span {
+    min-width: 0;
+}
+.system-banner > .badge {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
 .system-banner.bg-warning-lt {
     background: var(--tblr-warning-lt);
 }
