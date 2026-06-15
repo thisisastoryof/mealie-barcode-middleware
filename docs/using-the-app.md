@@ -156,7 +156,7 @@ The **Activity** page (`/activities`) shows a full chronological log of every sc
 
 If you've configured a Home Assistant webhook (`HA_WEBHOOK_URL`), you'll also get push notifications on your phone for scans that need attention. Tap the notification to open the barcode detail page in the middleware.
 
-When you review a barcode in the web UI (clicking a bell notification or visiting the barcode detail page), the corresponding phone notification is automatically cleared — no need to dismiss it manually on your phone.
+When you resolve the issue — linking an unknown barcode, confirming an auto-link, or creating & linking a new item — the corresponding phone notification is automatically cleared.
 
 See [Middleware Setup — Push Notifications](middleware-setup.md#push-notifications-via-home-assistant) for configuration.
 

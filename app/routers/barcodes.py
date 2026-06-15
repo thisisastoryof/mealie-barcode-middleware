@@ -12,6 +12,7 @@ from app.database import get_db
 from app.models import BarcodeCache, BarcodeMapping, Item, Activity, RetryQueue
 from app.services.barcode_lookup import perform_lookup
 from app.services.fuzzy import fuzzy_match
+from app.services.homeassistant import dismiss_notification as ha_dismiss
 from app.templating import templates
 
 logger = logging.getLogger(__name__)
@@ -19,11 +20,12 @@ router = APIRouter()
 
 
 def _dismiss_notifications(barcode: str, db: Session):
-    """Mark all unread notifications for a barcode as read."""
+    """Mark all unread notifications for a barcode as read and clear HA phone notification."""
     db.query(Activity).filter(
         Activity.barcode == barcode,
         Activity.is_read == False,
     ).update({"is_read": True})
+    ha_dismiss(barcode)
 
 
 @router.get("/barcodes", response_class=HTMLResponse)
