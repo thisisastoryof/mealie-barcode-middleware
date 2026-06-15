@@ -45,52 +45,69 @@ triggers:
 actions:
   - variables:
       barcode: "{{ trigger.json.barcode }}"
-      item: "{{ trigger.json.item }}"
-      result_type: "{{ trigger.json.result_type }}"
-      action_url: "{{ trigger.json.action_url }}"
-      added_to_list: "{{ trigger.json.added_to_list | default(true) }}"
-      paused: "{{ trigger.json.paused | default(false) }}"
+      webhook_action: "{{ trigger.json.action | default('notify') }}"
 
-  - variables:
-      title: >-
-        {% if paused %}
-          Scanned (paused)
-        {% elif result_type == 'unknown' %}
-          Unknown barcode
-        {% elif result_type in ['added_as_note', 'needs_mapping'] %}
-          Not linked
-        {% elif result_type == 'added' %}
-          Auto-linked — review
-        {% else %}
-          Barcode scanned
-        {% endif %}
-      message: >-
-        {% if paused %}
-          {{ item }} — list paused, not added
-        {% elif result_type == 'unknown' %}
-          {{ barcode }} — tap to identify
-        {% elif result_type in ['added_as_note', 'needs_mapping'] %}
-          {% if added_to_list %}
-            {{ item }} — added to list, tap to link
-          {% else %}
-            {{ item }} — tap to link to a Mealie item
-          {% endif %}
-        {% elif result_type == 'added' %}
-          {{ item }} — tap to review
-        {% else %}
-          {{ item }}
-        {% endif %}
+  - choose:
+      # ── Clear notification (sent when user reviews in the web UI) ──
+      - conditions:
+          - condition: template
+            value_template: "{{ webhook_action == 'clear' }}"
+        sequence:
+          - action: notify.mobile_app_YOUR_PHONE
+            data:
+              message: "clear_notification"
+              data:
+                tag: "barcode-{{ barcode }}"
 
-  # ── Phone notification with deep link ──
-  - action: notify.mobile_app_YOUR_PHONE
-    data:
-      title: "{{ title }}"
-      message: "{{ message }}"
-      data:
-        # Android
-        clickAction: "{{ action_url }}"
-        # iOS
-        url: "{{ action_url }}"
-        # Group by barcode to prevent notification spam
-        group: "barcode-scanner"
-        tag: "barcode-{{ barcode }}"
+    # ── Default: send notification ──
+    default:
+      - variables:
+          item: "{{ trigger.json.item }}"
+          result_type: "{{ trigger.json.result_type }}"
+          action_url: "{{ trigger.json.action_url }}"
+          added_to_list: "{{ trigger.json.added_to_list | default(true) }}"
+          paused: "{{ trigger.json.paused | default(false) }}"
+
+      - variables:
+          title: >-
+            {% if paused %}
+              Scanned (scan & link)
+            {% elif result_type == 'unknown' %}
+              Unknown barcode
+            {% elif result_type in ['added_as_note', 'needs_mapping'] %}
+              Not linked
+            {% elif result_type == 'added' %}
+              Auto-linked — review
+            {% else %}
+              Barcode scanned
+            {% endif %}
+          message: >-
+            {% if paused %}
+              {{ item }} — scan & link mode, not added to list
+            {% elif result_type == 'unknown' %}
+              {{ barcode }} — tap to identify
+            {% elif result_type in ['added_as_note', 'needs_mapping'] %}
+              {% if added_to_list %}
+                {{ item }} — added to list, tap to link
+              {% else %}
+                {{ item }} — tap to link to a Mealie item
+              {% endif %}
+            {% elif result_type == 'added' %}
+              {{ item }} — tap to review
+            {% else %}
+              {{ item }}
+            {% endif %}
+
+      # ── Phone notification with deep link ──
+      - action: notify.mobile_app_YOUR_PHONE
+        data:
+          title: "{{ title }}"
+          message: "{{ message }}"
+          data:
+            # Android
+            clickAction: "{{ action_url }}"
+            # iOS
+            url: "{{ action_url }}"
+            # Group by barcode to prevent notification spam
+            group: "barcode-scanner"
+            tag: "barcode-{{ barcode }}"

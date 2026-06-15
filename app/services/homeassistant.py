@@ -34,3 +34,26 @@ def notify_scan(barcode: str, item: str | None, result: str, action_url: str, ad
         logger.warning("HA webhook timed out for barcode %s", barcode)
     except Exception:
         logger.warning("HA webhook failed for barcode %s", barcode, exc_info=True)
+
+
+def dismiss_notification(barcode: str) -> None:
+    """Tell HA to clear the phone notification for this barcode."""
+    url = settings.ha_webhook_url
+    if not url:
+        return
+
+    payload = {
+        "action": "clear",
+        "barcode": barcode,
+    }
+
+    try:
+        resp = httpx.post(url, json=payload, timeout=3)
+        if resp.status_code >= 400:
+            logger.warning("HA dismiss webhook returned %d: %s", resp.status_code, resp.text[:200])
+        else:
+            logger.debug("HA dismiss sent for barcode %s", barcode)
+    except httpx.TimeoutException:
+        logger.warning("HA dismiss webhook timed out for barcode %s", barcode)
+    except Exception:
+        logger.warning("HA dismiss webhook failed for barcode %s", barcode, exc_info=True)

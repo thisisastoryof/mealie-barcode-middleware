@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Activity
+from app.services.homeassistant import dismiss_notification as ha_dismiss
 from app.templating import templates, _localtime
 
 router = APIRouter()
@@ -50,24 +51,26 @@ def mark_all_read(db: Session = Depends(get_db)):
 
 
 @router.post("/api/notifications/read-barcode/{barcode}")
-def mark_read_by_barcode(barcode: str, db: Session = Depends(get_db)):
+def mark_read_by_barcode(barcode: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Mark all notifications for a given barcode as read."""
     db.query(Activity).filter(
         Activity.barcode == barcode,
         Activity.is_read == False,
     ).update({"is_read": True})
     db.commit()
+    background_tasks.add_task(ha_dismiss, barcode)
     return {"ok": True}
 
 
 @router.post("/api/notifications/{notification_id}/dismiss")
-def dismiss_notification(notification_id: int, db: Session = Depends(get_db)):
+def dismiss_notification(notification_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Dismiss a single notification from the bell dropdown."""
     n = db.get(Activity, notification_id)
     if n:
         n.is_dismissed = True
         n.is_read = True
         db.commit()
+        background_tasks.add_task(ha_dismiss, n.barcode)
     return {"ok": True}
 
 
