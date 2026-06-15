@@ -116,16 +116,17 @@
         var barcode = data.barcode;
         var result = data.result;
         var item = data.item;
+        var isPaused = !!data.paused;
 
         var color, title, desc;
         if (result === 'added') {
-            color = 'success';
-            title = 'Added to shopping list';
+            color = isPaused ? 'azure' : 'success';
+            title = isPaused ? 'Scanned (scan & link)' : 'Added to shopping list';
             desc = item ? esc(item) + ' (' + esc(barcode) + ')' : esc(barcode);
         } else if (result === 'added_as_note') {
-            color = 'success';
-            title = 'Added to shopping list';
-            desc = (item ? esc(item) + ' (' + esc(barcode) + ')' : esc(barcode)) + ' (via note)';
+            color = isPaused ? 'azure' : 'success';
+            title = isPaused ? 'Scanned (scan & link)' : 'Added to shopping list';
+            desc = (item ? esc(item) + ' (' + esc(barcode) + ')' : esc(barcode)) + (isPaused ? '' : ' (via note)');
         } else if (result === 'queued') {
             color = 'warning';
             title = 'Queued for retry';

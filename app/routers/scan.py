@@ -225,6 +225,7 @@ def _emit_scan_event(barcode: str, resp: ScanResponse):
         "barcode": barcode,
         "result": resp.result,
         "item": resp.item,
+        "paused": resp.paused,
     })
 
 
