@@ -79,8 +79,9 @@ After flashing, the OLED will show "Connecting..." for up to 30 seconds, then "C
 | `timeout`       | ⚠ alert        | HTTP request timed out                 |
 | `error`         | ✕ close-circle | Server error or parse failure          |
 
-When **Scan & Link mode** is active, the OLED appends "(paused)" to the result text
-(e.g. "Linked (paused)", "Unknown (paused)") so users know the item wasn't added
+When **Scan & Link mode** is active, the OLED shows "Linked" instead of "Added"
+and "Unknown" instead of "Needs Mapping" — the check-circle icon still appears so
+users know the scan succeeded, but the different text signals the item wasn't added
 to the shopping list.
 
 ### Button Behavior

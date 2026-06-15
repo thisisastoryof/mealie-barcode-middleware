@@ -457,7 +457,7 @@ display:
         bool is_paused = (id(last_paused).state == "1");
         if (rtype == "added" || rtype == "added_as_note") {
           it.printf(0, 0, id(font_icons), "\U000F05E0");  // check-circle
-          it.printf(22, 2, id(font_heading), is_paused ? "Linked (paused)" : "Added");
+          it.printf(22, 2, id(font_heading), is_paused ? "Linked" : "Added");
         } else if (rtype == "queued") {
           it.printf(0, 0, id(font_icons), "\U000F0026");  // alert
           it.printf(22, 2, id(font_heading), "Queued");
@@ -466,7 +466,7 @@ display:
           if (rtype == "needs_mapping") {
             it.printf(22, 2, id(font_heading), "Not Linked");
           } else {
-            it.printf(22, 2, id(font_heading), is_paused ? "Unknown (paused)" : "Needs Mapping");
+            it.printf(22, 2, id(font_heading), is_paused ? "Unknown" : "Needs Mapping");
           }
         } else if (rtype == "timeout") {
           it.printf(0, 0, id(font_icons), "\U000F0026");  // alert

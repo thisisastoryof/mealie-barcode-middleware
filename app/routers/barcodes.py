@@ -19,12 +19,17 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-def _dismiss_notifications(barcode: str, db: Session):
-    """Mark all unread notifications for a barcode as read and clear HA phone notification."""
+def _mark_notifications_read(barcode: str, db: Session):
+    """Mark web notifications as read (viewing only — does NOT clear HA phone notification)."""
     db.query(Activity).filter(
         Activity.barcode == barcode,
         Activity.is_read == False,
     ).update({"is_read": True})
+
+
+def _resolve_notifications(barcode: str, db: Session):
+    """Mark notifications read AND clear HA phone notification (issue resolved)."""
+    _mark_notifications_read(barcode, db)
     ha_dismiss(barcode)
 
 
@@ -96,7 +101,7 @@ def barcode_detail(
     mapped_item = db.get(Item, mapping.item_id) if mapping else None
 
     # Auto-clear notifications for this barcode on visit
-    _dismiss_notifications(barcode, db)
+    _mark_notifications_read(barcode, db)
     db.commit()
 
     # Get fuzzy candidates
@@ -144,7 +149,7 @@ def barcode_map(
         db.add(BarcodeMapping(barcode=barcode, item_id=item_id, mapped_by="manual"))
 
     # Mark notifications for this barcode as read
-    _dismiss_notifications(barcode, db)
+    _resolve_notifications(barcode, db)
 
     db.commit()
     return RedirectResponse(f"/barcodes/{quote(barcode, safe='')}", status_code=303)
@@ -173,7 +178,7 @@ def barcode_create_and_map(
         db.add(BarcodeMapping(barcode=barcode, item_id=item.id, mapped_by="manual"))
 
     # Mark notifications for this barcode as read
-    _dismiss_notifications(barcode, db)
+    _resolve_notifications(barcode, db)
 
     db.commit()
     return RedirectResponse(f"/barcodes/{quote(barcode, safe='')}", status_code=303)
@@ -185,7 +190,7 @@ def barcode_confirm(barcode: str, db: Session = Depends(get_db)):
     existing = db.get(BarcodeMapping, barcode)
     if existing and existing.mapped_by == "auto":
         existing.mapped_by = "auto_confirmed"
-        _dismiss_notifications(barcode, db)
+        _resolve_notifications(barcode, db)
         db.commit()
     return RedirectResponse(f"/barcodes/{quote(barcode, safe='')}", status_code=303)
 
