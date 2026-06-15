@@ -20,6 +20,7 @@ from app.services.mealie import (
     enqueue_retry,
 )
 from app.services.homeassistant import notify_scan as ha_notify_scan
+from app.pause import is_paused
 from app.utils import utcnow, sanitize_for_display
 
 logger = logging.getLogger(__name__)
@@ -65,7 +66,8 @@ def scan_barcode(
     try:
         resp = _process_scan(barcode, db, background_tasks)
         if resp.needs_action:
-            background_tasks.add_task(ha_notify_scan, barcode, resp.item, resp.result, resp.action_url or "")
+            added_to_list = resp.via is not None and resp.result not in ("unknown", "needs_mapping") and not resp.paused
+            background_tasks.add_task(ha_notify_scan, barcode, resp.item, resp.result, resp.action_url or "", added_to_list, resp.paused)
         return resp
     except Exception:
         logger.exception("Unhandled error processing scan for barcode %s", barcode)
@@ -74,6 +76,8 @@ def scan_barcode(
 
 
 def _process_scan(barcode: str, db: Session, background_tasks: BackgroundTasks) -> ScanResponse:
+
+    paused = is_paused(db)
 
     # --- Validate barcode format ---
     # Accept: digits only (EAN-13, UPC-A, EAN-8, etc.) or GENERIC: prefix.
@@ -110,7 +114,7 @@ def _process_scan(barcode: str, db: Session, background_tasks: BackgroundTasks) 
     # --- GENERIC QR code handling ---
     if barcode.upper().startswith("GENERIC:"):
         term = barcode[len("GENERIC:"):].strip()
-        resp = _handle_generic(term, barcode, db)
+        resp = _handle_generic(term, barcode, db, paused=paused)
         _emit_scan_event(barcode, resp)
         return resp
 
@@ -255,7 +259,7 @@ def _save_activity(barcode: str, title: str, message: str, result: str, db: Sess
     db.commit()
 
 
-def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
+def _handle_generic(term: str, barcode: str, db: Session, paused: bool = False) -> ScanResponse:
     """Handle GENERIC: prefixed scans — fuzzy search mealie items."""
     from rapidfuzz import fuzz
 
@@ -295,7 +299,16 @@ def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
             best_item = item
 
     if best_item and best_score >= settings.fuzzy_match_threshold:
+        if paused:
+            resp = ScanResponse(result="added", item=best_item.name, via=None, paused=True)
+            _save_activity(barcode, "Scanned (paused)", best_item.name, resp.result, db)
+            return resp
         return _add_via_item(best_item, best_item.name, barcode, db)
+
+    if paused:
+        resp = ScanResponse(result="added_as_note", item=term, via=None, paused=True)
+        _save_activity(barcode, "Scanned (paused)", term, resp.result, db)
+        return resp
 
     # Fallback: add as note
     success = add_to_shopping_list_by_note(term)
