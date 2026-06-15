@@ -103,6 +103,7 @@ _md = mistune.create_markdown(escape=False, plugins=["table"])
 
 _HEADING_RE = re.compile(r"<h(\d)(.*?)>(.*?)</h\1>", re.DOTALL)
 _TAG_RE = re.compile(r"<[^>]+>")
+_DOC_LINK_RE = re.compile(r'href="([a-z0-9_-]+)\.md(#[^"]*)?"')
 
 
 def _slugify(text: str) -> str:
@@ -143,6 +144,13 @@ def _render_with_toc(raw: str) -> tuple[str, list[dict]]:
         return f'<h2 id="{slug}"{attrs}>{inner}</h2>'
 
     html = _HEADING_RE.sub(_replace_heading, html)
+
+    # Rewrite inter-doc links: href="slug.md" → href="/docs/slug"
+    # Keeps .md links working on GitHub while resolving in the web UI.
+    html = _DOC_LINK_RE.sub(
+        lambda m: f'href="/docs/{m.group(1)}{m.group(2) or ""}"', html
+    )
+
     return html, toc
 
 
