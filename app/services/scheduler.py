@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from app.config import settings
 from app.database import SessionLocal
 from app.events import scan_events
-from app.models import BarcodeMapping, Item, Notification, RetryQueue
+from app.models import BarcodeMapping, Item, Activity, RetryQueue
 from app.services.mealie import sync_items
 from app.utils import utcnow
 
@@ -66,7 +66,7 @@ def _process_retry_queue():
                 else:
                     item.attempts += 1
                     if item.attempts >= settings.max_retry_attempts:
-                        _create_retry_failed_notification(item, db)
+                        _create_retry_failed_activity(item, db)
                         db.delete(item)
                         logger.warning(
                             f"Retry permanently failed for {item.barcode} after "
@@ -82,7 +82,7 @@ def _process_retry_queue():
             except httpx.HTTPError as e:
                 item.attempts += 1
                 if item.attempts >= settings.max_retry_attempts:
-                    _create_retry_failed_notification(item, db)
+                    _create_retry_failed_activity(item, db)
                     db.delete(item)
                     logger.warning(
                         f"Retry permanently failed for {item.barcode} after "
@@ -98,8 +98,8 @@ def _process_retry_queue():
         db.close()
 
 
-def _create_retry_failed_notification(item: RetryQueue, db):
-    """Create a notification when a retry queue item permanently fails."""
+def _create_retry_failed_activity(item: RetryQueue, db):
+    """Create an activity entry when a retry queue item permanently fails."""
     try:
         payload = json.loads(item.payload)
         item_hint = payload.get("note") or payload.get("foodId") or item.barcode
@@ -109,7 +109,7 @@ def _create_retry_failed_notification(item: RetryQueue, db):
     title = "Failed to add to shopping list"
     message = f"{item_hint} — could not reach Mealie after {item.attempts} retries"
 
-    db.add(Notification(
+    db.add(Activity(
         barcode=item.barcode,
         title=title,
         message=message,
@@ -124,21 +124,21 @@ def _create_retry_failed_notification(item: RetryQueue, db):
     })
 
 
-def _purge_old_notifications():
-    """Delete read notifications older than 7 days."""
+def _purge_old_activities():
+    """Delete read activity entries older than 7 days."""
     db = SessionLocal()
     try:
         cutoff = utcnow() - timedelta(days=7)
         deleted = (
-            db.query(Notification)
-            .filter(Notification.is_read == True, Notification.created_at < cutoff)
+            db.query(Activity)
+            .filter(Activity.is_read == True, Activity.created_at < cutoff)
             .delete()
         )
         db.commit()
         if deleted:
-            logger.info(f"Purged {deleted} old read notifications")
+            logger.info(f"Purged {deleted} old read activities")
     except Exception as e:
-        logger.error(f"Notification purge failed: {e}")
+        logger.error(f"Activity purge failed: {e}")
     finally:
         db.close()
 
@@ -172,14 +172,14 @@ def start_scheduler():
         replace_existing=True,
     )
     scheduler.add_job(
-        _purge_old_notifications,
+        _purge_old_activities,
         "interval",
         hours=24,
-        id="notification_purge",
+        id="activity_purge",
         replace_existing=True,
     )
     scheduler.start()
-    logger.info("Scheduler started (item sync + retry queue + notification purge)")
+    logger.info("Scheduler started (item sync + retry queue + activity purge)")
 
 
 def stop_scheduler():

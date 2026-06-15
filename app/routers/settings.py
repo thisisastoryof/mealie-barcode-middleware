@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.auth import generate_token, hash_token
 from app.config import settings, EDITABLE_SETTINGS, READONLY_SETTINGS
 from app.database import get_db
-from app.models import ApiToken, BarcodeCache, BarcodeMapping, Item, Notification, RetryQueue, User
+from app.models import ApiToken, BarcodeCache, BarcodeMapping, Item, Activity, RetryQueue, User
 from app.templating import templates, set_cached_theme, get_cached_theme_css
 from app.theme import THEME_CHOICES, THEME_DEFAULTS, get_theme, save_theme
 
@@ -423,7 +423,7 @@ def _get_admin_info(db: Session) -> dict:
             "barcode_cache": db.query(BarcodeCache).count(),
             "barcode_mappings": db.query(BarcodeMapping).count(),
             "items": db.query(Item).count(),
-            "notifications": db.query(Notification).count(),
+            "activities": db.query(Activity).count(),
             "retry_queue": db.query(RetryQueue).count(),
             "api_tokens": db.query(ApiToken).count(),
         },
@@ -466,7 +466,7 @@ def admin_purge_table(table: str, request: Request, db: Session = Depends(get_db
         "barcode_cache": BarcodeCache,
         "barcode_mappings": BarcodeMapping,
         "items": Item,
-        "notifications": Notification,
+        "activities": Activity,
         "retry_queue": RetryQueue,
     }
     model = table_map.get(table)
@@ -490,7 +490,7 @@ def admin_reset(request: Request, db: Session = Depends(get_db)):
     db.query(BarcodeMapping).delete()
     db.query(BarcodeCache).delete()
     db.query(Item).delete()
-    db.query(Notification).delete()
+    db.query(Activity).delete()
     db.query(RetryQueue).delete()
     db.commit()
     logger.info("Admin: full data reset (tokens preserved)")
@@ -505,7 +505,7 @@ def admin_factory_reset(request: Request, db: Session = Depends(get_db)):
     db.query(BarcodeMapping).delete()
     db.query(BarcodeCache).delete()
     db.query(Item).delete()
-    db.query(Notification).delete()
+    db.query(Activity).delete()
     db.query(RetryQueue).delete()
     db.query(ApiToken).delete()
     db.commit()

@@ -153,13 +153,13 @@ If `LOOKUP_ENRICH_IN_BACKGROUND=false`, the secondary call is made synchronously
 
 ### Matching & Sync
 
-| Variable                   | Default | Description                                                           |
-| -------------------------- | ------- | --------------------------------------------------------------------- |
-| `FUZZY_MATCH_THRESHOLD`    | `85`    | Minimum score (0–100) to auto-link a barcode to a Mealie item         |
-| `FUZZY_AMBIGUITY_GAP`      | `10`    | Minimum gap between #1 and #2 match scores (prevents ambiguous links) |
-| `ITEM_SYNC_INTERVAL_HOURS` | `6`     | How often to re-sync the Mealie food catalog                          |
-| `LOOKUP_TTL_DAYS`          | `30`    | Days before retrying an external lookup for an unresolved barcode     |
-| `MAX_RETRY_ATTEMPTS`       | `10`    | Max retries for failed Mealie shopping list additions                 |
+| Variable                   | Default       | Description                                                                                                                          |
+| -------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `FUZZY_MATCH_THRESHOLD`    | `85`          | Minimum score (0–100) to auto-link a barcode to a Mealie item                                                                        |
+| `FUZZY_AMBIGUITY_GAP`      | `10`          | Minimum gap between #1 and #2 match scores (prevents ambiguous links)                                                                |
+| `ITEM_SYNC_INTERVAL_HOURS` | `6`           | How often to re-sync the Mealie food catalog                                                                                         |
+| `LOOKUP_TTL_DAYS`          | `30`          | Days before retrying an external lookup for an unresolved barcode                                                                    |
+| `MAX_RETRY_ATTEMPTS`       | `10`          | Max retries for failed Mealie shopping list additions                                                                                |
 | `UNKNOWN_BARCODE_ACTION`   | `add_to_list` | What happens when a barcode can't be linked: `add_to_list` (add as note + notify) or `notify_only` (notify only, skip shopping list) |
 
 ### System
@@ -260,11 +260,11 @@ The middleware uses a single SQLite file at `/data/barcode.db` (configurable via
 
 The middleware runs three background jobs via APScheduler:
 
-| Job                | Interval    | Description                                           |
-| ------------------ | ----------- | ----------------------------------------------------- |
-| Item sync          | Every 6 h   | Re-fetches Mealie food catalog, detects deletions     |
-| Retry queue        | Every 2 min | Retries failed shopping list additions (exp. backoff) |
-| Notification purge | Every 24 h  | Deletes read notifications older than 7 days          |
+| Job            | Interval    | Description                                           |
+| -------------- | ----------- | ----------------------------------------------------- |
+| Item sync      | Every 6 h   | Re-fetches Mealie food catalog, detects deletions     |
+| Retry queue    | Every 2 min | Retries failed shopping list additions (exp. backoff) |
+| Activity purge | Every 24 h  | Deletes read activity entries older than 7 days       |
 
 The item sync also runs on startup if no items exist in the database.
 

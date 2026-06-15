@@ -32,15 +32,24 @@ def init_db():
 def _migrate():
     """Add columns introduced after initial schema (idempotent)."""
     insp = inspect(engine)
-    if "api_tokens" in insp.get_table_names():
+    tables = insp.get_table_names()
+
+    if "api_tokens" in tables:
         columns = {c["name"] for c in insp.get_columns("api_tokens")}
         if "token_prefix" not in columns:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE api_tokens ADD COLUMN token_prefix VARCHAR(8)"))
-    if "notifications" in insp.get_table_names():
-        columns = {c["name"] for c in insp.get_columns("notifications")}
+
+    # Rename notifications -> activities (v2 schema)
+    if "notifications" in tables and "activities" not in tables:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE notifications RENAME TO activities"))
+        # Re-inspect after rename
+        tables = insp.get_table_names()
+
+    if "activities" in tables:
+        columns = {c["name"] for c in insp.get_columns("activities")}
         if "is_dismissed" not in columns:
             with engine.begin() as conn:
-                conn.execute(text("ALTER TABLE notifications ADD COLUMN is_dismissed BOOLEAN DEFAULT 0"))
-                # Pre-dismiss activity-only entries and already-read notifications
-                conn.execute(text("UPDATE notifications SET is_dismissed = 1 WHERE is_read = 1"))
+                conn.execute(text("ALTER TABLE activities ADD COLUMN is_dismissed BOOLEAN DEFAULT 0"))
+                conn.execute(text("UPDATE activities SET is_dismissed = 1 WHERE is_read = 1"))

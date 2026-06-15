@@ -11,7 +11,7 @@ from app.auth import require_token
 from app.config import settings
 from app.database import get_db
 from app.events import scan_events
-from app.models import BarcodeCache, BarcodeMapping, Item, Notification
+from app.models import BarcodeCache, BarcodeMapping, Item, Activity
 from app.services.barcode_lookup import perform_lookup, needs_background_enrich, enrich_barcode_background
 from app.services.fuzzy import try_auto_map
 from app.services.mealie import (
@@ -227,13 +227,13 @@ def _emit_scan_event(barcode: str, resp: ScanResponse):
 def _save_notification(barcode: str, title: str, message: str, result: str, db: Session):
     """Persist an actionable notification for the bell dropdown (deduplicated)."""
     existing = (
-        db.query(Notification)
-        .filter(Notification.barcode == barcode, Notification.is_read == False)
+        db.query(Activity)
+        .filter(Activity.barcode == barcode, Activity.is_read == False)
         .first()
     )
     if existing:
         return
-    db.add(Notification(
+    db.add(Activity(
         barcode=barcode,
         title=title,
         message=message,
@@ -244,7 +244,7 @@ def _save_notification(barcode: str, title: str, message: str, result: str, db: 
 
 def _save_activity(barcode: str, title: str, message: str, result: str, db: Session):
     """Log a successful scan event (pre-read, doesn't trigger the bell)."""
-    db.add(Notification(
+    db.add(Activity(
         barcode=barcode,
         title=title,
         message=message,

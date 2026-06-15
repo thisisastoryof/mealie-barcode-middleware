@@ -664,7 +664,7 @@
                                     ("barcode_cache", "Barcode Cache", "Cached product lookups from OpenFoodFacts / UPCDatabase"),
                                     ("barcode_mappings", "Barcode Mappings", "Links between barcodes and Mealie food items"),
                                     ("items", "Items", "Synced Mealie food catalog (also removes mappings)"),
-                                    ("notifications", "Notifications", "Activity log and notification history"),
+                                    ("activities", "Activity Log", "Scan events, notifications, and system log entries"),
                                     ("retry_queue", "Retry Queue", "Failed requests waiting to be retried"),
                                 ] %}
                                 {% for key, label, desc in purge_tables %}
@@ -705,7 +705,7 @@
                             <div class="col-12 d-flex align-items-center justify-content-between">
                                 <div>
                                     <strong>Reset Data</strong>
-                                    <p class="text-secondary mb-0 small">Delete all barcodes, items, mappings, notifications, and retry queue. Keeps API tokens.</p>
+                                    <p class="text-secondary mb-0 small">Delete all barcodes, items, mappings, activity log, and retry queue. Keeps API tokens.</p>
                                 </div>
                                 <button type="button" class="btn btn-outline-danger ms-3"
                                     data-confirm-post="/settings/admin/reset"

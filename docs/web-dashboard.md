@@ -91,7 +91,7 @@ When scanned, `GENERIC:Milk` is treated like any other barcode — it fuzzy-matc
 
 ## Activity Log (`/activities`)
 
-A chronological log of all scan events and system notifications. Unlike the notification bell (which only shows unread items), the activity log shows everything.
+A chronological log of all scan events and system activity. Unlike the notification bell (which only shows unread items), the activity log shows everything.
 
 Filter tabs:
 
@@ -105,7 +105,7 @@ Filter tabs:
 **Actions:**
 
 - Mark all as read
-- Delete all read notifications (cleanup)
+- Purge activity log (admin only, via Settings → Admin tab)
 
 ---
 

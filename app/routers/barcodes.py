@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.models import BarcodeCache, BarcodeMapping, Item, Notification, RetryQueue
+from app.models import BarcodeCache, BarcodeMapping, Item, Activity, RetryQueue
 from app.services.barcode_lookup import perform_lookup
 from app.services.fuzzy import fuzzy_match
 from app.templating import templates
@@ -20,9 +20,9 @@ router = APIRouter()
 
 def _dismiss_notifications(barcode: str, db: Session):
     """Mark all unread notifications for a barcode as read."""
-    db.query(Notification).filter(
-        Notification.barcode == barcode,
-        Notification.is_read == False,
+    db.query(Activity).filter(
+        Activity.barcode == barcode,
+        Activity.is_read == False,
     ).update({"is_read": True})
 
 
