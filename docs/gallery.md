@@ -69,3 +69,19 @@
     <img src="images/middleware-notifications-light.jpg" width="80%" alt="Notifications">
   </picture>
 </p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="images/middleware-label-generator-dark.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="images/middleware-label-generator-light.jpg">
+    <img src="images/middleware-label-generator-light.jpg" width="80%" alt="Label generator">
+  </picture>
+</p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="images/middleware-docs-dark.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="images/middleware-docs-light.jpg">
+    <img src="images/middleware-docs-light.jpg" width="80%" alt="Built-in documentation">
+  </picture>
+</p>
