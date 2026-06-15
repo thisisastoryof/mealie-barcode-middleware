@@ -234,6 +234,8 @@
     var pauseResumeBtn = document.getElementById('pause-resume-btn');
     var pauseMenuItem = document.getElementById('pause-menu-item');
     var pauseMenuText = document.getElementById('pause-menu-text');
+    var pauseMenuItemMobile = document.getElementById('pause-menu-item-mobile');
+    var pauseMenuTextMobile = document.getElementById('pause-menu-text-mobile');
     var pauseModalTrigger = document.getElementById('pause-modal-trigger');
     var _pauseTimer = null;
     var _pauseResumesAt = null;
@@ -261,6 +263,12 @@
                 if (icon) { icon.className = 'ti ti-player-stop icon dropdown-item-icon'; }
             }
             if (pauseMenuText) pauseMenuText.textContent = 'Stop Scan & Link';
+            if (pauseMenuItemMobile) {
+                pauseMenuItemMobile.setAttribute('data-action', 'resume');
+                var mIcon = pauseMenuItemMobile.querySelector('.nav-link-icon i');
+                if (mIcon) { mIcon.className = 'ti ti-player-stop icon icon-1'; }
+            }
+            if (pauseMenuTextMobile) pauseMenuTextMobile.textContent = 'Stop Scan & Link';
         } else {
             clearInterval(_pauseTimer);
             _pauseTimer = null;
@@ -273,6 +281,12 @@
                 if (icon) { icon.className = 'ti ti-link icon dropdown-item-icon'; }
             }
             if (pauseMenuText) pauseMenuText.textContent = 'Scan & Link Mode';
+            if (pauseMenuItemMobile) {
+                pauseMenuItemMobile.setAttribute('data-action', 'pause');
+                var mIcon = pauseMenuItemMobile.querySelector('.nav-link-icon i');
+                if (mIcon) { mIcon.className = 'ti ti-link icon icon-1'; }
+            }
+            if (pauseMenuTextMobile) pauseMenuTextMobile.textContent = 'Scan & Link Mode';
         }
     }
 
@@ -330,6 +344,19 @@
         pauseMenuItem.addEventListener('click', function(e) {
             e.preventDefault();
             var action = pauseMenuItem.getAttribute('data-action');
+            if (action === 'resume') {
+                fetch('/api/settings/resume', { method: 'POST' });
+            } else if (pauseModalTrigger) {
+                pauseModalTrigger.click();
+            }
+        });
+    }
+
+    // Mobile hamburger menu: pause/resume toggle
+    if (pauseMenuItemMobile) {
+        pauseMenuItemMobile.addEventListener('click', function(e) {
+            e.preventDefault();
+            var action = pauseMenuItemMobile.getAttribute('data-action');
             if (action === 'resume') {
                 fetch('/api/settings/resume', { method: 'POST' });
             } else if (pauseModalTrigger) {
@@ -537,6 +564,20 @@
     }
 
     // ─── Notification Bell ──────────────────────────────────────────────────────
+
+    // On mobile (< md breakpoint), the bell navigates to /activities?result=unread
+    // instead of opening the dropdown (which is hidden via CSS).
+    var bellLink = document.querySelector('#notif-dropdown > a');
+    if (bellLink) {
+        bellLink.addEventListener('click', function(e) {
+            if (window.innerWidth < 768) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                window.location.href = bellLink.getAttribute('href');
+            }
+        });
+    }
+
     var badge = document.getElementById('notif-badge');
 
     var list = document.getElementById('notif-list');

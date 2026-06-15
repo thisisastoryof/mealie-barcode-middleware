@@ -2,6 +2,12 @@
 #notif-dropdown .dropdown-menu-card {
     min-width: 28rem;
 }
+/* On mobile the bell navigates to /activities?result=unread, hide the dropdown */
+@media (max-width: 767.98px) {
+    #notif-dropdown .dropdown-menu-card {
+        display: none !important;
+    }
+}
 .notif-list {
     max-height: 20rem;
     overflow-y: auto;

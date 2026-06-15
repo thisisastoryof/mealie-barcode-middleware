@@ -24,6 +24,9 @@
             <a class="nav-link {{ 'active' if current_filter == 'all' }}" href="/activities?result=all">All</a>
         </li>
         <li class="nav-item" role="presentation">
+            <a class="nav-link {{ 'active' if current_filter == 'unread' }}" href="/activities?result=unread">Unread</a>
+        </li>
+        <li class="nav-item" role="presentation">
             <a class="nav-link {{ 'active' if current_filter == 'added' }}" href="/activities?result=added">Added</a>
         </li>
         <li class="nav-item" role="presentation">
@@ -49,7 +52,9 @@
             <div class="col">
                 <h3 class="card-title mb-0">{{ activities|length }} event{{ 's' if activities|length != 1 }}</h3>
                 <p class="text-secondary small mb-0 mt-1">
-                    {% if current_filter == 'added' %}
+                    {% if current_filter == 'unread' %}
+                    Unread notifications — items that may need your attention.
+                    {% elif current_filter == 'added' %}
                     Items successfully added to the shopping list or queued for retry.
                     {% elif current_filter == 'needs_mapping' %}
                     Found in product database but not linked to a Mealie item yet.

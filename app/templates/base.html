@@ -93,7 +93,7 @@
                     <div class="vr d-none d-md-block mx-2 my-auto navbar-divider"></div>
                     <!-- Notification bell (always visible) -->
                     <li class="nav-item dropdown" id="notif-dropdown">
-                        <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications" data-bs-auto-close="outside">
+                        <a href="/activities?result=unread" class="nav-link px-0" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications" data-bs-auto-close="outside">
                             <i class="ti ti-bell icon icon-1"></i>
                             <span class="badge bg-red badge-empty d-none" id="notif-badge"></span>
                         </a>
@@ -176,6 +176,14 @@
                                 <span class="nav-link-title">Light mode</span>
                             </a>
                         </li>
+                        {% if request.session.get('is_admin') %}
+                        <li class="nav-item d-md-none">
+                            <a href="#" class="nav-link" id="pause-menu-item-mobile" data-action="pause">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-link icon icon-1"></i></span>
+                                <span class="nav-link-title" id="pause-menu-text-mobile">Scan & Link Mode</span>
+                            </a>
+                        </li>
+                        {% endif %}
                         {% if request.session.get('username') %}
                         <li class="nav-item d-md-none">
                             <form action="/logout" method="post" class="d-inline">

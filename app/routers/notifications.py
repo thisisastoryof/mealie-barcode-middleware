@@ -90,7 +90,9 @@ def activity_page(
 ):
     """Activity log page — all notifications with filter tabs."""
     query = db.query(Activity).order_by(Activity.created_at.desc())
-    if result == "added":
+    if result == "unread":
+        query = query.filter(Activity.is_read == False)
+    elif result == "added":
         query = query.filter(Activity.result.in_(["added", "added_as_note", "queued"]))
     elif result != "all":
         query = query.filter(Activity.result == result)
@@ -105,7 +107,9 @@ def activity_page(
 def get_activities(result: str = Query("all"), db: Session = Depends(get_db)):
     """JSON endpoint for live-refreshing the activities table."""
     query = db.query(Activity).order_by(Activity.created_at.desc())
-    if result == "added":
+    if result == "unread":
+        query = query.filter(Activity.is_read == False)
+    elif result == "added":
         query = query.filter(Activity.result.in_(["added", "added_as_note", "queued"]))
     elif result != "all":
         query = query.filter(Activity.result == result)
