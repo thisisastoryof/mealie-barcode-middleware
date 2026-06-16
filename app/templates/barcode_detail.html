@@ -24,7 +24,7 @@
 
 <div class="row row-cards mb-3">
     <!-- Product info -->
-    <div class="{{ 'col-lg-7' if mapping and is_confirmed and mapped_item else 'col-12' }}">
+    <div class="{{ 'col-lg-7' if mapping and is_confirmed and mapped_item else 'col-12' }} {{ 'order-md-first order-last' if mapping and mapping.mapped_by == 'auto' and mapped_item else '' }}">
         <div class="card">
             <div class="card-header"><h3 class="card-title">Product Information</h3></div>
             <div class="card-body">
@@ -116,41 +116,44 @@
         </div>
     </div>
     {% endif %}
+
+    {% if mapping and mapping.mapped_by == 'auto' and mapped_item %}
+    {# ── STATE 1: Auto-mapped, unverified — suggested match card ── #}
+    <div class="col-12 order-first order-md-first">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Suggested Match</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <span class="status-dot status-dot-animated bg-yellow me-2"></span>
+                    <a href="/items/{{ mapped_item.id }}" class="fw-bold text-reset">{{ mapped_item.name }}</a>
+                </div>
+                <div class="text-secondary mt-1 small">
+                    {{ 'Mealie' if mapped_item.source == 'mealie' else 'Custom' }} ·
+                    auto-matched · {{ mapping.created_at|localtime }}
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex gap-2">
+                    <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/confirm">
+                        <button type="submit" class="btn btn-success">
+                            <i class="ti ti-check icon"></i> Confirm
+                        </button>
+                    </form>
+                    <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/unmap">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="ti ti-x icon"></i> Wrong
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 {% if mapping and mapping.mapped_by == 'auto' and mapped_item %}
-{# ── STATE 1: Auto-mapped, unverified — full width below ── #}
-<div class="card mb-3">
-    <div class="card-header">
-        <h3 class="card-title">Suggested Match</h3>
-    </div>
-    <div class="card-body">
-        <div class="d-flex align-items-center">
-            <span class="status-dot status-dot-animated bg-yellow me-2"></span>
-            <a href="/items/{{ mapped_item.id }}" class="fw-bold text-reset">{{ mapped_item.name }}</a>
-        </div>
-        <div class="text-secondary mt-1 small">
-            {{ 'Mealie' if mapped_item.source == 'mealie' else 'Custom' }} ·
-            auto-matched · {{ mapping.created_at|localtime }}
-        </div>
-    </div>
-    <div class="card-footer">
-        <div class="d-flex gap-2">
-            <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/confirm">
-                <button type="submit" class="btn btn-success">
-                    <i class="ti ti-check icon"></i> Confirm
-                </button>
-            </form>
-            <form method="post" action="/barcodes/{{ cached.barcode|urlencode }}/unmap">
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="ti ti-x icon"></i> Wrong
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
-
-{# Other Candidates #}
 <div class="card mb-3">
     <div class="card-header">
         <div class="row w-100 align-items-center">

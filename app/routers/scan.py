@@ -11,7 +11,7 @@ from app.auth import require_token
 from app.config import settings
 from app.database import get_db
 from app.events import scan_events
-from app.models import BarcodeCache, BarcodeMapping, Item, Notification
+from app.models import BarcodeCache, BarcodeMapping, Item, Activity
 from app.services.barcode_lookup import perform_lookup, needs_background_enrich, enrich_barcode_background
 from app.services.fuzzy import try_auto_map
 from app.services.mealie import (
@@ -20,7 +20,8 @@ from app.services.mealie import (
     enqueue_retry,
 )
 from app.services.homeassistant import notify_scan as ha_notify_scan
-from app.utils import utcnow, sanitize_for_display
+from app.pause import is_paused
+from app.utils import utcnow
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -40,7 +41,7 @@ class ScanRequest(BaseModel):
 
 
 class ScanResponse(BaseModel):
-    result: str  # added | added_as_note | queued | unknown
+    result: str  # added | added_as_note | queued | unknown | needs_mapping | error
     item: str | None = None
     via: str | None = None  # item_id | note
     needs_action: bool = False
@@ -48,6 +49,7 @@ class ScanResponse(BaseModel):
     brand: str | None = None
     quantity: str | None = None
     item_source: str | None = None  # mealie | manual | None
+    paused: bool = False
 
 
 @router.post("/scan", response_model=ScanResponse)
@@ -64,7 +66,8 @@ def scan_barcode(
     try:
         resp = _process_scan(barcode, db, background_tasks)
         if resp.needs_action:
-            background_tasks.add_task(ha_notify_scan, barcode, resp.item, resp.result, resp.action_url or "")
+            added_to_list = resp.via is not None and resp.result not in ("unknown", "needs_mapping") and not resp.paused
+            background_tasks.add_task(ha_notify_scan, barcode, resp.item, resp.result, resp.action_url or "", added_to_list, resp.paused)
         return resp
     except Exception:
         logger.exception("Unhandled error processing scan for barcode %s", barcode)
@@ -73,6 +76,8 @@ def scan_barcode(
 
 
 def _process_scan(barcode: str, db: Session, background_tasks: BackgroundTasks) -> ScanResponse:
+
+    paused = is_paused(db)
 
     # --- Validate barcode format ---
     # Accept: digits only (EAN-13, UPC-A, EAN-8, etc.) or GENERIC: prefix.
@@ -90,15 +95,26 @@ def _process_scan(barcode: str, db: Session, background_tasks: BackgroundTasks) 
         item = db.get(Item, mapping.item_id)
         item_name = item.name if item else barcode
         cached = db.get(BarcodeCache, barcode)
-        resp = _add_via_item(item, item_name, barcode, db, cached=cached)
-        _emit_scan_event(barcode, resp)
-        _save_activity(barcode, "Added to list", item_name, resp.result, db)
+        if paused:
+            brand = cached.brand if cached else None
+            quantity = cached.quantity if cached else None
+            item_source = item.source if item else None
+            resp = ScanResponse(
+                result="added", item=item_name, via=None, paused=True,
+                brand=brand, quantity=quantity, item_source=item_source,
+            )
+            _emit_scan_event(barcode, resp)
+            _save_activity(barcode, "Scanned (scan & link)", item_name, resp.result, db)
+        else:
+            resp = _add_via_item(item, item_name, barcode, db, cached=cached)
+            _emit_scan_event(barcode, resp)
+            _save_activity(barcode, "Added to list", item_name, resp.result, db)
         return resp
 
     # --- GENERIC QR code handling ---
     if barcode.upper().startswith("GENERIC:"):
         term = barcode[len("GENERIC:"):].strip()
-        resp = _handle_generic(term, barcode, db)
+        resp = _handle_generic(term, barcode, db, paused=paused)
         _emit_scan_event(barcode, resp)
         return resp
 
@@ -127,18 +143,23 @@ def _process_scan(barcode: str, db: Session, background_tasks: BackgroundTasks) 
         background_tasks.add_task(enrich_barcode_background, barcode)
 
     if not cached.found:
-        # Not found anywhere — add as note with barcode string
+        # Not found anywhere — behavior depends on unknown_barcode_action setting
         note = barcode
-        success = add_to_shopping_list_by_note(note)
-        if success:
-            resp = ScanResponse(result="unknown", item=barcode, via="note")
+        if paused or settings.unknown_barcode_action == "notify_only":
+            # Skip shopping list
+            resp = ScanResponse(result="unknown", item=barcode, via=None, paused=paused)
         else:
-            _enqueue_note(barcode, note, db)
-            resp = ScanResponse(result="unknown", item=barcode, via="note")
+            success = add_to_shopping_list_by_note(note)
+            if success:
+                resp = ScanResponse(result="unknown", item=barcode, via="note")
+            else:
+                _enqueue_note(barcode, note, db)
+                resp = ScanResponse(result="unknown", item=barcode, via="note")
         resp.needs_action = True
         resp.action_url = _build_action_url(barcode)
         _emit_scan_event(barcode, resp)
-        _save_notification(barcode, "Unknown barcode", f"Not found in any product database", "unknown", db)
+        title = "Unknown barcode (scan & link)" if paused else "Unknown barcode"
+        _save_notification(barcode, title, "Not found in any product database", "unknown", db)
         return resp
 
     # Step 3: Attempt fuzzy auto-mapping
@@ -146,33 +167,54 @@ def _process_scan(barcode: str, db: Session, background_tasks: BackgroundTasks) 
     if item_id:
         item = db.get(Item, item_id)
         item_name = item.name if item else cached.title or barcode
-        resp = _add_via_item(item, item_name, barcode, db, cached=cached)
-        resp.needs_action = True
-        resp.action_url = _build_action_url(barcode)
+        if paused:
+            resp = ScanResponse(
+                result="added", item=item_name, via=None, paused=True,
+                brand=cached.brand, quantity=cached.quantity,
+                item_source=item.source if item else None,
+                needs_action=True, action_url=_build_action_url(barcode),
+            )
+            _save_activity(barcode, "Scanned (scan & link)", item_name, resp.result, db)
+        else:
+            resp = _add_via_item(item, item_name, barcode, db, cached=cached)
+            resp.needs_action = True
+            resp.action_url = _build_action_url(barcode)
+            _save_activity(barcode, "Added to list", item_name, resp.result, db)
         _emit_scan_event(barcode, resp)
-        _save_activity(barcode, "Added to list", item_name, resp.result, db)
         _save_notification(barcode, "Auto-linked — review", f"{cached.title or barcode} → {item_name}", "auto_mapped", db)
         return resp
 
-    # No mapping — add as note with product title
+    # No mapping — behavior depends on pause and unknown_barcode_action setting
     note = cached.title or barcode
-    success = add_to_shopping_list_by_note(note)
-    if success:
+    if paused or settings.unknown_barcode_action == "notify_only":
+        # Skip shopping list
+        result_type = "needs_mapping" if cached.found else "unknown"
         resp = ScanResponse(
-            result="added_as_note", item=note, via="note",
+            result=result_type, item=note, via=None, paused=paused,
             brand=cached.brand, quantity=cached.quantity,
             needs_action=True, action_url=_build_action_url(barcode),
         )
-        _save_activity(barcode, "Added to list", note + " (via note)", "added_as_note", db)
+        activity_title = "Not linked (scan & link)" if paused else "Not linked"
+        _save_activity(barcode, activity_title, note, result_type, db)
         _save_notification(barcode, "Not linked", f"{note} — tap to link to a Mealie item", "needs_mapping", db)
     else:
-        _enqueue_note(barcode, note, db)
-        resp = ScanResponse(
-            result="queued", item=note, via="note",
-            brand=cached.brand, quantity=cached.quantity,
-            needs_action=True, action_url=_build_action_url(barcode),
-        )
-        _save_activity(barcode, "Queued", note, "queued", db)
+        success = add_to_shopping_list_by_note(note)
+        if success:
+            resp = ScanResponse(
+                result="added_as_note", item=note, via="note",
+                brand=cached.brand, quantity=cached.quantity,
+                needs_action=True, action_url=_build_action_url(barcode),
+            )
+            _save_activity(barcode, "Added to list", note + " (via note)", "added_as_note", db)
+            _save_notification(barcode, "Not linked", f"{note} — tap to link to a Mealie item", "needs_mapping", db)
+        else:
+            _enqueue_note(barcode, note, db)
+            resp = ScanResponse(
+                result="queued", item=note, via="note",
+                brand=cached.brand, quantity=cached.quantity,
+                needs_action=True, action_url=_build_action_url(barcode),
+            )
+            _save_activity(barcode, "Queued", note, "queued", db)
     _emit_scan_event(barcode, resp)
     return resp
 
@@ -183,19 +225,20 @@ def _emit_scan_event(barcode: str, resp: ScanResponse):
         "barcode": barcode,
         "result": resp.result,
         "item": resp.item,
+        "paused": resp.paused,
     })
 
 
 def _save_notification(barcode: str, title: str, message: str, result: str, db: Session):
     """Persist an actionable notification for the bell dropdown (deduplicated)."""
     existing = (
-        db.query(Notification)
-        .filter(Notification.barcode == barcode, Notification.is_read == False)
+        db.query(Activity)
+        .filter(Activity.barcode == barcode, Activity.is_read == False)
         .first()
     )
     if existing:
         return
-    db.add(Notification(
+    db.add(Activity(
         barcode=barcode,
         title=title,
         message=message,
@@ -206,7 +249,7 @@ def _save_notification(barcode: str, title: str, message: str, result: str, db: 
 
 def _save_activity(barcode: str, title: str, message: str, result: str, db: Session):
     """Log a successful scan event (pre-read, doesn't trigger the bell)."""
-    db.add(Notification(
+    db.add(Activity(
         barcode=barcode,
         title=title,
         message=message,
@@ -217,7 +260,7 @@ def _save_activity(barcode: str, title: str, message: str, result: str, db: Sess
     db.commit()
 
 
-def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
+def _handle_generic(term: str, barcode: str, db: Session, paused: bool = False) -> ScanResponse:
     """Handle GENERIC: prefixed scans — fuzzy search mealie items."""
     from rapidfuzz import fuzz
 
@@ -257,7 +300,16 @@ def _handle_generic(term: str, barcode: str, db: Session) -> ScanResponse:
             best_item = item
 
     if best_item and best_score >= settings.fuzzy_match_threshold:
+        if paused:
+            resp = ScanResponse(result="added", item=best_item.name, via=None, paused=True)
+            _save_activity(barcode, "Scanned (scan & link)", best_item.name, resp.result, db)
+            return resp
         return _add_via_item(best_item, best_item.name, barcode, db)
+
+    if paused:
+        resp = ScanResponse(result="added_as_note", item=term, via=None, paused=True)
+        _save_activity(barcode, "Scanned (scan & link)", term, resp.result, db)
+        return resp
 
     # Fallback: add as note
     success = add_to_shopping_list_by_note(term)
@@ -362,7 +414,8 @@ def scan_barcode_app(
     try:
         resp = _process_scan(barcode, db, background_tasks)
         if resp.needs_action:
-            background_tasks.add_task(ha_notify_scan, barcode, resp.item, resp.result, resp.action_url or "")
+            added_to_list = resp.via is not None and resp.result not in ("unknown", "needs_mapping") and not resp.paused
+            background_tasks.add_task(ha_notify_scan, barcode, resp.item, resp.result, resp.action_url or "", added_to_list, resp.paused)
         return resp
     except Exception:
         logger.exception("Unhandled error processing app scan for barcode %s", barcode)

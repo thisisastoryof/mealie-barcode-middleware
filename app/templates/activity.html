@@ -8,11 +8,6 @@
             <h2 class="page-title">Activity</h2>
         </div>
         <div class="col-auto">
-            <form method="post" action="/activities/delete-read" class="d-inline me-2">
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="ti ti-trash icon"></i>Delete read
-                </button>
-            </form>
             <form method="post" action="/activities/mark-all-read" class="d-inline">
                 <button type="submit" class="btn btn-secondary">
                     <i class="ti ti-checks icon"></i>Mark all read
@@ -27,6 +22,9 @@
     <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item" role="presentation">
             <a class="nav-link {{ 'active' if current_filter == 'all' }}" href="/activities?result=all">All</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link {{ 'active' if current_filter == 'unread' }}" href="/activities?result=unread">Unread</a>
         </li>
         <li class="nav-item" role="presentation">
             <a class="nav-link {{ 'active' if current_filter == 'added' }}" href="/activities?result=added">Added</a>
@@ -52,9 +50,11 @@
     <div class="card-header">
         <div class="row w-100">
             <div class="col">
-                <h3 class="card-title mb-0">{{ notifications|length }} event{{ 's' if notifications|length != 1 }}</h3>
+                <h3 class="card-title mb-0">{{ activities|length }} event{{ 's' if activities|length != 1 }}</h3>
                 <p class="text-secondary small mb-0 mt-1">
-                    {% if current_filter == 'added' %}
+                    {% if current_filter == 'unread' %}
+                    Unread notifications — items that may need your attention.
+                    {% elif current_filter == 'added' %}
                     Items successfully added to the shopping list or queued for retry.
                     {% elif current_filter == 'needs_mapping' %}
                     Found in product database but not linked to a Mealie item yet.
@@ -103,7 +103,7 @@
                 </tr>
             </thead>
             <tbody class="table-tbody" id="activity-tbody">
-                {% for n in notifications %}
+                {% for n in activities %}
                 <tr class="cursor-pointer {{ '' if n.is_read else 'table-active' }}" data-href="/barcodes/{{ n.barcode|urlencode }}">
                     <td class="sort-status">
                         {% if n.result == 'retry_failed' or n.result == 'broken' %}

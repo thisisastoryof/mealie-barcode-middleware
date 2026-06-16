@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.auth import generate_token, hash_token
 from app.config import settings, EDITABLE_SETTINGS, READONLY_SETTINGS
 from app.database import get_db
-from app.models import ApiToken, BarcodeCache, BarcodeMapping, Item, Notification, RetryQueue, User
+from app.models import ApiToken, BarcodeCache, BarcodeMapping, Item, Activity, RetryQueue, User
 from app.templating import templates, set_cached_theme, get_cached_theme_css
 from app.theme import THEME_CHOICES, THEME_DEFAULTS, get_theme, save_theme
 
@@ -24,6 +24,7 @@ _GROUP_ORDER = [
     "Home Assistant",
     "Barcode Lookup Sources",
     "Matching & Sync",
+    "Scanning",
     "System",
 ]
 
@@ -33,6 +34,7 @@ _TAB_DESCRIPTIONS = {
     "homeassistant": "Push notifications and deep links via Home Assistant webhooks.",
     "lookup": "Configure which product databases to query and how they interact.",
     "matching": "Control how scanned products are matched and synced with Mealie.",
+    "scanning": "What happens when a barcode is scanned — unknown barcode handling and list pause controls.",
     "system": "Timezone, logging, and other system-level settings.",
     "appearance": "Customize the look and feel of the web dashboard.",
     "tokens": "API tokens for authenticating barcode scanners.",
@@ -45,6 +47,7 @@ _SECTION_DESCRIPTIONS = {
     "Strategy": "Control how multiple data sources work together.",
     "Fuzzy Matching": "How product names are compared against your Mealie food catalog.",
     "Scheduling & Retry": "How often data is refreshed and how failures are handled.",
+    "Unknown & Unlinked Barcodes": "What happens when a scanned barcode can't be matched to a Mealie item.",
     "Notifications": "Send push notifications to your phone when a scanned item needs attention.",
     "Infrastructure": "Set via environment variables — not editable here.",
 }
@@ -131,6 +134,7 @@ _TABS = [
     ("homeassistant", "Home Assistant",     "ti-home"),
     ("lookup",        "Barcode Lookup",     "ti-barcode"),
     ("matching",      "Matching & Sync",    "ti-arrows-sort"),
+    ("scanning",      "Scanning",           "ti-scan"),
     ("system",        "System",             "ti-settings"),
     ("appearance",    "Appearance",         "ti-palette"),
     ("tokens",        "API Tokens",         "ti-key"),
@@ -141,7 +145,7 @@ _TABS = [
 # Sidebar grouping: which tabs go under which subheader
 _SIDEBAR_GROUPS = {
     "Integrations": ["mealie", "homeassistant"],
-    "Configuration": ["lookup", "matching", "system"],
+    "Configuration": ["lookup", "matching", "scanning", "system"],
     "Personalization": ["appearance"],
     "Security": ["tokens", "users"],
     "Administration": ["admin"],
@@ -160,6 +164,7 @@ _TAB_GROUPS = {
     "homeassistant": ["Home Assistant"],
     "lookup":        ["Barcode Lookup Sources"],
     "matching":      ["Matching & Sync"],
+    "scanning":      ["Scanning"],
     "system":        ["System"],
 }
 
@@ -311,6 +316,46 @@ def delete_token(token_id: str, request: Request, db: Session = Depends(get_db))
     return RedirectResponse("/settings?tab=tokens", status_code=303)
 
 
+# ── Pause Mode ───────────────────────────────────────────────────────
+
+@router.get("/api/settings/pause-status")
+def api_pause_status(db: Session = Depends(get_db)):
+    """Return current pause state (used by banner JS + SSE init)."""
+    from app.pause import get_pause_status
+    return JSONResponse(get_pause_status(db))
+
+
+@router.post("/api/settings/pause")
+async def api_pause(request: Request, db: Session = Depends(get_db)):
+    """Activate pause mode for N minutes. Admin-only."""
+    if not request.session.get("is_admin", False):
+        return JSONResponse({"error": "admin required"}, status_code=403)
+    from app.pause import pause_until, get_pause_status
+    from app.events import scan_events
+    body = await request.json()
+    minutes = int(body.get("minutes", 20))
+    if minutes < 1 or minutes > 1440:
+        return JSONResponse({"error": "minutes must be 1–1440"}, status_code=422)
+    pause_until(db, minutes)
+    status = get_pause_status(db)
+    scan_events.publish_threadsafe("pause", status)
+    return JSONResponse(status)
+
+
+@router.post("/api/settings/resume")
+def api_resume(request: Request, db: Session = Depends(get_db)):
+    """Cancel pause mode immediately. Admin-only."""
+    if not request.session.get("is_admin", False):
+        return JSONResponse({"error": "admin required"}, status_code=403)
+    from app.pause import resume_now
+    from app.events import scan_events
+    resume_now(db)
+    scan_events.publish_threadsafe("pause", {
+        "paused": False, "remaining_seconds": None, "resumes_at": None,
+    })
+    return JSONResponse({"paused": False})
+
+
 # ── Theme ────────────────────────────────────────────────────────────
 
 @router.get("/theme.css")
@@ -378,7 +423,7 @@ def _get_admin_info(db: Session) -> dict:
             "barcode_cache": db.query(BarcodeCache).count(),
             "barcode_mappings": db.query(BarcodeMapping).count(),
             "items": db.query(Item).count(),
-            "notifications": db.query(Notification).count(),
+            "activities": db.query(Activity).count(),
             "retry_queue": db.query(RetryQueue).count(),
             "api_tokens": db.query(ApiToken).count(),
         },
@@ -421,7 +466,7 @@ def admin_purge_table(table: str, request: Request, db: Session = Depends(get_db
         "barcode_cache": BarcodeCache,
         "barcode_mappings": BarcodeMapping,
         "items": Item,
-        "notifications": Notification,
+        "activities": Activity,
         "retry_queue": RetryQueue,
     }
     model = table_map.get(table)
@@ -445,7 +490,7 @@ def admin_reset(request: Request, db: Session = Depends(get_db)):
     db.query(BarcodeMapping).delete()
     db.query(BarcodeCache).delete()
     db.query(Item).delete()
-    db.query(Notification).delete()
+    db.query(Activity).delete()
     db.query(RetryQueue).delete()
     db.commit()
     logger.info("Admin: full data reset (tokens preserved)")
@@ -460,7 +505,7 @@ def admin_factory_reset(request: Request, db: Session = Depends(get_db)):
     db.query(BarcodeMapping).delete()
     db.query(BarcodeCache).delete()
     db.query(Item).delete()
-    db.query(Notification).delete()
+    db.query(Activity).delete()
     db.query(RetryQueue).delete()
     db.query(ApiToken).delete()
     db.commit()

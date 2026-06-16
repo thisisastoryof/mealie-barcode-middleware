@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     lookup_ttl_days: int = 30
     max_retry_attempts: int = 10
 
+    unknown_barcode_action: str = "add_to_list"  # add_to_list | notify_only
+
     middleware_base_url: str = ""
     ha_webhook_url: str = ""
 
@@ -138,6 +140,17 @@ EDITABLE_SETTINGS: dict[str, dict[str, Any]] = {
         "max": 100,
         "group": "Matching & Sync",
         "section": "Scheduling & Retry",
+    },
+    "unknown_barcode_action": {
+        "type": "choice",
+        "label": "UNKNOWN_BARCODE_ACTION",
+        "description": "Unknown barcode behavior",
+        "help": "Controls what happens when a scanned barcode can't be linked to a Mealie item. "
+                "'Add to list & notify' adds a note to your shopping list and sends a notification. "
+                "'Notify only' skips the shopping list \u2014 unmapped barcodes appear on the Barcodes page for linking later.",
+        "choices": [("add_to_list", "Add to list & notify"), ("notify_only", "Notify only")],
+        "group": "Scanning",
+        "section": "Unknown & Unlinked Barcodes",
     },
     # System
     "timezone": {

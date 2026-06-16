@@ -2,6 +2,12 @@
 #notif-dropdown .dropdown-menu-card {
     min-width: 28rem;
 }
+/* On mobile the bell navigates to /activities?result=unread, hide the dropdown */
+@media (max-width: 767.98px) {
+    #notif-dropdown .dropdown-menu-card {
+        display: none !important;
+    }
+}
 .notif-list {
     max-height: 20rem;
     overflow-y: auto;
@@ -268,4 +274,27 @@
         overflow-wrap: anywhere;
         -webkit-line-clamp: 3;
     }
+}
+
+/* ── System banner (reusable full-width strip above navbar) ── */
+.system-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    color: var(--tblr-body-color);
+    font-size: var(--tblr-body-font-size);
+    font-family: var(--tblr-body-font-family);
+    box-shadow: inset 0 -1px rgba(0, 0, 0, 0.1);
+}
+.system-banner > span {
+    min-width: 0;
+}
+.system-banner > .badge {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.system-banner.bg-warning-lt {
+    background: var(--tblr-warning-lt);
 }

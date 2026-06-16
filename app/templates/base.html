@@ -16,6 +16,19 @@
 </head>
 <body>
     <div class="page">
+        <!-- Pause banner (hidden by default, shown via JS when paused) -->
+        <div class="system-banner bg-warning-lt d-none" id="pause-banner">
+            <i class="ti ti-link-plus"></i>
+            <span>
+                Scan & link mode — items won't be added to your Mealie shopping list. Resumes in
+                <strong id="pause-countdown"></strong>.
+            </span>
+            {% if request.session.get('is_admin') %}
+            <a href="#" class="badge bg-yellow-lt" id="pause-resume-btn">
+                <i class="ti ti-player-stop"></i> Stop
+            </a>
+            {% endif %}
+        </div>
         <!-- Navbar -->
         <header class="navbar navbar-expand-md d-print-none">
             <div class="container-xl">
@@ -45,12 +58,11 @@
                                 <i class="ti ti-dots-vertical icon icon-1"></i>
                             </a>
                             <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end">
-                                <span class="dropdown-header">Tools</span>
-                                <a class="dropdown-item{{ ' active' if request.url.path.startswith('/labels') }}" href="/labels">
-                                    <i class="ti ti-qrcode icon dropdown-item-icon"></i> Labels
-                                </a>
                                 <a class="dropdown-item{{ ' active' if request.url.path.startswith('/activities') }}" href="/activities">
                                     <i class="ti ti-activity icon dropdown-item-icon"></i> Activity
+                                </a>
+                                <a class="dropdown-item{{ ' active' if request.url.path.startswith('/labels') }}" href="/labels">
+                                    <i class="ti ti-qrcode icon dropdown-item-icon"></i> Labels
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item{{ ' active' if request.url.path.startswith('/docs') }}" href="/docs">
@@ -59,6 +71,12 @@
                                 {% if request.session.get('is_admin') %}
                                 <a class="dropdown-item{{ ' active' if request.url.path.startswith('/settings') }}" href="/settings">
                                     <i class="ti ti-settings icon dropdown-item-icon"></i> Settings
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#" id="pause-menu-item"
+                                   data-action="pause">
+                                    <i class="ti ti-link-plus icon dropdown-item-icon"></i>
+                                    <span id="pause-menu-text">Scan & Link Mode</span>
                                 </a>
                                 {% endif %}
                                 {% if request.session.get('username') %}
@@ -75,7 +93,7 @@
                     <div class="vr d-none d-md-block mx-2 my-auto navbar-divider"></div>
                     <!-- Notification bell (always visible) -->
                     <li class="nav-item dropdown" id="notif-dropdown">
-                        <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications" data-bs-auto-close="outside">
+                        <a href="/activities?result=unread" class="nav-link px-0" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications" data-bs-auto-close="outside">
                             <i class="ti ti-bell icon icon-1"></i>
                             <span class="badge bg-red badge-empty d-none" id="notif-badge"></span>
                         </a>
@@ -158,6 +176,14 @@
                                 <span class="nav-link-title">Light mode</span>
                             </a>
                         </li>
+                        {% if request.session.get('is_admin') %}
+                        <li class="nav-item d-md-none">
+                            <a href="#" class="nav-link" id="pause-menu-item-mobile" data-action="pause">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-link-plus icon icon-1"></i></span>
+                                <span class="nav-link-title" id="pause-menu-text-mobile">Scan & Link Mode</span>
+                            </a>
+                        </li>
+                        {% endif %}
                         {% if request.session.get('username') %}
                         <li class="nav-item d-md-none">
                             <form action="/logout" method="post" class="d-inline">
@@ -211,6 +237,29 @@
             </div>
         </div>
     </div>
+
+    <!-- Pause duration modal (admin-only, opened from three-dot menu) -->
+    {% if request.session.get('is_admin') %}
+    <div class="modal modal-blur fade" id="modal-pause" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-body text-center py-4">
+                    <i class="ti ti-link-plus icon mb-2 text-warning icon-lg"></i>
+                    <h3>Scan & Link Mode</h3>
+                    <p class="text-secondary">Scans will still be processed and linked, but nothing will be added to your shopping list.</p>
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button" class="btn btn-warning w-100 pause-duration-btn" data-minutes="5">5 minutes</button>
+                        <button type="button" class="btn btn-warning w-100 pause-duration-btn" data-minutes="20">20 minutes</button>
+                        <button type="button" class="btn btn-warning w-100 pause-duration-btn" data-minutes="60">1 hour</button>
+                        <button type="button" class="btn btn-warning w-100 pause-duration-btn" data-minutes="240">4 hours</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="d-none" id="pause-modal-trigger" data-bs-toggle="modal" data-bs-target="#modal-pause"></button>
+    {% endif %}
 
     <script src="/static/vendor/tabler/js/tabler.min.js"></script>
     <script src="/static/js/app.js?v={{ v }}"></script>

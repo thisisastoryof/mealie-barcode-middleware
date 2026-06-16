@@ -91,7 +91,7 @@ When scanned, `GENERIC:Milk` is treated like any other barcode — it fuzzy-matc
 
 ## Activity Log (`/activities`)
 
-A chronological log of all scan events and system notifications. Unlike the notification bell (which only shows unread items), the activity log shows everything.
+A chronological log of all scan events and system activity. Unlike the notification bell (which only shows unread items), the activity log shows everything.
 
 Filter tabs:
 
@@ -105,7 +105,7 @@ Filter tabs:
 **Actions:**
 
 - Mark all as read
-- Delete all read notifications (cleanup)
+- Purge activity log (admin only, via Settings → Admin tab)
 
 ---
 
@@ -137,7 +137,8 @@ Displays all current configuration values, grouped into:
 
 - Mealie Connection — read-only (set via environment variables)
 - Barcode Lookup Sources — source toggles are editable live
-- Matching & Sync — thresholds and intervals are editable live
+- Matching & Sync — thresholds, intervals, and unknown barcode behavior are editable live
+- Scanning — unknown barcode handling and Scan & Link mode controls
 - System — timezone and log level are editable live
 
 Settings marked as editable can be changed directly in the UI without restarting the container. They’re saved to the database and override the env var value. A reset button next to each restores the env/default value. Read-only settings (Mealie URL, API key, DB path, port) can only be changed by editing `.env` and restarting.

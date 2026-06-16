@@ -32,7 +32,7 @@ When a barcode is scanned — whether from the ESP32 hardware scanner, a phone a
                     ▼
         ┌───────────────────────┐
         │ 3. External lookup    │
-        │    (strategy-based)   │──not found──► Add barcode as note ──► Done
+        │    (strategy-based)   │──not found──► Notify (+ add as note*) ──► Done
         └───────────┬───────────┘
                     │ found
                     ▼
@@ -42,9 +42,16 @@ When a barcode is scanned — whether from the ESP32 hardware scanner, a phone a
                     │ no match
                     ▼
         ┌───────────────────────┐
-        │ 5. Add as note        │──► Shopping list gets product title as note
+        │ 5. Add as note*       │──► Shopping list gets product title as note
         │    (not linked)       │
         └───────────────────────┘
+
+\* Steps 3 and 5: when `UNKNOWN_BARCODE_ACTION=notify_only`, the shopping list
+  addition is skipped — a notification and HA webhook are still sent, but
+  the barcode only appears on the Barcodes page for manual linking.
+  When **Scan & Link mode** is active (see Settings → Scanning), all
+  shopping list additions are skipped regardless of the setting — scans
+  are still processed, cached, and auto-linked.
 
 After each scan, if the result needs attention (steps 3–5), two things happen:
 - A **notification** is saved for the web UI bell icon
@@ -113,7 +120,10 @@ By default, the secondary call in complement mode runs in the background (`LOOKU
 
 ### If Nothing Is Found
 
-If neither database recognizes the barcode, the barcode string itself is added as a plain note on the shopping list. A notification is created in the web UI so you can manually identify and link it later.
+If neither database recognizes the barcode, the behavior depends on the `UNKNOWN_BARCODE_ACTION` setting:
+
+- **`add_to_list`** (default) — The barcode string is added as a plain note on the shopping list. A notification is created so you can manually identify and link it.
+- **`notify_only`** — The shopping list is not touched. A notification is still created in the web UI and an HA webhook is sent, but the barcode only appears on the Barcodes page for linking later.
 
 ---
 
@@ -157,9 +167,10 @@ Both exceed the threshold, but the gap is 0. Without the ambiguity check, it wou
 
 ## Step 5: Add as Note (Fallback)
 
-If no Mealie item matches, the product title (or barcode string if the product wasn't found) is added to the shopping list as a **plain note**. Notes appear on the Mealie shopping list without being linked to a food item.
+If no Mealie item matches, the behavior depends on the `UNKNOWN_BARCODE_ACTION` setting:
 
-This ensures something always gets added — you won't forget an item just because the middleware couldn't identify it.
+- **`add_to_list`** (default) — The product title (or barcode string if the product wasn't found) is added to the shopping list as a **plain note**. This ensures something always gets added — you won't forget an item just because the middleware couldn't identify it.
+- **`notify_only`** — The shopping list is not touched. The barcode appears on the Barcodes page for manual linking. Notifications (bell + HA push) still fire for every scan that needs attention.
 
 ---
 
@@ -215,13 +226,13 @@ The `/scan` endpoint always returns HTTP 200 with a JSON body:
 }
 ```
 
-| Field          | Values                                        | Description                           |
-| -------------- | --------------------------------------------- | ------------------------------------- |
-| `result`       | `added`, `added_as_note`, `queued`, `unknown` | What happened                         |
-| `item`         | Product name or barcode string                | What's shown on the OLED              |
-| `via`          | `item_id` or `note`                           | How it was added to the shopping list |
-| `needs_action` | `true` / `false`                              | Should the user review this?          |
-| `action_url`   | URL or `null`                                 | Deep link to barcode detail page      |
-| `brand`        | Brand name or `null`                          | From external lookup                  |
-| `quantity`     | "1L", "500g", etc. or `null`                  | From external lookup                  |
-| `item_source`  | `mealie`, `manual`, or `null`                 | Where the matched item came from      |
+| Field          | Values                                                         | Description                           |
+| -------------- | -------------------------------------------------------------- | ------------------------------------- |
+| `result`       | `added`, `added_as_note`, `queued`, `unknown`, `needs_mapping` | What happened                         |
+| `item`         | Product name or barcode string                                 | What's shown on the OLED              |
+| `via`          | `item_id` or `note`                                            | How it was added to the shopping list |
+| `needs_action` | `true` / `false`                                               | Should the user review this?          |
+| `action_url`   | URL or `null`                                                  | Deep link to barcode detail page      |
+| `brand`        | Brand name or `null`                                           | From external lookup                  |
+| `quantity`     | "1L", "500g", etc. or `null`                                   | From external lookup                  |
+| `item_source`  | `mealie`, `manual`, or `null`                                  | Where the matched item came from      |

@@ -105,6 +105,7 @@
             esRetryDelay = Math.min(esRetryDelay * 2, 30000);
         };
         es.addEventListener('scan', onScanEvent);
+        es.addEventListener('pause', onPauseEvent);
     }
     // Close SSE cleanly before page unload to avoid console warnings
     window.addEventListener('beforeunload', function() {
@@ -115,20 +116,25 @@
         var barcode = data.barcode;
         var result = data.result;
         var item = data.item;
+        var isPaused = !!data.paused;
 
         var color, title, desc;
         if (result === 'added') {
-            color = 'success';
-            title = 'Added to shopping list';
+            color = isPaused ? 'azure' : 'success';
+            title = isPaused ? 'Scanned (scan & link)' : 'Added to shopping list';
             desc = item ? esc(item) + ' (' + esc(barcode) + ')' : esc(barcode);
         } else if (result === 'added_as_note') {
-            color = 'success';
-            title = 'Added to shopping list';
-            desc = (item ? esc(item) + ' (' + esc(barcode) + ')' : esc(barcode)) + ' (via note)';
+            color = isPaused ? 'azure' : 'success';
+            title = isPaused ? 'Scanned (scan & link)' : 'Added to shopping list';
+            desc = (item ? esc(item) + ' (' + esc(barcode) + ')' : esc(barcode)) + (isPaused ? '' : ' (via note)');
         } else if (result === 'queued') {
             color = 'warning';
             title = 'Queued for retry';
             desc = esc(item || barcode);
+        } else if (result === 'needs_mapping') {
+            color = 'warning';
+            title = 'Not linked';
+            desc = (item ? esc(item) + ' (' + esc(barcode) + ')' : esc(barcode)) + ' — tap to link';
         } else if (result === 'retry_failed') {
             color = 'danger';
             title = 'Retry failed';
@@ -222,6 +228,192 @@
         }, 2000);
     }
     connectSSE();
+
+    // ─── Pause Mode ─────────────────────────────────────────────────────────────
+    var pauseBanner = document.getElementById('pause-banner');
+    var pauseCountdown = document.getElementById('pause-countdown');
+    var pauseResumeBtn = document.getElementById('pause-resume-btn');
+    var pauseMenuItem = document.getElementById('pause-menu-item');
+    var pauseMenuText = document.getElementById('pause-menu-text');
+    var pauseMenuItemMobile = document.getElementById('pause-menu-item-mobile');
+    var pauseMenuTextMobile = document.getElementById('pause-menu-text-mobile');
+    var pauseModalTrigger = document.getElementById('pause-modal-trigger');
+    var _pauseTimer = null;
+    var _pauseResumesAt = null;
+
+    function formatRemaining(secs) {
+        if (secs <= 0) return '0 s';
+        if (secs < 60) return Math.ceil(secs) + ' s';
+        if (secs < 3600) return Math.ceil(secs / 60) + ' min';
+        var h = Math.floor(secs / 3600);
+        var m = Math.ceil((secs % 3600) / 60);
+        return h + ' h ' + m + ' min';
+    }
+
+    function updatePauseBanner(data) {
+        if (!pauseBanner) return;
+        if (data.paused) {
+            _pauseResumesAt = new Date(data.resumes_at);
+            if (pauseCountdown) pauseCountdown.textContent = formatRemaining(data.remaining_seconds);
+            pauseBanner.classList.remove('d-none');
+            startPauseCountdown();
+            // Update menu item to "Resume"
+            if (pauseMenuItem) {
+                pauseMenuItem.setAttribute('data-action', 'resume');
+                var icon = pauseMenuItem.querySelector('i');
+                if (icon) { icon.className = 'ti ti-player-stop icon dropdown-item-icon'; }
+            }
+            if (pauseMenuText) pauseMenuText.textContent = 'Stop Scan & Link';
+            if (pauseMenuItemMobile) {
+                pauseMenuItemMobile.setAttribute('data-action', 'resume');
+                var mIcon = pauseMenuItemMobile.querySelector('.nav-link-icon i');
+                if (mIcon) { mIcon.className = 'ti ti-player-stop icon icon-1'; }
+            }
+            if (pauseMenuTextMobile) pauseMenuTextMobile.textContent = 'Stop Scan & Link';
+        } else {
+            clearInterval(_pauseTimer);
+            _pauseTimer = null;
+            _pauseResumesAt = null;
+            pauseBanner.classList.add('d-none');
+            // Update menu item to "Pause"
+            if (pauseMenuItem) {
+                pauseMenuItem.setAttribute('data-action', 'pause');
+                var icon = pauseMenuItem.querySelector('i');
+                if (icon) { icon.className = 'ti ti-link-plus icon dropdown-item-icon'; }
+            }
+            if (pauseMenuText) pauseMenuText.textContent = 'Scan & Link Mode';
+            if (pauseMenuItemMobile) {
+                pauseMenuItemMobile.setAttribute('data-action', 'pause');
+                var mIcon = pauseMenuItemMobile.querySelector('.nav-link-icon i');
+                if (mIcon) { mIcon.className = 'ti ti-link-plus icon icon-1'; }
+            }
+            if (pauseMenuTextMobile) pauseMenuTextMobile.textContent = 'Scan & Link Mode';
+        }
+    }
+
+    function startPauseCountdown() {
+        clearInterval(_pauseTimer);
+        _pauseTimer = setInterval(function() {
+            if (!_pauseResumesAt) { clearInterval(_pauseTimer); return; }
+            var remaining = (_pauseResumesAt.getTime() - Date.now()) / 1000;
+            if (remaining <= 0) {
+                clearInterval(_pauseTimer);
+                updatePauseBanner({ paused: false });
+                showPauseToast('Scan & link ended — scans will now add to your list.');
+                return;
+            }
+            if (pauseCountdown) pauseCountdown.textContent = formatRemaining(remaining);
+            if (settingsPauseRemaining) settingsPauseRemaining.textContent = formatRemaining(remaining);
+        }, 1000);
+    }
+
+    function showPauseToast(msg) {
+        if (!toastContainer) return;
+        var toast = document.createElement('div');
+        toast.className = 'toast show';
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = '<div class="toast-header">'
+            + '<span class="avatar avatar-xs me-2 bg-azure">'
+            + '<i class="ti ti-link-plus icon-sm text-white"></i></span>'
+            + '<strong class="me-auto">Scan & Link</strong>'
+            + '<button type="button" class="ms-2 btn-close" data-bs-dismiss="toast" aria-label="Close"></button>'
+            + '</div>'
+            + '<div class="toast-body">' + esc(msg) + '</div>';
+        toastContainer.prepend(toast);
+        setTimeout(function() { if (toast.parentNode) toast.remove(); }, 8000);
+    }
+
+    function onPauseEvent(e) {
+        var data = JSON.parse(e.data);
+        updatePauseBanner(data);
+        updateSettingsPauseCard(data);
+        if (!data.paused) {
+            showPauseToast('Scan & link ended \u2014 scans will now add to your list.');
+        }
+    }
+
+    // Resume button/link in banner
+    if (pauseResumeBtn) {
+        pauseResumeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetch('/api/settings/resume', { method: 'POST' });
+        });
+    }
+
+    // Three-dot menu: pause/resume toggle
+    if (pauseMenuItem) {
+        pauseMenuItem.addEventListener('click', function(e) {
+            e.preventDefault();
+            var action = pauseMenuItem.getAttribute('data-action');
+            if (action === 'resume') {
+                fetch('/api/settings/resume', { method: 'POST' });
+            } else if (pauseModalTrigger) {
+                pauseModalTrigger.click();
+            }
+        });
+    }
+
+    // Mobile hamburger menu: pause/resume toggle
+    if (pauseMenuItemMobile) {
+        pauseMenuItemMobile.addEventListener('click', function(e) {
+            e.preventDefault();
+            var action = pauseMenuItemMobile.getAttribute('data-action');
+            if (action === 'resume') {
+                fetch('/api/settings/resume', { method: 'POST' });
+            } else if (pauseModalTrigger) {
+                pauseModalTrigger.click();
+            }
+        });
+    }
+
+    // Duration buttons in pause modal
+    var durationBtns = document.querySelectorAll('.pause-duration-btn');
+    durationBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var minutes = parseInt(btn.getAttribute('data-minutes'), 10);
+            fetch('/api/settings/pause', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ minutes: minutes })
+            });
+            // Close modal via hidden dismiss button
+            var closeBtn = document.querySelector('#modal-pause .btn-close');
+            if (closeBtn) closeBtn.click();
+        });
+    });
+
+    // Fetch initial pause status on page load
+    fetch('/api/settings/pause-status')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            updatePauseBanner(data);
+            updateSettingsPauseCard(data);
+        })
+        .catch(function() {});
+
+    // Settings page pause card (if present)
+    var settingsPauseActive = document.getElementById('settings-pause-active');
+    var settingsPauseInactive = document.getElementById('settings-pause-inactive');
+    var settingsPauseRemaining = document.getElementById('settings-pause-remaining');
+    var settingsResumeBtn = document.getElementById('settings-resume-btn');
+
+    function updateSettingsPauseCard(data) {
+        if (!settingsPauseActive) return;
+        if (data.paused) {
+            settingsPauseActive.classList.remove('d-none');
+            settingsPauseInactive.classList.add('d-none');
+            if (settingsPauseRemaining) settingsPauseRemaining.textContent = formatRemaining(data.remaining_seconds);
+        } else {
+            settingsPauseActive.classList.add('d-none');
+            settingsPauseInactive.classList.remove('d-none');
+        }
+    }
+
+    if (settingsResumeBtn) {
+        settingsResumeBtn.addEventListener('click', function() {
+            fetch('/api/settings/resume', { method: 'POST' });
+        });
+    }
 
     // ─── Dashboard partial refresh ──────────────────────────────────────────────
     function refreshDashboard() {
@@ -373,6 +565,20 @@
     }
 
     // ─── Notification Bell ──────────────────────────────────────────────────────
+
+    // On mobile (< md breakpoint), the bell navigates to /activities?result=unread
+    // instead of opening the dropdown (which is hidden via CSS).
+    var bellLink = document.querySelector('#notif-dropdown > a');
+    if (bellLink) {
+        bellLink.addEventListener('click', function(e) {
+            if (window.innerWidth < 768) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                window.location.href = bellLink.getAttribute('href');
+            }
+        });
+    }
+
     var badge = document.getElementById('notif-badge');
 
     var list = document.getElementById('notif-list');

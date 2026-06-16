@@ -24,10 +24,10 @@ DOCS_CATALOG = [
         "group": "Getting Started",
     },
     {
-        "slug": "barcode-workflow",
-        "title": "How Barcode Scanning Works",
-        "description": "End-to-end flow from scan to shopping list.",
-        "icon": "ti-arrows-right-left",
+        "slug": "using-the-app",
+        "title": "Using the App",
+        "description": "First login, scanning, linking barcodes, Scan & Link mode, and daily use.",
+        "icon": "ti-player-play",
         "group": "Getting Started",
     },
     {
@@ -35,35 +35,42 @@ DOCS_CATALOG = [
         "title": "Web Dashboard",
         "description": "Navigate the UI: barcodes, items, settings, and activity.",
         "icon": "ti-browser",
-        "group": "Getting Started",
+        "group": "Scanning",
     },
     {
-        "slug": "hardware-build",
-        "title": "Hardware Build Guide",
-        "description": "Assemble the ESP32 + GM67 barcode scanner.",
-        "icon": "ti-cpu",
-        "group": "Hardware Scanner",
-    },
-    {
-        "slug": "esphome-firmware",
-        "title": "ESPHome Firmware",
-        "description": "Flash and configure the ESP32 firmware via ESPHome.",
-        "icon": "ti-bolt",
-        "group": "Hardware Scanner",
-    },
-    {
-        "slug": "scanner-configuration",
-        "title": "Scanner Configuration (GM67)",
-        "description": "Program the GM67 module with setup barcodes.",
-        "icon": "ti-qrcode",
-        "group": "Hardware Scanner",
+        "slug": "barcode-workflow",
+        "title": "How Barcode Scanning Works",
+        "description": "End-to-end flow from scan to shopping list.",
+        "icon": "ti-arrows-right-left",
+        "group": "Scanning",
     },
     {
         "slug": "mobile-apps",
         "title": "Mobile App Scanning",
         "description": "Use BinaryEye (Android) or iOS Shortcuts as scanners.",
         "icon": "ti-device-mobile",
-        "group": "Phone Scanning",
+        "group": "Scanning",
+    },
+    {
+        "slug": "hardware-build",
+        "title": "Hardware Build Guide",
+        "description": "Assemble the ESP32 + GM67 barcode scanner.",
+        "icon": "ti-cpu",
+        "group": "Hardware",
+    },
+    {
+        "slug": "esphome-firmware",
+        "title": "ESPHome Firmware",
+        "description": "Flash and configure the ESP32 firmware via ESPHome.",
+        "icon": "ti-bolt",
+        "group": "Hardware",
+    },
+    {
+        "slug": "scanner-configuration",
+        "title": "Scanner Configuration (GM67)",
+        "description": "Program the GM67 module with setup barcodes.",
+        "icon": "ti-qrcode",
+        "group": "Hardware",
     },
     {
         "slug": "troubleshooting",
@@ -72,10 +79,17 @@ DOCS_CATALOG = [
         "icon": "ti-lifebuoy",
         "group": "Reference",
     },
+    {
+        "slug": "gallery",
+        "title": "Screenshots & Photos",
+        "description": "Photos of the hardware build and web dashboard screenshots.",
+        "icon": "ti-photo",
+        "group": "Reference",
+    },
 ]
 
 # Build grouped structure for the index template
-_DOCS_GROUP_ORDER = ["Getting Started", "Hardware Scanner", "Phone Scanning", "Reference"]
+_DOCS_GROUP_ORDER = ["Getting Started", "Scanning", "Hardware", "Reference"]
 
 def _build_docs_groups():
     groups = {g: [] for g in _DOCS_GROUP_ORDER}
@@ -89,6 +103,7 @@ _md = mistune.create_markdown(escape=False, plugins=["table"])
 
 _HEADING_RE = re.compile(r"<h(\d)(.*?)>(.*?)</h\1>", re.DOTALL)
 _TAG_RE = re.compile(r"<[^>]+>")
+_DOC_LINK_RE = re.compile(r'href="([a-z0-9_-]+)\.md(#[^"]*)?"')
 
 
 def _slugify(text: str) -> str:
@@ -129,6 +144,13 @@ def _render_with_toc(raw: str) -> tuple[str, list[dict]]:
         return f'<h2 id="{slug}"{attrs}>{inner}</h2>'
 
     html = _HEADING_RE.sub(_replace_heading, html)
+
+    # Rewrite inter-doc links: href="slug.md" → href="/docs/slug"
+    # Keeps .md links working on GitHub while resolving in the web UI.
+    html = _DOC_LINK_RE.sub(
+        lambda m: f'href="/docs/{m.group(1)}{m.group(2) or ""}"', html
+    )
+
     return html, toc
 
 

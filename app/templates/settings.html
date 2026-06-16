@@ -259,12 +259,48 @@
                     {% endfor %}
                     {% endfor %}
 
-                    {% if not config_groups %}
+                    {% if not config_groups and current_tab != 'scanning' %}
                     <div class="empty">
                         <p class="empty-title">No settings on this tab</p>
                         <p class="empty-subtitle text-secondary">These settings are configured via environment variables in <code>.env</code>.</p>
                     </div>
                     {% endif %}
+
+                    {# ──────────── Pause section (scanning tab, admin-only) ──────────── #}
+                    {% if current_tab == 'scanning' and request.session.get('is_admin') %}
+                    <div class="card mt-3">
+                        <div class="card-header card-header-light">
+                            <div>
+                                <h3 class="card-title">Scan & Link Mode</h3>
+                                <p class="card-subtitle">Temporarily scan without adding to your shopping list.
+                                    Barcodes are still looked up, cached, and auto-linked — only the
+                                    list addition is skipped.</p>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="settings-pause-status">
+                                <div id="settings-pause-active" class="d-none">
+                                    <div class="mb-3">
+                                        <span class="badge bg-yellow text-yellow-fg">Active</span>
+                                        Resumes in <strong id="settings-pause-remaining"></strong>
+                                    </div>
+                                    <button type="button" class="btn btn-warning" id="settings-resume-btn">
+                                        <i class="ti ti-player-play icon"></i> Stop
+                                    </button>
+                                </div>
+                                <div id="settings-pause-inactive">
+                                    <div class="btn-list">
+                                        <button type="button" class="btn btn-warning pause-duration-btn" data-minutes="5">5 min</button>
+                                        <button type="button" class="btn btn-warning pause-duration-btn" data-minutes="20">20 min</button>
+                                        <button type="button" class="btn btn-warning pause-duration-btn" data-minutes="60">1 hour</button>
+                                        <button type="button" class="btn btn-warning pause-duration-btn" data-minutes="240">4 hours</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                 </div>
                 {% if has_editable %}
                 <div class="card-footer bg-transparent mt-auto">
@@ -628,7 +664,7 @@
                                     ("barcode_cache", "Barcode Cache", "Cached product lookups from OpenFoodFacts / UPCDatabase"),
                                     ("barcode_mappings", "Barcode Mappings", "Links between barcodes and Mealie food items"),
                                     ("items", "Items", "Synced Mealie food catalog (also removes mappings)"),
-                                    ("notifications", "Notifications", "Activity log and notification history"),
+                                    ("activities", "Activity Log", "Scan events, notifications, and system log entries"),
                                     ("retry_queue", "Retry Queue", "Failed requests waiting to be retried"),
                                 ] %}
                                 {% for key, label, desc in purge_tables %}
@@ -669,7 +705,7 @@
                             <div class="col-12 d-flex align-items-center justify-content-between">
                                 <div>
                                     <strong>Reset Data</strong>
-                                    <p class="text-secondary mb-0 small">Delete all barcodes, items, mappings, notifications, and retry queue. Keeps API tokens.</p>
+                                    <p class="text-secondary mb-0 small">Delete all barcodes, items, mappings, activity log, and retry queue. Keeps API tokens.</p>
                                 </div>
                                 <button type="button" class="btn btn-outline-danger ms-3"
                                     data-confirm-post="/settings/admin/reset"

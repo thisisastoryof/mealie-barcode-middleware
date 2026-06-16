@@ -63,8 +63,8 @@ class RetryQueue(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
-class Notification(Base):
-    __tablename__ = "notifications"
+class Activity(Base):
+    __tablename__ = "activities"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     barcode: Mapped[str] = mapped_column(String, nullable=False)
@@ -92,3 +92,10 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class SystemState(Base):
+    __tablename__ = "system_state"
+
+    key: Mapped[str] = mapped_column(String, primary_key=True)
+    value: Mapped[str | None] = mapped_column(String, nullable=True)

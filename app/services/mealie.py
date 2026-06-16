@@ -6,7 +6,7 @@ import httpx
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import BarcodeMapping, Item, Notification, RetryQueue
+from app.models import BarcodeMapping, Item, Activity, RetryQueue
 from app.utils import utcnow
 
 logger = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ def sync_items(db: Session) -> int:
         # Find broken mappings
         broken = db.query(BarcodeMapping).filter(BarcodeMapping.item_id == stale.id).all()
         for m in broken:
-            db.add(Notification(
+            db.add(Activity(
                 barcode=m.barcode,
                 title="Mapping broken",
                 message=f"{stale.name} was deleted in Mealie — remap needed",
