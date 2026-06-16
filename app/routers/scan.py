@@ -21,7 +21,7 @@ from app.services.mealie import (
 )
 from app.services.homeassistant import notify_scan as ha_notify_scan
 from app.pause import is_paused
-from app.utils import utcnow, sanitize_for_display
+from app.utils import utcnow
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -41,7 +41,7 @@ class ScanRequest(BaseModel):
 
 
 class ScanResponse(BaseModel):
-    result: str  # added | added_as_note | queued | unknown | needs_mapping
+    result: str  # added | added_as_note | queued | unknown | needs_mapping | error
     item: str | None = None
     via: str | None = None  # item_id | note
     needs_action: bool = False

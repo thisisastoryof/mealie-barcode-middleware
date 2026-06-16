@@ -78,6 +78,8 @@ actions:
               Not linked
             {% elif result_type == 'added' %}
               Auto-linked — review
+            {% elif result_type == 'queued' %}
+              Queued for retry
             {% else %}
               Barcode scanned
             {% endif %}
@@ -94,6 +96,8 @@ actions:
               {% endif %}
             {% elif result_type == 'added' %}
               {{ item }} — tap to review
+            {% elif result_type == 'queued' %}
+              {{ item }} — Mealie unreachable, will retry automatically
             {% else %}
               {{ item }}
             {% endif %}
